@@ -1,0 +1,51 @@
+.blog-detail-page {
+  padding: 1.5rem 0 2.5rem;
+}
+
+.blog-detail-card {
+  max-width: 960px;
+  overflow: hidden;
+}
+
+.blog-detail-cover {
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.blog-html {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.blog-html img,
+.blog-html video,
+.blog-html iframe,
+.blog-html table,
+.blog-html pre,
+.blog-html code {
+  max-width: 100%;
+}
+
+.blog-html pre {
+  white-space: pre-wrap;
+}
+
+.blog-html h2,
+.blog-html h3 {
+  color: var(--text-primary);
+  margin-top: 1.5rem;
+}
+
+.blog-html p {
+  margin-bottom: 1rem;
+}
+
+.muted {
+  color: var(--text-secondary);
+}

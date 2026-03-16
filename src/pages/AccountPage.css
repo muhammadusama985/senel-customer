@@ -1,0 +1,72 @@
+.account-page {
+  padding: 2rem 0 3rem;
+}
+
+.account-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1rem;
+}
+
+.account-sidebar {
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+}
+
+.account-sidebar button {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.7rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.account-sidebar button.active {
+  background: var(--gradient-primary);
+  border-color: transparent;
+}
+
+.account-content h3 {
+  margin-bottom: 0.7rem;
+}
+
+.simple-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.simple-list li {
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  padding: 0.6rem 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.top-actions {
+  margin-bottom: 0.7rem;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.muted {
+  color: var(--text-secondary);
+  margin: 0.2rem 0;
+}
+
+@media (max-width: 980px) {
+  .account-layout {
+    grid-template-columns: 1fr;
+  }
+}

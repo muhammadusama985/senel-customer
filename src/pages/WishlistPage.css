@@ -1,0 +1,32 @@
+.wishlist-page {
+  padding: 2rem 0 3rem;
+}
+
+.wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.9rem;
+}
+
+.wishlist-card {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.wishlist-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border);
+}
+
+.wishlist-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.muted {
+  color: var(--text-secondary);
+}

@@ -1,0 +1,33 @@
+.cms-page {
+  padding: 1.5rem 0 2.5rem;
+}
+
+.cms-content h1 {
+  margin-bottom: 1rem;
+}
+
+.cms-html {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.cms-html h2,
+.cms-html h3 {
+  color: var(--text-primary);
+  margin-top: 1.5rem;
+}
+
+.cms-html p {
+  margin-bottom: 1rem;
+}
+
+.cms-html ul,
+.cms-html ol {
+  padding-left: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.muted {
+  color: var(--text-secondary);
+}
+

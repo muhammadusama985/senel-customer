@@ -1,0 +1,51 @@
+.senel-promo-section {
+  padding: 0.5rem 0 1.25rem;
+}
+
+.senel-promo-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.15rem 1.25rem;
+  background: var(--gradient-primary);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.senel-promo-card h2 {
+  margin: 0.2rem 0 0.35rem;
+  font-size: 1.35rem;
+}
+
+.senel-promo-card p {
+  margin: 0;
+  opacity: 0.95;
+}
+
+.senel-promo-tag {
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.senel-promo-cta {
+  white-space: nowrap;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 0.8rem;
+  padding: 0.55rem 0.8rem;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 760px) {
+  .senel-promo-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+

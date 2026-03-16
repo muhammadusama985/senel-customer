@@ -1,0 +1,53 @@
+.vendor-info {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.vendor-info h4 {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.vendor-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary);
+  transition: color 0.2s;
+}
+
+.vendor-link:hover {
+  color: var(--accent);
+}
+
+.vendor-logo-small {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.vendor-name {
+  font-weight: 500;
+}
+
+.verified-badge-small {
+  width: 1rem;
+  height: 1rem;
+  color: var(--success);
+}
+
+.vendor-info-skeleton {
+  height: 2.5rem;
+  background: linear-gradient(
+    90deg,
+    var(--card-bg) 25%,
+    var(--bg-tertiary) 50%,
+    var(--card-bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: var(--radius-md);
+}

@@ -49,11 +49,17 @@ export const TrendingProducts: React.FC = () => {
           </Link>
         </div>
 
-        <div className="products-grid">
-          {products?.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
-        </div>
+        {products?.length ? (
+          <div className="products-grid">
+            {products.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="error-message">
+            {t('products.none', 'No products found')}
+          </div>
+        )}
       </div>
     </section>
   );

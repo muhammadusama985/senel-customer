@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useFeaturedSuppliers } from '../../hooks/useFeaturedSuppliers';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
 import { useI18n } from '../../i18n';
+import { resolveMediaUrl } from '../../utils/media';
 import './FeaturedSuppliers.css';
 
 export const FeaturedSuppliers: React.FC = () => {
@@ -49,46 +50,52 @@ export const FeaturedSuppliers: React.FC = () => {
           </Link>
         </div>
 
-        <div className="suppliers-grid">
-          {suppliers?.map((supplier) => (
-            <Link
-              key={supplier.id}
-              to={`/vendors/${supplier.storeSlug}`}
-              className="supplier-card"
-            >
-              <div className="supplier-logo">
-                {supplier.logoUrl ? (
-                  <img src={supplier.logoUrl} alt={supplier.storeName} />
-                ) : (
-                  <div className="supplier-placeholder">
-                    {supplier.storeName.charAt(0)}
-                  </div>
-                )}
-              </div>
-
-              <div className="supplier-info">
-                <div className="supplier-name-wrapper">
-                  <h3 className="supplier-name">{supplier.storeName}</h3>
-                  {supplier.isVerifiedBadge && (
-                    <CheckBadgeIcon className="verified-badge" />
+        {suppliers?.length ? (
+          <div className="suppliers-grid">
+            {suppliers.map((supplier) => (
+              <Link
+                key={supplier.id}
+                to={`/vendors/${supplier.storeSlug}`}
+                className="supplier-card"
+              >
+                <div className="supplier-logo">
+                  {supplier.logoUrl ? (
+                    <img src={resolveMediaUrl(supplier.logoUrl)} alt={supplier.storeName} />
+                  ) : (
+                    <div className="supplier-placeholder">
+                      {supplier.storeName.charAt(0)}
+                    </div>
                   )}
                 </div>
 
-                {supplier.business && (
-                  <p className="supplier-location">
-                    {supplier.business.city}, {supplier.business.country}
-                  </p>
-                )}
+                <div className="supplier-info">
+                  <div className="supplier-name-wrapper">
+                    <h3 className="supplier-name">{supplier.storeName}</h3>
+                    {supplier.isVerifiedBadge && (
+                      <CheckBadgeIcon className="verified-badge" />
+                    )}
+                  </div>
 
-                <div className="supplier-meta">
-                  <span className="supplier-products">
-                    {t('suppliers.viewProducts', 'View Products')} &rarr;
-                  </span>
+                  {supplier.business && (
+                    <p className="supplier-location">
+                      {supplier.business.city}, {supplier.business.country}
+                    </p>
+                  )}
+
+                  <div className="supplier-meta">
+                    <span className="supplier-products">
+                      {t('suppliers.viewProducts', 'View Products')} &rarr;
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="error-message">
+            No suppliers found
+          </div>
+        )}
       </div>
     </section>
   );

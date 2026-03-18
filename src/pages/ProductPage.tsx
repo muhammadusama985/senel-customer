@@ -100,7 +100,7 @@ const currentCategory = searchParams.get('categoryId') || '';
           <aside className={`products-sidebar ${isMobileFilterOpen ? 'open' : ''}`}>
             <ProductFilters
               initialFilters={{
-                category: currentCategory,
+                categoryId: currentCategory,
                 minPrice: currentMinPrice,
                 maxPrice: currentMaxPrice,
                 minMoq: currentMinMoq,

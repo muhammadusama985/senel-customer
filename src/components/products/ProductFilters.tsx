@@ -6,7 +6,7 @@ import { CategoryFilter } from './CategoryFilter';
 
 interface ProductFiltersProps {
   initialFilters: {
-    category?: string;
+    categoryId?: string;
     minPrice?: string;
     maxPrice?: string;
     minMoq?: string;
@@ -38,7 +38,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
 
   const applyFilters = () => {
     onFilterChange({
-      category: filters.category || '',
+      categoryId: filters.categoryId || '',
       minPrice: priceRange.min,
       maxPrice: priceRange.max,
       minMoq: filters.minMoq || '',
@@ -54,7 +54,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
   };
 
   const activeFilterCount = [
-    filters.category,
+    filters.categoryId,
     priceRange.min,
     priceRange.max,
     filters.minMoq,
@@ -75,8 +75,8 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
       </div>
 
       <CategoryFilter
-        selectedCategory={filters.category}
-        onCategoryChange={(categoryId) => handleChange('category', categoryId)}
+        selectedCategory={filters.categoryId}
+        onCategoryChange={(categoryId) => handleChange('categoryId', categoryId)}
       />
 
       <div className="filter-section">

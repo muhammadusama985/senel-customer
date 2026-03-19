@@ -193,8 +193,10 @@ export const ProductDetailPage: React.FC = () => {
                 onClick={handleAddToCart}
                 disabled={isAddingToCart}
               >
-                <ShoppingBagIcon />
-                {isAddingToCart ? t('product.adding', 'Adding...') : t('product.addToCart', 'Add to Cart')}
+                <ShoppingBagIcon className="add-to-cart-btn__icon" />
+                <span className="add-to-cart-btn__label">
+                  {isAddingToCart ? t('product.adding', 'Adding...') : t('product.addToCart', 'Add to Cart')}
+                </span>
               </button>
             </div>
 

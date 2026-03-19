@@ -63,7 +63,7 @@ export const CartPage: React.FC = () => {
   const handleCheckout = () => {
     if (!user) {
       toast.error('Please login to checkout');
-      navigate('/login');
+      navigate('/login', { state: { from: '/checkout' } });
       return;
     }
     navigate('/checkout');

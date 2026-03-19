@@ -122,7 +122,9 @@ export const CheckoutPage: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!user) navigate('/login');
+    if (!user) {
+      navigate('/login', { replace: true, state: { from: '/checkout' } });
+    }
   }, [user, navigate]);
 
   useEffect(() => {

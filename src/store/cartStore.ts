@@ -33,6 +33,7 @@ interface CartState {
   isLoading: boolean;
   error: string | null;
   normalizeServerItems: (serverItems: any[]) => CartItem[];
+  setCartFromItems: (items: CartItem[]) => void;
   
   fetchCart: () => Promise<void>;
   addItem: (
@@ -75,6 +76,18 @@ export const useCartStore = create<CartState>()(
         }));
       },
 
+      setCartFromItems: (items) => {
+        const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+        const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+        set({
+          items,
+          subtotal,
+          itemCount,
+          isLoading: false,
+          error: null,
+        });
+      },
+
       fetchCart: async () => {
         const token = localStorage.getItem('customerToken');
         if (!token) return;
@@ -86,9 +99,10 @@ export const useCartStore = create<CartState>()(
           const normalizedItems = get().normalizeServerItems(cart.items || []);
           set({
             items: normalizedItems,
-            subtotal: cart.subtotal || 0,
-            itemCount: cart.totalItems || 0,
+            subtotal: cart.subtotal || normalizedItems.reduce((sum, item) => sum + item.lineTotal, 0),
+            itemCount: cart.totalItems || normalizedItems.reduce((sum, item) => sum + item.quantity, 0),
             isLoading: false,
+            error: null,
           });
         } catch (error: any) {
           set({ 
@@ -254,7 +268,27 @@ export const useCartStore = create<CartState>()(
               // Keep merge resilient; skip invalid/out-of-stock items.
             }
           }
-          await get().fetchCart();
+          try {
+            const response = await api.get<CartResponse>('/cart/me');
+            const cart = response.data.cart;
+            const normalizedItems = get().normalizeServerItems(cart.items || []);
+
+            // Keep the guest cart visible if the server merge responds empty right after login.
+            if (normalizedItems.length === 0 && guestItems.length > 0) {
+              get().setCartFromItems(guestItems);
+              return;
+            }
+
+            set({
+              items: normalizedItems,
+              subtotal: cart.subtotal || normalizedItems.reduce((sum, item) => sum + item.lineTotal, 0),
+              itemCount: cart.totalItems || normalizedItems.reduce((sum, item) => sum + item.quantity, 0),
+              isLoading: false,
+              error: null,
+            });
+          } catch {
+            get().setCartFromItems(guestItems);
+          }
         } finally {
           set({ isLoading: false });
         }

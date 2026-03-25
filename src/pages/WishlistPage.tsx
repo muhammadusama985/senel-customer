@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import api from '../api/client';
 import { useCartStore } from '../store/cartStore';
 import { useI18n } from '../i18n';
+import { formatMoney } from '../utils/currency';
 import './WishlistPage.css';
 
 interface WishlistProduct {
@@ -13,6 +14,7 @@ interface WishlistProduct {
   imageUrls?: string[];
   vendorId: string;
   moq?: number;
+  currency?: 'EUR' | 'TRY' | 'USD';
   priceTiers?: Array<{ minQty: number; unitPrice: number }>;
 }
 
@@ -65,6 +67,7 @@ export const WishlistPage: React.FC = () => {
         title: item.product.title,
         unitPrice: price,
         imageUrl: item.product.imageUrls?.[0] || '',
+        currency: item.product.currency,
         moq: qty,
       });
       toast.success(t('wishlist.addToCart', 'Add to Cart'));
@@ -95,7 +98,7 @@ export const WishlistPage: React.FC = () => {
                   />
                   <h3>{product.title}</h3>
                   <p className="muted">
-                    MOQ: {product.moq || 1} | From EUR {Number(product.priceTiers?.[0]?.unitPrice || 0).toFixed(2)}
+                    MOQ: {product.moq || 1} | From {formatMoney(Number(product.priceTiers?.[0]?.unitPrice || 0), product.currency)}
                   </p>
                   <div className="wishlist-actions">
                     <Link to={`/products/${product.slug || product._id}`} className="btn btn-outline">{t('wishlist.view', 'View')}</Link>

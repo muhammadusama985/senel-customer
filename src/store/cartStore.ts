@@ -13,6 +13,7 @@ export interface CartItem {
   lineTotal: number;
   imageUrl?: string;
   variantSku?: string;
+  currency?: 'EUR' | 'TRY' | 'USD';
   moq?: number;
   requiresManualShipping?: boolean;
 }
@@ -71,6 +72,7 @@ export const useCartStore = create<CartState>()(
           lineTotal: Number(raw.lineTotal || 0),
           imageUrl: raw.imageUrl || '',
           variantSku: raw.variantSku || '',
+          currency: raw.currency || 'EUR',
           moq: Number(raw.moq || 1),
           requiresManualShipping: Boolean(raw.requiresManualShipping),
         }));
@@ -126,7 +128,7 @@ export const useCartStore = create<CartState>()(
                   ? {
                       ...item,
                       quantity: item.quantity + quantity,
-                      lineTotal: unitPrice * (item.quantity + quantity),
+                  lineTotal: unitPrice * (item.quantity + quantity),
                     }
                   : item
               )
@@ -143,6 +145,7 @@ export const useCartStore = create<CartState>()(
                   lineTotal: unitPrice * quantity,
                   imageUrl: productData?.imageUrl,
                   variantSku,
+                  currency: productData?.currency || 'EUR',
                   moq: productData?.moq,
                   requiresManualShipping: productData?.requiresManualShipping,
                 },

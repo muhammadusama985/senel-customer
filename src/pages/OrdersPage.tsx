@@ -6,6 +6,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import api from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { useI18n } from '../i18n';
+import { formatMoney } from '../utils/currency';
 import './OrdersPage.css';
 
 interface VendorOrder {
@@ -27,6 +28,7 @@ interface Order {
   shippingQuoteNote?: string;
   shippingTotal?: number;
   grandTotal: number;
+  currency?: 'EUR' | 'TRY' | 'USD';
   createdAt: string;
   bankTransfer?: {
     proofUrl?: string;
@@ -40,6 +42,7 @@ interface OrderItem {
   title: string;
   qty: number;
   lineTotal: number;
+  currency?: 'EUR' | 'TRY' | 'USD';
 }
 
 interface OrderDetail {
@@ -282,7 +285,7 @@ export const OrdersPage: React.FC = () => {
                     <span className="badge">{order.status}</span>
                   </div>
                 </div>
-                <p>Total: <strong>EUR {Number(order.grandTotal || 0).toFixed(2)}</strong></p>
+                <p>Total: <strong>{formatMoney(Number(order.grandTotal || 0), order.currency)}</strong></p>
                 <p className="muted">{t('orders.payment', 'Payment')}: {order.paymentStatus || '-'}</p>
                 <div className="order-actions">
                   <button className="btn btn-outline" onClick={() => loadOrderDetail(order._id)}>{t('orders.view', 'View')}</button>
@@ -351,7 +354,7 @@ export const OrdersPage: React.FC = () => {
               {selectedOrder.items.map((item) => (
                 <li key={item._id}>
                   <span>{item.title} x {item.qty}</span>
-                  <strong>EUR {Number(item.lineTotal || 0).toFixed(2)}</strong>
+                  <strong>{formatMoney(Number(item.lineTotal || 0), item.currency || selectedOrder.order.currency)}</strong>
                 </li>
               ))}
             </ul>

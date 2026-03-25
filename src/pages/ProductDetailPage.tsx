@@ -167,6 +167,7 @@ export const ProductDetailPage: React.FC = () => {
         title: product.title,
         unitPrice: product.priceTiers?.[0]?.unitPrice || 0,
         imageUrl: images[0],
+        currency: product.currency,
         moq: product.moq,
       });
       toast.success(`Added ${quantity} units to cart`);

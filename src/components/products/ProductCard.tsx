@@ -5,6 +5,7 @@ import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { useCartStore } from '../../store/cartStore';
 import { useWishlistStore } from '../../store/wishlistStore';
 import { Product } from '../../types/product';
+import { formatMoney } from '../../utils/currency';
 import toast from 'react-hot-toast';
 import './ProductCard.css';
 
@@ -81,6 +82,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         title: product.title,
         unitPrice: lowestPrice,
         imageUrl,
+        currency: product.currency,
         moq: product.moq,
       });
       toast.success(`Added ${product.moq} units to cart`, {
@@ -137,10 +139,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <div className="product-price-section">
             <div className="product-price">
               <span className="current-price">
-                EUR {lowestPrice.toFixed(2)}
+                {formatMoney(lowestPrice, product.currency)}
               </span>
               <span className="original-price">
-                EUR {(lowestPrice * 1.2).toFixed(2)}
+                {formatMoney(lowestPrice * 1.2, product.currency)}
               </span>
             </div>
 

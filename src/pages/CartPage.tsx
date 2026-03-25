@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { TrashIcon, ArrowLeftIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { useI18n } from '../i18n';
+import { formatMoney } from '../utils/currency';
 import './CartPage.css';
 
 export const CartPage: React.FC = () => {
@@ -125,7 +126,7 @@ export const CartPage: React.FC = () => {
                     <Link to={`/products/${item.slug || item.productId}`} className="cart-item-title">
                       {item.title}
                     </Link>
-                    <div className="cart-item-price">EUR {item.unitPrice.toFixed(2)} per unit</div>
+                    <div className="cart-item-price">{formatMoney(item.unitPrice, item.currency)} per unit</div>
                     <div className="cart-item-price">MOQ step: {step}</div>
                   </div>
 
@@ -150,7 +151,7 @@ export const CartPage: React.FC = () => {
                   </div>
 
                   <div className="cart-item-total">
-                    <div className="total-price">EUR {item.lineTotal.toFixed(2)}</div>
+                    <div className="total-price">{formatMoney(item.lineTotal, item.currency)}</div>
                     <button
                       onClick={() => handleRemoveItem(key)}
                       className="remove-item-btn"
@@ -169,7 +170,7 @@ export const CartPage: React.FC = () => {
 
             <div className="summary-row">
               <span>Subtotal ({itemCount} items)</span>
-              <span>EUR {subtotal.toFixed(2)}</span>
+              <span>{formatMoney(subtotal, items[0]?.currency)}</span>
             </div>
 
             <div className="summary-row">
@@ -179,7 +180,7 @@ export const CartPage: React.FC = () => {
 
             <div className="summary-row total">
               <span>Estimated Total</span>
-              <span>EUR {subtotal.toFixed(2)}</span>
+              <span>{formatMoney(subtotal, items[0]?.currency)}</span>
             </div>
 
             <button onClick={handleCheckout} className="btn btn-primary btn-large checkout-btn">

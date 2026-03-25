@@ -7,6 +7,7 @@ import api from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useI18n } from '../i18n';
+import { formatMoney } from '../utils/currency';
 import './CheckoutPage.css';
 
 interface Address {
@@ -408,9 +409,9 @@ export const CheckoutPage: React.FC = () => {
               </div>
             )}
             <div className="summary-item"><span>{t('checkout.items', 'Items')}</span><span>{items.length}</span></div>
-            <div className="summary-item"><span>{t('checkout.subtotal', 'Subtotal')}</span><span>EUR {subtotal.toFixed(2)}</span></div>
-            <div className="summary-item"><span>{t('checkout.discount', 'Discount')}</span><span>- EUR {discountTotal.toFixed(2)}</span></div>
-            <div className="summary-item total"><span>{t('checkout.total', 'Total')}</span><span>EUR {grandTotal.toFixed(2)}</span></div>
+            <div className="summary-item"><span>{t('checkout.subtotal', 'Subtotal')}</span><span>{formatMoney(subtotal, items[0]?.currency)}</span></div>
+            <div className="summary-item"><span>{t('checkout.discount', 'Discount')}</span><span>- {formatMoney(discountTotal, items[0]?.currency)}</span></div>
+            <div className="summary-item total"><span>{t('checkout.total', 'Total')}</span><span>{formatMoney(grandTotal, items[0]?.currency)}</span></div>
 
             <button
               className="btn btn-primary place-order-btn"

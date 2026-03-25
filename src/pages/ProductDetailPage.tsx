@@ -54,6 +54,20 @@ export const ProductDetailPage: React.FC = () => {
     api.post('/recently-viewed/me', { productId: product._id }).catch(() => {});
   }, [user, product?._id]);
 
+  const selectedVariant = product?.hasVariants
+    ? product.variants?.find((variant: any) => variant.sku === selectedVariantSku)
+    : null;
+  const availableStock = product?.hasVariants
+    ? Number(selectedVariant?.stockQty || 0)
+    : Number(product?.stockQty || 0);
+
+  useEffect(() => {
+    if (!product) return;
+    if (availableStock > 0 && quantity > availableStock) {
+      setQuantity(Math.max(product.moq, availableStock));
+    }
+  }, [availableStock, quantity, product]);
+
   if (isLoading) {
     return (
       <div className="product-detail-loading">
@@ -92,17 +106,11 @@ export const ProductDetailPage: React.FC = () => {
   }
 
   const isWishlisted = isInWishlist(product._id);
-  const selectedVariant = product.hasVariants
-    ? product.variants?.find((variant: any) => variant.sku === selectedVariantSku)
-    : null;
   const images = selectedVariant?.imageUrls?.length
     ? selectedVariant.imageUrls
     : product.imageUrls?.length
       ? product.imageUrls
       : ['/images/placeholder.jpg'];
-  const availableStock = product.hasVariants
-    ? Number(selectedVariant?.stockQty || 0)
-    : Number(product.stockQty || 0);
   const currencySymbol = product.currency === 'USD' ? '$' : product.currency === 'TRY' ? 'TRY ' : 'EUR ';
   const canMeetMinimumOrder = availableStock >= product.moq;
   const quantityExceedsStock = canMeetMinimumOrder && quantity > availableStock;
@@ -124,12 +132,6 @@ export const ProductDetailPage: React.FC = () => {
     }
     setQuantity(normalized);
   };
-
-  useEffect(() => {
-    if (availableStock > 0 && quantity > availableStock) {
-      setQuantity(Math.max(product.moq, availableStock));
-    }
-  }, [availableStock, quantity, product.moq]);
 
   const handleWishlist = async () => {
     if (isWishlisted) {

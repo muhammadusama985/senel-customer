@@ -24,7 +24,7 @@ export const Header: React.FC = () => {
     (localStorage.getItem('appLanguage') as 'en' | 'de' | 'tr') || 'en'
   );
   const [theme, setTheme] = useState<'dark' | 'light'>(
-    (localStorage.getItem('appTheme') as 'dark' | 'light') || 'dark'
+    (localStorage.getItem('appTheme') as 'dark' | 'light') || 'light'
   );
   const accountMenuRef = useRef<HTMLDivElement>(null);
 

@@ -72,6 +72,15 @@
   border-bottom-color: var(--border-light);
 }
 
+.price-tiers-table tr.unavailable-tier td {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.price-tiers-table tr.unavailable-tier:hover td {
+  background-color: transparent;
+}
+
 .quantity-cell {
   position: relative;
   font-weight: 500;
@@ -130,6 +139,13 @@
 
 .quantity-selector-section {
   margin-bottom: 1.2rem;
+}
+
+.stock-limit-note {
+  margin-top: -0.55rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
 }
 
 .quantity-label {

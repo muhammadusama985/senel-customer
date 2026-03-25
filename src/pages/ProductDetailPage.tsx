@@ -23,6 +23,7 @@ export const ProductDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(0);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedVariantSku, setSelectedVariantSku] = useState('');
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const { data: product, isLoading, error } = useProduct(slug || '');
@@ -36,6 +37,16 @@ export const ProductDetailPage: React.FC = () => {
     if (product?.moq) {
       setQuantity(product.moq);
     }
+  }, [product]);
+
+  useEffect(() => {
+    if (!product?.hasVariants) {
+      setSelectedVariantSku('');
+      return;
+    }
+
+    const firstInStockVariant = product.variants?.find((variant: any) => Number(variant.stockQty || 0) > 0);
+    setSelectedVariantSku(firstInStockVariant?.sku || product.variants?.[0]?.sku || '');
   }, [product]);
 
   useEffect(() => {
@@ -81,7 +92,44 @@ export const ProductDetailPage: React.FC = () => {
   }
 
   const isWishlisted = isInWishlist(product._id);
-  const images = product.imageUrls?.length ? product.imageUrls : ['/images/placeholder.jpg'];
+  const selectedVariant = product.hasVariants
+    ? product.variants?.find((variant: any) => variant.sku === selectedVariantSku)
+    : null;
+  const images = selectedVariant?.imageUrls?.length
+    ? selectedVariant.imageUrls
+    : product.imageUrls?.length
+      ? product.imageUrls
+      : ['/images/placeholder.jpg'];
+  const availableStock = product.hasVariants
+    ? Number(selectedVariant?.stockQty || 0)
+    : Number(product.stockQty || 0);
+  const currencySymbol = product.currency === 'USD' ? '$' : product.currency === 'TRY' ? 'TRY ' : 'EUR ';
+  const canMeetMinimumOrder = availableStock >= product.moq;
+  const quantityExceedsStock = canMeetMinimumOrder && quantity > availableStock;
+  const isOutOfStock = availableStock <= 0 || !canMeetMinimumOrder;
+
+  const getVariantLabel = (variant: any) => {
+    const parts = Object.entries(variant?.attributes || {}).map(([key, value]) => `${key}: ${value}`);
+    if (parts.length) {
+      return `${parts.join(' / ')} (${variant.sku})`;
+    }
+    return variant?.sku || 'Variant';
+  };
+
+  const handleQuantityChange = (nextQuantity: number) => {
+    const normalized = Math.max(product.moq, nextQuantity);
+    if (canMeetMinimumOrder) {
+      setQuantity(Math.min(normalized, availableStock));
+      return;
+    }
+    setQuantity(normalized);
+  };
+
+  useEffect(() => {
+    if (availableStock > 0 && quantity > availableStock) {
+      setQuantity(Math.max(product.moq, availableStock));
+    }
+  }, [availableStock, quantity, product.moq]);
 
   const handleWishlist = async () => {
     if (isWishlisted) {
@@ -94,9 +142,24 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   const handleAddToCart = async () => {
+    if (product.hasVariants && !selectedVariantSku) {
+      toast.error('Please select a product option first');
+      return;
+    }
+
+    if (isOutOfStock) {
+      toast.error('This product is out of stock');
+      return;
+    }
+
+    if (quantityExceedsStock) {
+      toast.error(`Only ${availableStock} units are available`);
+      return;
+    }
+
     setIsAddingToCart(true);
     try {
-      await addItem(product._id, quantity, '', {
+      await addItem(product._id, quantity, selectedVariantSku, {
         vendorId: product.vendorId,
         slug: product.slug,
         title: product.title,
@@ -180,18 +243,50 @@ export const ProductDetailPage: React.FC = () => {
 
             <p className="product-description">{product.description}</p>
 
+            {product.hasVariants && (
+              <div className="variant-selector-section">
+                <label htmlFor="variant-sku" className="variant-selector-label">
+                  Select Option:
+                </label>
+                <select
+                  id="variant-sku"
+                  className="variant-selector"
+                  value={selectedVariantSku}
+                  onChange={(e) => {
+                    setSelectedVariantSku(e.target.value);
+                    setSelectedImage(0);
+                  }}
+                >
+                  {(product.variants || []).map((variant: any) => (
+                    <option key={variant.sku} value={variant.sku}>
+                      {getVariantLabel(variant)}
+                    </option>
+                  ))}
+                </select>
+                <div className={`variant-stock ${isOutOfStock ? 'out' : ''}`}>
+                  {availableStock <= 0
+                    ? 'Out of stock'
+                    : !canMeetMinimumOrder
+                      ? `Only ${availableStock} units available. Minimum order is ${product.moq}.`
+                      : `${availableStock} units available`}
+                </div>
+              </div>
+            )}
+
             <TieredPricing
               tiers={product.priceTiers}
               selectedQuantity={quantity}
-              onQuantityChange={setQuantity}
+              onQuantityChange={handleQuantityChange}
               moq={product.moq}
+              maxQty={canMeetMinimumOrder ? availableStock : undefined}
+              currencySymbol={currencySymbol}
             />
 
             <div className="add-to-cart-section">
               <button
                 className="btn btn-primary btn-large add-to-cart-btn"
                 onClick={handleAddToCart}
-                disabled={isAddingToCart}
+                disabled={isAddingToCart || isOutOfStock || quantityExceedsStock || (product.hasVariants && !selectedVariantSku)}
               >
                 <ShoppingBagIcon className="add-to-cart-btn__icon" />
                 <span className="add-to-cart-btn__label">

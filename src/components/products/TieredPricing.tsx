@@ -12,6 +12,8 @@ interface TieredPricingProps {
   selectedQuantity: number;
   onQuantityChange: (qty: number) => void;
   moq: number;
+  maxQty?: number;
+  currencySymbol?: string;
 }
 
 export const TieredPricing: React.FC<TieredPricingProps> = ({
@@ -19,13 +21,19 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   selectedQuantity,
   onQuantityChange,
   moq,
+  maxQty,
+  currencySymbol = 'EUR ',
 }) => {
   const sortedTiers = [...tiers].sort((a, b) => a.minQty - b.minQty);
+  const activeTier = [...sortedTiers]
+    .reverse()
+    .find((tier) => selectedQuantity >= tier.minQty) || sortedTiers[0];
+  const activeTierMinQty = activeTier?.minQty;
 
   const getPriceForQuantity = (qty: number) => {
     const applicableTier = [...sortedTiers]
       .reverse()
-      .find(tier => qty >= tier.minQty);
+      .find((tier) => qty >= tier.minQty);
     return applicableTier?.unitPrice || sortedTiers[0]?.unitPrice || 0;
   };
 
@@ -43,6 +51,8 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   const currentPrice = getPriceForQuantity(selectedQuantity);
   const totalPrice = currentPrice * selectedQuantity;
   const savings = getSavings();
+  const hasStockLimit = typeof maxQty === 'number' && maxQty > 0;
+  const disableIncrement = hasStockLimit && selectedQuantity >= maxQty;
 
   return (
     <div className="tiered-pricing">
@@ -62,14 +72,18 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
           </thead>
           <tbody>
             {sortedTiers.map((tier, index) => {
-              const isActive = selectedQuantity >= tier.minQty;
-              const tierTotal = tier.unitPrice * selectedQuantity;
+              const isActive = tier.minQty === activeTierMinQty;
+              const tierSelectable = !hasStockLimit || tier.minQty <= maxQty;
+              const tierTotal = tier.unitPrice * (isActive ? selectedQuantity : tier.minQty);
 
               return (
                 <tr
                   key={index}
-                  className={isActive ? 'active-tier' : ''}
-                  onClick={() => onQuantityChange(tier.minQty)}
+                  className={`${isActive ? 'active-tier' : ''} ${!tierSelectable ? 'unavailable-tier' : ''}`.trim()}
+                  onClick={() => {
+                    if (!tierSelectable) return;
+                    onQuantityChange(hasStockLimit ? Math.min(tier.minQty, maxQty) : tier.minQty);
+                  }}
                 >
                   <td className="quantity-cell">
                     {tier.minQty}+
@@ -78,13 +92,13 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
                     )}
                   </td>
                   <td className="price-cell">
-                    €{tier.unitPrice.toFixed(2)}
+                    {currencySymbol}{tier.unitPrice.toFixed(2)}
                     {index === 0 && (
                       <span className="base-badge">Base</span>
                     )}
                   </td>
                   <td className="total-cell">
-                    €{tierTotal.toFixed(2)}
+                    {currencySymbol}{tierTotal.toFixed(2)}
                   </td>
                 </tr>
               );
@@ -97,7 +111,7 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
         <div className="savings-banner">
           <InformationCircleIcon className="icon-small" />
           <span>
-            You save €{savings.savings.toFixed(2)} per unit
+            You save {currencySymbol}{savings.savings.toFixed(2)} per unit
             ({savings.savingsPercent.toFixed(1)}% off base price)
           </span>
         </div>
@@ -113,37 +127,50 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
             onClick={() => onQuantityChange(Math.max(moq, selectedQuantity - moq))}
             disabled={selectedQuantity <= moq}
           >
-            −
+            -
           </button>
           <input
             id="quantity"
             type="number"
             value={selectedQuantity}
             onChange={(e) => {
-              const val = parseInt(e.target.value);
-              if (val >= moq) onQuantityChange(val);
+              const val = parseInt(e.target.value, 10);
+              if (Number.isNaN(val) || val < moq) return;
+              if (hasStockLimit && val > maxQty) {
+                onQuantityChange(maxQty);
+                return;
+              }
+              onQuantityChange(val);
             }}
             min={moq}
+            max={hasStockLimit ? maxQty : undefined}
             step={moq}
             className="quantity-input"
           />
           <button
             className="quantity-btn"
             onClick={() => onQuantityChange(selectedQuantity + moq)}
+            disabled={disableIncrement}
           >
             +
           </button>
         </div>
       </div>
 
+      {hasStockLimit && (
+        <div className="stock-limit-note">
+          Maximum available quantity: {maxQty}
+        </div>
+      )}
+
       <div className="price-summary">
         <div className="summary-row">
           <span className="summary-label">Unit Price:</span>
-          <span className="summary-value">€{currentPrice.toFixed(2)}</span>
+          <span className="summary-value">{currencySymbol}{currentPrice.toFixed(2)}</span>
         </div>
         <div className="summary-row total">
           <span className="summary-label">Total:</span>
-          <span className="summary-value">€{totalPrice.toFixed(2)}</span>
+          <span className="summary-value">{currencySymbol}{totalPrice.toFixed(2)}</span>
         </div>
       </div>
     </div>

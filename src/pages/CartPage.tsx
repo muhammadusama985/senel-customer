@@ -29,8 +29,8 @@ export const CartPage: React.FC = () => {
     setUpdatingItems((prev) => new Set(prev).add(cartItemId));
     try {
       await updateQuantity(cartItemId, newQuantity);
-    } catch {
-      toast.error('Failed to update quantity');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Failed to update quantity');
     } finally {
       setUpdatingItems((prev) => {
         const next = new Set(prev);
@@ -113,6 +113,8 @@ export const CartPage: React.FC = () => {
           <div className="cart-items">
             {items.map((item) => {
               const key = item.cartItemId || item.productId;
+              const step = Math.max(Number(item.moq || 1), 1);
+              const nextDecreaseQty = item.quantity - step;
               return (
                 <div key={key} className="cart-item">
                   <div className="cart-item-image">
@@ -124,12 +126,13 @@ export const CartPage: React.FC = () => {
                       {item.title}
                     </Link>
                     <div className="cart-item-price">EUR {item.unitPrice.toFixed(2)} per unit</div>
+                    <div className="cart-item-price">MOQ step: {step}</div>
                   </div>
 
                   <div className="cart-item-quantity">
                     <button
-                      onClick={() => handleUpdateQuantity(key, item.quantity - 1)}
-                      disabled={item.quantity <= 1 || updatingItems.has(key)}
+                      onClick={() => handleUpdateQuantity(key, nextDecreaseQty)}
+                      disabled={nextDecreaseQty < step || updatingItems.has(key)}
                       className="quantity-btn"
                     >
                       <MinusIcon className="icon-small" />
@@ -138,7 +141,7 @@ export const CartPage: React.FC = () => {
                     <span className="quantity-value">{updatingItems.has(key) ? '...' : item.quantity}</span>
 
                     <button
-                      onClick={() => handleUpdateQuantity(key, item.quantity + 1)}
+                      onClick={() => handleUpdateQuantity(key, item.quantity + step)}
                       disabled={updatingItems.has(key)}
                       className="quantity-btn"
                     >

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBagIcon, HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { useCartStore } from '../../store/cartStore';
@@ -13,6 +13,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -53,6 +54,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (product.hasVariants) {
+      toast('Please select a product option first.', {
+        style: {
+          background: 'var(--card-bg)',
+          color: 'var(--text-primary)',
+          border: '1px solid var(--border)',
+        },
+      });
+      navigate(`/products/${product.slug}`);
+      return;
+    }
+
+    if (Number(product.stockQty || 0) < Number(product.moq || 1)) {
+      toast.error('This product does not currently have enough stock for the minimum order.');
+      navigate(`/products/${product.slug}`);
+      return;
+    }
 
     setIsAddingToCart(true);
     try {
@@ -146,7 +165,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <button
             className={`btn btn-primary add-to-cart-btn ${isAddingToCart ? 'loading' : ''}`}
             onClick={handleAddToCart}
-            disabled={isAddingToCart}
+            disabled={isAddingToCart || (!product.hasVariants && Number(product.stockQty || 0) < Number(product.moq || 1))}
           >
             {isAddingToCart ? (
               <>

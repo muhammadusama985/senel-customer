@@ -9,11 +9,17 @@ interface ProductSpecsProps {
 
 export const ProductSpecs: React.FC<ProductSpecsProps> = ({ product }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const totalVariantStock = (product.variants || []).reduce((sum, variant) => sum + Number(variant.stockQty || 0), 0);
+  const displayStock = product.hasVariants ? totalVariantStock : product.stockQty;
+  const displaySku = product.hasVariants
+    ? (product.variants || []).map((variant) => variant.sku).filter(Boolean).join(', ')
+    : product.sku || 'N/A';
 
   const baseSpecs = [
     { label: 'MOQ (Minimum Order Quantity)', value: product.moq?.toLocaleString() || 'N/A' },
     { label: 'Country of Origin', value: product.country || 'Not specified' },
-    { label: 'Stock Available', value: product.stockQty?.toLocaleString() || '0' },
+    { label: 'Stock Available', value: displayStock?.toLocaleString() || '0' },
+    { label: 'SKU', value: displaySku },
     { label: 'Product ID', value: product._id },
     { label: 'Vendor ID', value: product.vendorId },
     { label: 'Category ID', value: product.categoryId },

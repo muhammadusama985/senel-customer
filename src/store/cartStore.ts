@@ -197,6 +197,7 @@ export const useCartStore = create<CartState>()(
             error: error.response?.data?.message || 'Failed to update quantity',
             isLoading: false 
           });
+          throw error;
         }
       },
 

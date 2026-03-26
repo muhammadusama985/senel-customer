@@ -24,8 +24,11 @@ export const useWishlistStore = create<WishlistState>()(
         set({ isLoading: true });
         try {
           const response = await api.get('/wishlist/me');
+          const ids = Array.from(
+            new Set((response.data.items || []).map((i: any) => String(i.productId)))
+          );
           set({ 
-            items: response.data.items.map((i: any) => i.productId),
+            items: ids,
             isLoading: false 
           });
         } catch (error) {
@@ -38,7 +41,7 @@ export const useWishlistStore = create<WishlistState>()(
         if (!token) {
           // Guest wishlist - store locally
           set((state) => ({
-            items: [...state.items, productId]
+            items: Array.from(new Set([...state.items, String(productId)]))
           }));
           return;
         }
@@ -46,7 +49,7 @@ export const useWishlistStore = create<WishlistState>()(
         try {
           await api.post('/wishlist/me', { productId });
           set((state) => ({
-            items: [...state.items, productId]
+            items: Array.from(new Set([...state.items, String(productId)]))
           }));
         } catch (error) {
           console.error('Failed to add to wishlist:', error);
@@ -58,7 +61,7 @@ export const useWishlistStore = create<WishlistState>()(
         
         if (!token) {
           set((state) => ({
-            items: state.items.filter(id => id !== productId)
+            items: state.items.filter(id => String(id) !== String(productId))
           }));
           return;
         }
@@ -66,7 +69,7 @@ export const useWishlistStore = create<WishlistState>()(
         try {
           await api.delete(`/wishlist/me/${productId}`);
           set((state) => ({
-            items: state.items.filter(id => id !== productId)
+            items: state.items.filter(id => String(id) !== String(productId))
           }));
         } catch (error) {
           console.error('Failed to remove from wishlist:', error);
@@ -74,7 +77,7 @@ export const useWishlistStore = create<WishlistState>()(
       },
 
       isInWishlist: (productId) => {
-        return get().items.includes(productId);
+        return get().items.some((id) => String(id) === String(productId));
       },
     }),
     {

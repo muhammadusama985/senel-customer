@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { Layout } from './components/layout/Layout';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useAuthStore } from './store/authStore';
+import { useWishlistStore } from './store/wishlistStore';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -37,10 +38,15 @@ const queryClient = new QueryClient({
 
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
+  const { fetchWishlist } = useWishlistStore();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    fetchWishlist();
+  }, [fetchWishlist]);
 
   if (isLoading) {
     return (

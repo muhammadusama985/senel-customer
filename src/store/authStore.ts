@@ -46,15 +46,11 @@ export const useAuthStore = create<AuthState>()(
       register: async (data) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await api.post('/auth/register', {
+          await api.post('/auth/register', {
             ...data,
             role: 'customer'
           });
-          const { accessToken, user } = response.data;
-          
-          localStorage.setItem('customerToken', accessToken);
-          set({ user, token: accessToken, isLoading: false });
-          await useCartStore.getState().syncGuestCartToServer();
+          set({ user: null, token: null, isLoading: false, error: null });
         } catch (error: any) {
           set({ 
             error: error.response?.data?.message || 'Registration failed', 

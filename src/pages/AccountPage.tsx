@@ -85,6 +85,14 @@ interface CustomerDispute {
   subject: string;
   status: string;
   reason?: string;
+  description?: string;
+  createdAt?: string;
+}
+
+interface DisputeMessage {
+  _id: string;
+  senderRole: 'customer' | 'vendor' | 'admin';
+  message: string;
   createdAt?: string;
 }
 
@@ -140,6 +148,10 @@ export const AccountPage: React.FC = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
   const [disputes, setDisputes] = useState<CustomerDispute[]>([]);
+  const [selectedDispute, setSelectedDispute] = useState<CustomerDispute | null>(null);
+  const [disputeMessages, setDisputeMessages] = useState<DisputeMessage[]>([]);
+  const [disputeReply, setDisputeReply] = useState('');
+  const [disputeBusy, setDisputeBusy] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -244,6 +256,33 @@ export const AccountPage: React.FC = () => {
       setDisputes(Array.isArray(response.data.items) ? response.data.items : []);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to load disputes');
+    }
+  };
+
+  const openDispute = async (dispute: CustomerDispute) => {
+    setDisputeBusy(true);
+    try {
+      const response = await api.get<{ dispute: CustomerDispute; messages: DisputeMessage[] }>(`/disputes/${dispute._id}`);
+      setSelectedDispute(response.data.dispute);
+      setDisputeMessages(Array.isArray(response.data.messages) ? response.data.messages : []);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to load dispute');
+    } finally {
+      setDisputeBusy(false);
+    }
+  };
+
+  const sendDisputeReply = async () => {
+    if (!selectedDispute?._id || !disputeReply.trim()) return;
+    setDisputeBusy(true);
+    try {
+      await api.post(`/disputes/${selectedDispute._id}/messages`, { message: disputeReply.trim() });
+      setDisputeReply('');
+      await openDispute(selectedDispute);
+      await loadDisputes();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to send reply');
+      setDisputeBusy(false);
     }
   };
 
@@ -626,6 +665,9 @@ export const AccountPage: React.FC = () => {
                         </div>
                         <p>{dispute.subject}</p>
                         <p className="muted">{dispute.reason ? dispute.reason.replace('_', ' ') : 'other'} • {safeDate(dispute.createdAt)}</p>
+                        <div className="row-actions">
+                          <button className="btn btn-outline" onClick={() => void openDispute(dispute)}>View Discussion</button>
+                        </div>
                       </article>
                     ))}
                   </div>
@@ -703,6 +745,51 @@ export const AccountPage: React.FC = () => {
           </section>
         </div>
       </div>
+
+      {selectedDispute && (
+        <div className="order-modal-backdrop" onClick={() => setSelectedDispute(null)}>
+          <div className="order-modal card refund-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="order-modal-head">
+              <h3>{selectedDispute.disputeNumber}</h3>
+              <button className="btn btn-outline" onClick={() => setSelectedDispute(null)}>Close</button>
+            </div>
+            <p><strong>Status:</strong> {selectedDispute.status.replace('_', ' ')}</p>
+            <p><strong>Reason:</strong> {(selectedDispute.reason || 'other').replace('_', ' ')}</p>
+            <p>{selectedDispute.description || selectedDispute.subject}</p>
+            {disputeBusy && disputeMessages.length === 0 ? (
+              <div className="account-panel">Loading dispute...</div>
+            ) : (
+              <div className="account-stack">
+                {disputeMessages.map((message) => (
+                  <div key={message._id} className="account-panel">
+                    <div className="dispute-head">
+                      <strong>{message.senderRole === 'customer' ? 'You' : message.senderRole === 'vendor' ? 'Vendor' : 'Admin'}</strong>
+                      <span className="muted">{safeDate(message.createdAt)}</span>
+                    </div>
+                    <p>{message.message}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            {selectedDispute.status !== 'closed' ? (
+              <div className="account-stack" style={{ marginTop: '1rem' }}>
+                <textarea
+                  className="account-field"
+                  value={disputeReply}
+                  onChange={(e) => setDisputeReply(e.target.value)}
+                  placeholder="Reply to this dispute..."
+                  rows={4}
+                />
+                <div className="account-actions">
+                  <button className="btn btn-primary" onClick={() => void sendDisputeReply()} disabled={disputeBusy || !disputeReply.trim()}>
+                    {disputeBusy ? 'Sending...' : 'Send Reply'}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

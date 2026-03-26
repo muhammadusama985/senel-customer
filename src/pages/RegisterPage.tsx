@@ -98,10 +98,10 @@ export const RegisterPage: React.FC = () => {
         addressLine: formData.addressLine,
         preferredLanguage: lang,
       });
-      toast.success('Registration successful!');
-      navigate('/');
+      toast.success('Registration successful! Please login to continue.');
+      navigate('/login', { replace: true });
     } catch (error: any) {
-      toast.error(error.message || 'Registration failed');
+      toast.error(error.response?.data?.message || error.message || 'Registration failed');
     }
   };
 

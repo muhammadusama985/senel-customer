@@ -16,6 +16,7 @@ interface VendorOrder {
   status: string;
   shippingStatus?: string;
   vendorOrderNumber?: string;
+  vendorId?: string;
 }
 
 interface RefundRequest {
@@ -65,6 +66,23 @@ interface OrderDetail {
   order: Order;
   vendorOrders: VendorOrder[];
   items: OrderItem[];
+}
+
+interface DisputeMessage {
+  _id: string;
+  senderRole: 'customer' | 'vendor' | 'admin';
+  message: string;
+  createdAt?: string;
+}
+
+interface DisputeSummary {
+  _id: string;
+  disputeNumber: string;
+  subject: string;
+  reason?: string;
+  status: string;
+  vendorOrderId?: string;
+  createdAt?: string;
 }
 
 interface StripeIntentResponse {
@@ -177,6 +195,19 @@ export const OrdersPage: React.FC = () => {
   const [cancelOrderTarget, setCancelOrderTarget] = useState<Order | null>(null);
   const [cancelBusy, setCancelBusy] = useState(false);
   const [refundForm, setRefundForm] = useState<RefundFormState>(emptyRefundForm());
+  const [disputes, setDisputes] = useState<DisputeSummary[]>([]);
+  const [activeDispute, setActiveDispute] = useState<DisputeSummary | null>(null);
+  const [disputeMessages, setDisputeMessages] = useState<DisputeMessage[]>([]);
+  const [disputeLoading, setDisputeLoading] = useState(false);
+  const [showDisputeForm, setShowDisputeForm] = useState(false);
+  const [disputeDraft, setDisputeDraft] = useState({
+    vendorOrderId: '',
+    subject: '',
+    reason: 'wrong_items',
+    description: '',
+  });
+  const [replyMessage, setReplyMessage] = useState('');
+  const [submittingDispute, setSubmittingDispute] = useState(false);
   const stripePromise = useMemo(
     () => (stripeIntent?.publishableKey ? loadStripe(stripeIntent.publishableKey) : null),
     [stripeIntent?.publishableKey]
@@ -188,6 +219,7 @@ export const OrdersPage: React.FC = () => {
 
   useEffect(() => {
     void loadOrders();
+    void loadDisputes();
   }, []);
 
   const loadOrders = async () => {
@@ -211,10 +243,53 @@ export const OrdersPage: React.FC = () => {
     }
   };
 
+  const loadDisputes = async () => {
+    try {
+      const response = await api.get<{ items: DisputeSummary[] }>('/disputes/customer');
+      setDisputes(Array.isArray(response.data.items) ? response.data.items : []);
+    } catch {
+      // Keep orders usable even if disputes fail to load.
+    }
+  };
+
+  const loadDisputeDetail = async (disputeId: string) => {
+    setDisputeLoading(true);
+    try {
+      const response = await api.get<{ dispute: DisputeSummary; messages: DisputeMessage[] }>(`/disputes/${disputeId}`);
+      setActiveDispute(response.data.dispute);
+      setDisputeMessages(Array.isArray(response.data.messages) ? response.data.messages : []);
+      setShowDisputeForm(false);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to load dispute');
+    } finally {
+      setDisputeLoading(false);
+    }
+  };
+
   const closeDetailOverlay = () => {
     setSelectedOrder(null);
     setProofImage(null);
     setBankReference('');
+  };
+
+  const openCreateDispute = (vendorOrder: VendorOrder) => {
+    setShowDisputeForm(true);
+    setActiveDispute(null);
+    setDisputeMessages([]);
+    setReplyMessage('');
+    setDisputeDraft({
+      vendorOrderId: vendorOrder._id,
+      subject: `Issue with ${vendorOrder.vendorStoreName || vendorOrder.vendorOrderNumber || 'delivered order'}`,
+      reason: 'wrong_items',
+      description: '',
+    });
+  };
+
+  const closeDisputeOverlay = () => {
+    setShowDisputeForm(false);
+    setActiveDispute(null);
+    setDisputeMessages([]);
+    setReplyMessage('');
   };
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -335,6 +410,45 @@ export const OrdersPage: React.FC = () => {
     }
   };
 
+  const submitDispute = async () => {
+    if (!disputeDraft.vendorOrderId || !disputeDraft.subject.trim() || !disputeDraft.description.trim()) {
+      toast.error('Please complete the dispute subject and details');
+      return;
+    }
+
+    setSubmittingDispute(true);
+    try {
+      const response = await api.post<{ dispute: DisputeSummary }>('/disputes/customer', {
+        vendorOrderId: disputeDraft.vendorOrderId,
+        subject: disputeDraft.subject.trim(),
+        reason: disputeDraft.reason,
+        description: disputeDraft.description.trim(),
+      });
+      toast.success('Dispute created successfully');
+      await loadDisputes();
+      await loadDisputeDetail(response.data.dispute._id);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to create dispute');
+    } finally {
+      setSubmittingDispute(false);
+    }
+  };
+
+  const submitDisputeReply = async () => {
+    if (!activeDispute?._id || !replyMessage.trim()) return;
+    setSubmittingDispute(true);
+    try {
+      await api.post(`/disputes/${activeDispute._id}/messages`, { message: replyMessage.trim() });
+      setReplyMessage('');
+      await loadDisputeDetail(activeDispute._id);
+      await loadDisputes();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to send reply');
+    } finally {
+      setSubmittingDispute(false);
+    }
+  };
+
   return (
     <div className="orders-page">
       <div className="container">
@@ -367,6 +481,9 @@ export const OrdersPage: React.FC = () => {
                 ) : null}
                 <div className="order-actions">
                   <button className="btn btn-outline" onClick={() => loadOrderDetail(order._id)}>{t('orders.view', 'View')}</button>
+                  {order.vendorOrders?.some((vendorOrder) => vendorOrder.status === 'delivered') ? (
+                    <button className="btn btn-outline" onClick={() => loadOrderDetail(order._id)}>Dispute</button>
+                  ) : null}
                   {order.paymentMethod === 'online' && order.paymentStatus === 'unpaid' && (
                     <button className="btn btn-primary" onClick={() => startStripePayNow(order._id)}>Pay Now</button>
                   )}
@@ -446,11 +563,117 @@ export const OrdersPage: React.FC = () => {
             <ul className="detail-list">
               {selectedOrder.vendorOrders.map((vo) => (
                 <li key={vo._id}>
-                  <span>{vo.vendorStoreName || vo.vendorOrderNumber || vo._id}</span>
+                  <span>
+                    {vo.vendorStoreName || vo.vendorOrderNumber || vo._id}
+                    {vo.status === 'delivered' ? (
+                      <button className="btn btn-outline order-inline-btn" onClick={() => openCreateDispute(vo)}>
+                        Open Dispute
+                      </button>
+                    ) : null}
+                    {disputes.find((dispute) => dispute.vendorOrderId === vo._id) ? (
+                      <button
+                        className="btn btn-outline order-inline-btn"
+                        onClick={() => {
+                          const existing = disputes.find((dispute) => dispute.vendorOrderId === vo._id);
+                          if (existing) {
+                            void loadDisputeDetail(existing._id);
+                          }
+                        }}
+                      >
+                        View Dispute
+                      </button>
+                    ) : null}
+                  </span>
                   <strong>{vo.status}</strong>
                 </li>
               ))}
             </ul>
+          </div>
+        </div>
+      )}
+
+      {(showDisputeForm || activeDispute) && (
+        <div className="order-modal-backdrop" onClick={closeDisputeOverlay}>
+          <div className="order-modal card refund-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="order-modal-head">
+              <h3>{activeDispute ? `Dispute ${activeDispute.disputeNumber}` : 'Open Dispute'}</h3>
+              <button className="btn btn-outline" onClick={closeDisputeOverlay}>Close</button>
+            </div>
+
+            {showDisputeForm && !activeDispute ? (
+              <>
+                <p className="muted">Describe how the delivered product differs from what was shown. The vendor and admin will both be able to reply.</p>
+                <div className="refund-form-grid">
+                  <input
+                    placeholder="Subject"
+                    value={disputeDraft.subject}
+                    onChange={(e) => setDisputeDraft((prev) => ({ ...prev, subject: e.target.value }))}
+                  />
+                  <select
+                    value={disputeDraft.reason}
+                    onChange={(e) => setDisputeDraft((prev) => ({ ...prev, reason: e.target.value }))}
+                    className="dispute-select"
+                  >
+                    <option value="wrong_items">Wrong Items</option>
+                    <option value="damaged_items">Damaged Items</option>
+                    <option value="missing_items">Missing Items</option>
+                    <option value="quality_issue">Quality Issue</option>
+                    <option value="late_delivery">Late Delivery</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <textarea
+                    placeholder="Tell us what happened and what you expected to receive."
+                    rows={5}
+                    value={disputeDraft.description}
+                    onChange={(e) => setDisputeDraft((prev) => ({ ...prev, description: e.target.value }))}
+                  />
+                </div>
+                <div className="order-actions">
+                  <button className="btn btn-outline" onClick={closeDisputeOverlay}>Cancel</button>
+                  <button className="btn btn-primary" onClick={submitDispute} disabled={submittingDispute}>
+                    {submittingDispute ? 'Submitting...' : 'Submit Dispute'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {disputeLoading ? (
+                  <div className="card">Loading dispute...</div>
+                ) : activeDispute ? (
+                  <>
+                    <p><strong>Status:</strong> {activeDispute.status.replace('_', ' ')}</p>
+                    <p><strong>Reason:</strong> {(activeDispute.reason || 'other').replace('_', ' ')}</p>
+                    <div className="dispute-thread">
+                      {disputeMessages.map((message) => (
+                        <div key={message._id} className={`dispute-message ${message.senderRole}`}>
+                          <div className="dispute-message-meta">
+                            <strong>{message.senderRole === 'customer' ? 'You' : message.senderRole === 'vendor' ? 'Vendor' : 'Admin'}</strong>
+                            <span>{safeDate(message.createdAt)}</span>
+                          </div>
+                          <p>{message.message}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {activeDispute.status !== 'closed' ? (
+                      <>
+                        <textarea
+                          className="dispute-reply-box"
+                          rows={4}
+                          placeholder="Reply to this dispute..."
+                          value={replyMessage}
+                          onChange={(e) => setReplyMessage(e.target.value)}
+                        />
+                        <div className="order-actions">
+                          <button className="btn btn-primary" onClick={submitDisputeReply} disabled={submittingDispute || !replyMessage.trim()}>
+                            {submittingDispute ? 'Sending...' : 'Send Reply'}
+                          </button>
+                        </div>
+                      </>
+                    ) : null}
+                  </>
+                ) : null}
+              </>
+            )}
           </div>
         </div>
       )}

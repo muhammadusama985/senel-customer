@@ -154,6 +154,7 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
             id="quantity"
             type="number"
             value={quantityInput}
+            onFocus={(e) => e.target.select()}
             onChange={(e) => {
               const nextValue = e.target.value;
               if (nextValue === '') {

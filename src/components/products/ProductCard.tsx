@@ -15,20 +15,16 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const navigate = useNavigate();
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { addItem } = useCartStore();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
+  const isWishlisted = isInWishlist(product._id);
   const hasEnoughVariantStock = product.hasVariants
     ? (product.variants || []).some((variant) => Number(variant.stockQty || 0) >= Number(product.moq || 1))
     : true;
   const isOutOfStock = product.hasVariants
     ? !hasEnoughVariantStock
     : Number(product.stockQty || 0) < Number(product.moq || 1);
-
-  React.useEffect(() => {
-    setIsWishlisted(isInWishlist(product._id));
-  }, [product._id, isInWishlist]);
 
   const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -53,7 +49,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         },
       });
     }
-    setIsWishlisted(!isWishlisted);
   };
 
   const handleAddToCart = async (e: React.MouseEvent) => {

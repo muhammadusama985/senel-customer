@@ -155,7 +155,23 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
             type="number"
             value={quantityInput}
             onChange={(e) => {
-              setQuantityInput(e.target.value);
+              const nextValue = e.target.value;
+              if (nextValue === '') {
+                setQuantityInput(String(moq));
+                onQuantityChange(moq);
+                return;
+              }
+
+              const parsed = parseInt(nextValue, 10);
+              if (Number.isNaN(parsed)) return;
+
+              let normalized = Math.max(moq, parsed);
+              if (hasStockLimit) {
+                normalized = Math.min(normalized, maxQty);
+              }
+
+              setQuantityInput(String(normalized));
+              onQuantityChange(normalized);
             }}
             onBlur={commitQuantityInput}
             onKeyDown={(e) => {
@@ -168,6 +184,7 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
             max={hasStockLimit ? maxQty : undefined}
             step={1}
             className="quantity-input"
+            inputMode="numeric"
           />
           <button
             className="quantity-btn"

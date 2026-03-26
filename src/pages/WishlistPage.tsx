@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/client';
 import { useCartStore } from '../store/cartStore';
+import { useWishlistStore } from '../store/wishlistStore';
 import { useI18n } from '../i18n';
 import { formatMoney } from '../utils/currency';
 import './WishlistPage.css';
@@ -27,6 +28,7 @@ interface WishlistItem {
 export const WishlistPage: React.FC = () => {
   const { t } = useI18n();
   const { addItem } = useCartStore();
+  const { removeFromWishlist, fetchWishlist } = useWishlistStore();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,6 +37,7 @@ export const WishlistPage: React.FC = () => {
     try {
       const response = await api.get<{ items: WishlistItem[] }>('/wishlist/me');
       setItems(Array.isArray(response.data.items) ? response.data.items : []);
+      await fetchWishlist();
     } catch (error: any) {
       toast.error(error.response?.data?.message || t('wishlist.loading', 'Loading wishlist...'));
     } finally {
@@ -48,7 +51,7 @@ export const WishlistPage: React.FC = () => {
 
   const removeItem = async (productId: string) => {
     try {
-      await api.delete(`/wishlist/me/${productId}`);
+      await removeFromWishlist(productId);
       setItems((prev) => prev.filter((item) => item.productId !== productId));
       toast.success(t('wishlist.remove', 'Remove'));
     } catch (error: any) {

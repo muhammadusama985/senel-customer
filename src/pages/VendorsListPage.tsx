@@ -1,15 +1,24 @@
-import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { CheckBadgeIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { CheckBadgeIcon, HeartIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { useVendorsList } from '../hooks/useVendor';
 import { Pagination } from '../components/common/Pagination';
 import { useI18n } from '../i18n';
+import { useAuthStore } from '../store/authStore';
+import api from '../api/client';
+import toast from 'react-hot-toast';
 import './VendorListPage.css';
 
 export const VendorsListPage: React.FC = () => {
   const { t } = useI18n();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
+  const [preferredIds, setPreferredIds] = useState<Set<string>>(new Set());
+  const [updatingVendorId, setUpdatingVendorId] = useState<string | null>(null);
 
   const query = useVendorsList({
     q: searchTerm || undefined,
@@ -21,6 +30,53 @@ export const VendorsListPage: React.FC = () => {
   const pages = query.data?.pages || 1;
 
   const hasResults = useMemo(() => vendors.length > 0, [vendors.length]);
+
+  useEffect(() => {
+    if (!user) {
+      setPreferredIds(new Set());
+      return;
+    }
+
+    api
+      .get<{ items: Array<{ vendorId: string }> }>('/preferred-suppliers/me')
+      .then((response) => {
+        const ids = new Set((response.data.items || []).map((item) => String(item.vendorId)));
+        setPreferredIds(ids);
+      })
+      .catch(() => {});
+  }, [user]);
+
+  const togglePreferred = async (event: React.MouseEvent, vendorId: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!user) {
+      toast.error('Please login to save suppliers');
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
+
+    try {
+      setUpdatingVendorId(vendorId);
+      if (preferredIds.has(vendorId)) {
+        await api.delete(`/preferred-suppliers/me/${vendorId}`);
+        setPreferredIds((prev) => {
+          const next = new Set(prev);
+          next.delete(vendorId);
+          return next;
+        });
+        toast.success('Supplier removed');
+      } else {
+        await api.post('/preferred-suppliers/me', { vendorId });
+        setPreferredIds((prev) => new Set(prev).add(vendorId));
+        toast.success('Supplier saved');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update supplier');
+    } finally {
+      setUpdatingVendorId(null);
+    }
+  };
 
   return (
     <div className="vendors-list-page">
@@ -66,8 +122,18 @@ export const VendorsListPage: React.FC = () => {
 
                 <div className="vendor-card-info">
                   <div className="vendor-card-header">
-                    <h3 className="vendor-card-name">{vendor.storeName}</h3>
-                    {vendor.isVerifiedBadge && <CheckBadgeIcon className="verified-badge" />}
+                    <div className="vendor-card-title-wrap">
+                      <h3 className="vendor-card-name">{vendor.storeName}</h3>
+                      {vendor.isVerifiedBadge && <CheckBadgeIcon className="verified-badge" />}
+                    </div>
+                    <button
+                      className={`vendor-preferred-btn ${preferredIds.has(vendor.id) ? 'active' : ''}`}
+                      onClick={(event) => void togglePreferred(event, vendor.id)}
+                      aria-label={preferredIds.has(vendor.id) ? 'Remove preferred supplier' : 'Save preferred supplier'}
+                      disabled={updatingVendorId === vendor.id}
+                    >
+                      {preferredIds.has(vendor.id) ? <HeartSolidIcon /> : <HeartIcon />}
+                    </button>
                   </div>
 
                   {vendor.description && <p className="vendor-card-description">{vendor.description}</p>}
@@ -79,6 +145,9 @@ export const VendorsListPage: React.FC = () => {
                   )}
 
                   <div className="vendor-card-footer">
+                    {preferredIds.has(vendor.id) ? (
+                      <span className="preferred-pill">Preferred Supplier</span>
+                    ) : null}
                     <span className="view-products">{t('suppliers.viewProducts', 'View Products')} {'->'}</span>
                   </div>
                 </div>

@@ -9,7 +9,7 @@ import './LoginPage.css';
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { user, login, isLoading, error, clearError } = useAuthStore();
   const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

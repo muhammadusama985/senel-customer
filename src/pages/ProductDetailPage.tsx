@@ -202,13 +202,20 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
 
-    if (isOutOfStock) {
-      toast.error('This product is out of stock');
+    if (quantity < product.moq) {
+      setQuantity(product.moq);
+      toast.error(`Minimum order quantity is ${product.moq}`);
       return;
     }
 
-    if (quantityExceedsStock) {
-      toast.error(`Only ${availableStock} units are available`);
+    if (isOutOfStock) {
+      toast.error('Low stock');
+      return;
+    }
+
+    if (quantityExceedsStock || quantity > availableStock) {
+      setQuantity(availableStock);
+      toast.error('Low stock');
       return;
     }
 

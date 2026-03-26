@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useI18n } from '../../i18n';
 import './ProductFilters.css';
@@ -28,6 +28,14 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
     min: initialFilters.minPrice || '',
     max: initialFilters.maxPrice || '',
   });
+
+  useEffect(() => {
+    setFilters(initialFilters);
+    setPriceRange({
+      min: initialFilters.minPrice || '',
+      max: initialFilters.maxPrice || '',
+    });
+  }, [initialFilters]);
 
   const countries = ['Germany', 'Turkey', 'France', 'Italy', 'Spain', 'Netherlands'];
 
@@ -148,7 +156,6 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
       <button
         className="btn btn-primary apply-filters"
         onClick={applyFilters}
-        disabled={activeFilterCount === 0}
       >
         {t('filters.apply', 'Apply Filters')}
       </button>

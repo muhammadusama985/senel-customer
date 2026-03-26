@@ -19,7 +19,7 @@ export const ProductsPage: React.FC = () => {
   const currentPage = parseInt(searchParams.get('page') || '1');
   const currentSort = searchParams.get('sort') as any || 'newest';
   const currentQ = searchParams.get('q') || '';
-const currentCategory = searchParams.get('categoryId') || '';
+  const currentCategory = searchParams.get('categoryId') || '';
   const currentMinPrice = searchParams.get('minPrice') || '';
   const currentMaxPrice = searchParams.get('maxPrice') || '';
   const currentMinMoq = searchParams.get('minMoq') || '';
@@ -40,7 +40,7 @@ const currentCategory = searchParams.get('categoryId') || '';
 });
 
   // Update URL when filters change
-  const updateFilters = (newParams: Record<string, string>) => {
+  const updateFilters = (newParams: Record<string, string>, options?: { preservePage?: boolean }) => {
     const params = new URLSearchParams(searchParams);
     
     Object.entries(newParams).forEach(([key, value]) => {
@@ -51,8 +51,9 @@ const currentCategory = searchParams.get('categoryId') || '';
       }
     });
     
-    // Reset to page 1 when filters change
-    params.set('page', '1');
+    if (!options?.preservePage) {
+      params.set('page', '1');
+    }
     setSearchParams(params);
   };
 
@@ -61,7 +62,7 @@ const currentCategory = searchParams.get('categoryId') || '';
   };
 
   const handlePageChange = (page: number) => {
-    updateFilters({ page: page.toString() });
+    updateFilters({ page: page.toString() }, { preservePage: true });
   };
 
   const clearFilters = () => {

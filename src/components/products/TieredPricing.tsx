@@ -80,14 +80,16 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
       return;
     }
 
-    const normalized = Math.max(moq, parsed);
-    if (hasStockLimit && normalized > maxQty) {
-      updateQuantityInput(String(maxQty));
-      onQuantityChange(maxQty);
+    if (parsed < moq) {
       return;
     }
-    updateQuantityInput(String(normalized));
-    onQuantityChange(normalized);
+
+    if (hasStockLimit && parsed > maxQty) {
+      return;
+    }
+
+    updateQuantityInput(String(parsed));
+    onQuantityChange(parsed);
   };
 
   return (

@@ -211,8 +211,6 @@ export const ProductDetailPage: React.FC = () => {
     }
 
     if (quantityToValidate < product.moq) {
-      setQuantity(product.moq);
-      setQuantityInputValue(String(product.moq));
       toast.error(`Minimum order quantity is ${product.moq}`);
       return;
     }
@@ -223,8 +221,6 @@ export const ProductDetailPage: React.FC = () => {
     }
 
     if (quantityExceedsStock || quantityToValidate > availableStock) {
-      setQuantity(availableStock);
-      setQuantityInputValue(String(availableStock));
       toast.error('Low stock');
       return;
     }

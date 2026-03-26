@@ -11,6 +11,8 @@ interface TieredPricingProps {
   tiers: PriceTier[];
   selectedQuantity: number;
   onQuantityChange: (qty: number) => void;
+  inputValue?: string;
+  onInputValueChange?: (value: string) => void;
   moq: number;
   maxQty?: number;
   currencySymbol?: string;
@@ -20,11 +22,14 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   tiers,
   selectedQuantity,
   onQuantityChange,
+  inputValue,
+  onInputValueChange,
   moq,
   maxQty,
   currencySymbol = 'EUR ',
 }) => {
-  const [quantityInput, setQuantityInput] = useState(String(selectedQuantity || moq));
+  const [internalQuantityInput, setInternalQuantityInput] = useState(String(selectedQuantity || moq));
+  const quantityInput = inputValue ?? internalQuantityInput;
   const sortedTiers = [...tiers].sort((a, b) => a.minQty - b.minQty);
   const activeTier = [...sortedTiers]
     .reverse()
@@ -56,22 +61,32 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   const disableIncrement = hasStockLimit && selectedQuantity >= maxQty;
   const disableDecrement = selectedQuantity <= moq;
 
+  const updateQuantityInput = (value: string) => {
+    if (onInputValueChange) {
+      onInputValueChange(value);
+      return;
+    }
+    setInternalQuantityInput(value);
+  };
+
   useEffect(() => {
-    setQuantityInput(String(selectedQuantity || moq));
+    updateQuantityInput(String(selectedQuantity || moq));
   }, [moq, selectedQuantity]);
 
   const commitQuantityInput = () => {
     const parsed = parseInt(quantityInput, 10);
     if (Number.isNaN(parsed)) {
-      setQuantityInput(String(selectedQuantity || moq));
+      updateQuantityInput(String(selectedQuantity || moq));
       return;
     }
 
     const normalized = Math.max(moq, parsed);
     if (hasStockLimit && normalized > maxQty) {
+      updateQuantityInput(String(maxQty));
       onQuantityChange(maxQty);
       return;
     }
+    updateQuantityInput(String(normalized));
     onQuantityChange(normalized);
   };
 
@@ -158,12 +173,12 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
             onChange={(e) => {
               const nextValue = e.target.value;
               if (nextValue === '') {
-                setQuantityInput('');
+                updateQuantityInput('');
                 return;
               }
 
               if (!/^\d+$/.test(nextValue)) return;
-              setQuantityInput(nextValue);
+              updateQuantityInput(nextValue);
             }}
             onBlur={commitQuantityInput}
             onKeyDown={(e) => {

@@ -31,6 +31,7 @@ export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(0);
+  const [quantityInputValue, setQuantityInputValue] = useState('');
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariantSku, setSelectedVariantSku] = useState('');
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -53,6 +54,7 @@ export const ProductDetailPage: React.FC = () => {
   useEffect(() => {
     if (product?.moq) {
       setQuantity(product.moq);
+      setQuantityInputValue(String(product.moq));
     }
   }, [product]);
 
@@ -154,10 +156,13 @@ export const ProductDetailPage: React.FC = () => {
   const handleQuantityChange = (nextQuantity: number) => {
     const normalized = Math.max(product.moq, nextQuantity);
     if (canMeetMinimumOrder) {
-      setQuantity(Math.min(normalized, availableStock));
+      const safeQuantity = Math.min(normalized, availableStock);
+      setQuantity(safeQuantity);
+      setQuantityInputValue(String(safeQuantity));
       return;
     }
     setQuantity(normalized);
+    setQuantityInputValue(String(normalized));
   };
 
   const handleWishlist = async () => {
@@ -197,13 +202,17 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   const handleAddToCart = async () => {
+    const typedQuantity = parseInt(quantityInputValue, 10);
+    const quantityToValidate = Number.isNaN(typedQuantity) ? quantity : typedQuantity;
+
     if (product.hasVariants && !selectedVariantSku) {
       toast.error('Please select a product option first');
       return;
     }
 
-    if (quantity < product.moq) {
+    if (quantityToValidate < product.moq) {
       setQuantity(product.moq);
+      setQuantityInputValue(String(product.moq));
       toast.error(`Minimum order quantity is ${product.moq}`);
       return;
     }
@@ -213,15 +222,21 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
 
-    if (quantityExceedsStock || quantity > availableStock) {
+    if (quantityExceedsStock || quantityToValidate > availableStock) {
       setQuantity(availableStock);
+      setQuantityInputValue(String(availableStock));
       toast.error('Low stock');
       return;
     }
 
+    if (quantityToValidate !== quantity) {
+      setQuantity(quantityToValidate);
+      setQuantityInputValue(String(quantityToValidate));
+    }
+
     setIsAddingToCart(true);
     try {
-      await addItem(product._id, quantity, selectedVariantSku, {
+      await addItem(product._id, quantityToValidate, selectedVariantSku, {
         vendorId: product.vendorId,
         slug: product.slug,
         title: product.title,
@@ -230,7 +245,7 @@ export const ProductDetailPage: React.FC = () => {
         currency: product.currency,
         moq: product.moq,
       });
-      toast.success(`Added ${quantity} units to cart`);
+      toast.success(`Added ${quantityToValidate} units to cart`);
     } catch (error) {
       toast.error('Failed to add to cart');
     } finally {
@@ -340,6 +355,8 @@ export const ProductDetailPage: React.FC = () => {
               tiers={product.priceTiers}
               selectedQuantity={quantity}
               onQuantityChange={handleQuantityChange}
+              inputValue={quantityInputValue}
+              onInputValueChange={setQuantityInputValue}
               moq={product.moq}
               maxQty={canMeetMinimumOrder ? availableStock : undefined}
               currencySymbol={currencySymbol}

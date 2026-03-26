@@ -28,9 +28,12 @@ export const CategoriesPage: React.FC = () => {
   return (
     <div className="categories-page">
       <div className="container">
-        <div className="categories-header">
-          <h1>Product Categories</h1>
-          <p>Browse products by category to find exactly what you need</p>
+        <div className="categories-hero">
+          <div className="categories-header">
+            <span className="categories-kicker">Browse by Collection</span>
+            <h1>Product Categories</h1>
+            <p>Explore curated category groups and jump straight into the products you need.</p>
+          </div>
         </div>
 
         <div className="categories-search">
@@ -61,10 +64,12 @@ export const CategoriesPage: React.FC = () => {
               
               return (
                 <div key={category._id} className="category-section">
-                  {/* Use category._id instead of slug */}
                   <Link to={`/products?categoryId=${category._id}`} className="category-main">
-                    <h2 className="category-main-title">{category.name}</h2>
-                    <span className="category-count">{subcategories.length} subcategories</span>
+                    <div>
+                      <h2 className="category-main-title">{category.name}</h2>
+                      <span className="category-count">{subcategories.length} subcategories</span>
+                    </div>
+                    <span className="category-arrow">&rarr;</span>
                   </Link>
                   
                   {subcategories.length > 0 && (
@@ -72,7 +77,6 @@ export const CategoriesPage: React.FC = () => {
                       {subcategories.slice(0, 4).map((sub: Category) => (
                         <Link
                           key={sub._id}
-                          // Use subcategory _id
                           to={`/products?categoryId=${sub._id}`}
                           className="subcategory-card"
                         >

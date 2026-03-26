@@ -75,9 +75,9 @@
 }
 
 .wishlist-btn.active {
-  background: var(--gradient-primary);
-  color: white;
-  border-color: transparent;
+  background: rgba(239, 68, 68, 0.14);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.35);
 }
 
 .animate-heart {
@@ -104,6 +104,12 @@
   transform: translateY(8px);
   opacity: 0;
   transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.product-badge.out-of-stock {
+  background: rgba(220, 38, 38, 0.92);
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #fff;
 }
 
 .product-badge.hovered {

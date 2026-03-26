@@ -114,8 +114,8 @@ export const CartPage: React.FC = () => {
           <div className="cart-items">
             {items.map((item) => {
               const key = item.cartItemId || item.productId;
-              const step = Math.max(Number(item.moq || 1), 1);
-              const nextDecreaseQty = item.quantity - step;
+              const minimumOrder = Math.max(Number(item.moq || 1), 1);
+              const nextDecreaseQty = item.quantity - 1;
               return (
                 <div key={key} className="cart-item">
                   <div className="cart-item-image">
@@ -127,13 +127,13 @@ export const CartPage: React.FC = () => {
                       {item.title}
                     </Link>
                     <div className="cart-item-price">{formatMoney(item.unitPrice, item.currency)} per unit</div>
-                    <div className="cart-item-price">MOQ step: {step}</div>
+                    <div className="cart-item-price">Minimum order: {minimumOrder}</div>
                   </div>
 
                   <div className="cart-item-quantity">
                     <button
                       onClick={() => handleUpdateQuantity(key, nextDecreaseQty)}
-                      disabled={nextDecreaseQty < step || updatingItems.has(key)}
+                      disabled={nextDecreaseQty < minimumOrder || updatingItems.has(key)}
                       className="quantity-btn"
                     >
                       <MinusIcon className="icon-small" />
@@ -142,7 +142,7 @@ export const CartPage: React.FC = () => {
                     <span className="quantity-value">{updatingItems.has(key) ? '...' : item.quantity}</span>
 
                     <button
-                      onClick={() => handleUpdateQuantity(key, item.quantity + step)}
+                      onClick={() => handleUpdateQuantity(key, item.quantity + 1)}
                       disabled={updatingItems.has(key)}
                       className="quantity-btn"
                     >

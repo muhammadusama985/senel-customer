@@ -9,7 +9,7 @@ import './LoginPage.css';
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, error, clearError } = useAuthStore();
   const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,6 +17,7 @@ export const LoginPage: React.FC = () => {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearError();
     try {
       await login({ email, password });
       toast.success(t('auth.login', 'Login') + ' successful');
@@ -37,6 +38,7 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <form className="auth-form" onSubmit={onSubmit}>
+              {error ? <div className="auth-error-banner">{error}</div> : null}
               <div className="form-group">
                 <label htmlFor="login-email">{t('auth.email', 'Email')}</label>
                 <input

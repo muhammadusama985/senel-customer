@@ -17,6 +17,15 @@ import toast from 'react-hot-toast';
 import { useI18n } from '../i18n';
 import './ProductDetailPage.css';
 
+interface ProductReview {
+  _id: string;
+  rating: number;
+  title?: string;
+  comment?: string;
+  customerName?: string;
+  createdAt?: string;
+}
+
 export const ProductDetailPage: React.FC = () => {
   const { t } = useI18n();
   const { slug } = useParams<{ slug: string }>();
@@ -25,6 +34,14 @@ export const ProductDetailPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariantSku, setSelectedVariantSku] = useState('');
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    rating: 5,
+    title: '',
+    comment: '',
+  });
 
   const { data: product, isLoading, error } = useProduct(slug || '');
   const { data: relatedProducts } = useRelatedProducts(product?._id || '', 4);
@@ -53,6 +70,16 @@ export const ProductDetailPage: React.FC = () => {
     if (!user || !product?._id) return;
     api.post('/recently-viewed/me', { productId: product._id }).catch(() => {});
   }, [user, product?._id]);
+
+  useEffect(() => {
+    if (!product?._id) return;
+    setReviewsLoading(true);
+    api
+      .get<{ items: ProductReview[] }>(`/reviews/product/${product._id}`)
+      .then((response) => setReviews(Array.isArray(response.data.items) ? response.data.items : []))
+      .catch(() => setReviews([]))
+      .finally(() => setReviewsLoading(false));
+  }, [product?._id]);
 
   const selectedVariant = product?.hasVariants
     ? product.variants?.find((variant: any) => variant.sku === selectedVariantSku)
@@ -140,6 +167,32 @@ export const ProductDetailPage: React.FC = () => {
     } else {
       await addToWishlist(product._id);
       toast.success('Added to wishlist');
+    }
+  };
+
+  const handleReviewSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!user) {
+      navigate('/login', { state: { from: `/products/${product.slug}` } });
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      await api.post('/reviews/product', {
+        productId: product._id,
+        rating: reviewForm.rating,
+        title: reviewForm.title.trim(),
+        comment: reviewForm.comment.trim(),
+      });
+      const response = await api.get<{ items: ProductReview[] }>(`/reviews/product/${product._id}`);
+      setReviews(Array.isArray(response.data.items) ? response.data.items : []);
+      setReviewForm({ rating: 5, title: '', comment: '' });
+      toast.success('Review submitted successfully');
+    } catch (reviewError: any) {
+      toast.error(reviewError.response?.data?.message || 'Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -235,12 +288,12 @@ export const ProductDetailPage: React.FC = () => {
               )}
 
               <button
-                className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
+                className={`product-detail-wishlist-btn ${isWishlisted ? 'active' : ''}`}
                 onClick={handleWishlist}
                 aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
               >
-                {isWishlisted ? <HeartSolidIcon /> : <HeartIcon />}
-                {isWishlisted ? t('product.saved', 'Saved') : t('product.saveWishlist', 'Save to Wishlist')}
+                {isWishlisted ? <HeartSolidIcon className="icon" /> : <HeartIcon className="icon" />}
+                <span>{isWishlisted ? t('product.saved', 'Saved') : t('product.saveWishlist', 'Save to Favorites')}</span>
               </button>
             </div>
 
@@ -303,6 +356,101 @@ export const ProductDetailPage: React.FC = () => {
         </div>
 
         <ProductSpecs product={product} />
+
+        <section className="product-reviews-section">
+          <div className="reviews-header">
+            <div>
+              <h2>Customer Reviews</h2>
+              <p className="reviews-subtitle">
+                {reviews.length
+                  ? `${reviews.length} verified review${reviews.length === 1 ? '' : 's'}`
+                  : 'No reviews yet. Be the first verified buyer to share feedback.'}
+              </p>
+            </div>
+            {!user ? (
+              <button
+                className="btn btn-outline"
+                onClick={() => navigate('/login', { state: { from: `/products/${product.slug}` } })}
+              >
+                Login to Review
+              </button>
+            ) : null}
+          </div>
+
+          <div className="reviews-grid">
+            <form className="review-form-card" onSubmit={handleReviewSubmit}>
+              <h3>Write a Review</h3>
+              <label className="review-label" htmlFor="review-rating">Rating</label>
+              <div id="review-rating" className="review-stars-input">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    className={`review-star-btn ${reviewForm.rating >= star ? 'active' : ''}`}
+                    onClick={() => setReviewForm((prev) => ({ ...prev, rating: star }))}
+                    aria-label={`Rate ${star} star${star === 1 ? '' : 's'}`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+
+              <label className="review-label" htmlFor="review-title">Title</label>
+              <input
+                id="review-title"
+                type="text"
+                value={reviewForm.title}
+                onChange={(event) => setReviewForm((prev) => ({ ...prev, title: event.target.value }))}
+                placeholder="Short review title"
+                className="review-input"
+              />
+
+              <label className="review-label" htmlFor="review-comment">Your Review</label>
+              <textarea
+                id="review-comment"
+                value={reviewForm.comment}
+                onChange={(event) => setReviewForm((prev) => ({ ...prev, comment: event.target.value }))}
+                placeholder="Share what you liked, quality details, delivery experience, or anything helpful."
+                className="review-textarea"
+                rows={5}
+              />
+
+              <button className="btn btn-primary" type="submit" disabled={submittingReview}>
+                {submittingReview ? 'Submitting...' : 'Submit Review'}
+              </button>
+            </form>
+
+            <div className="review-list-card">
+              {reviewsLoading ? (
+                <div className="review-empty-state">Loading reviews...</div>
+              ) : reviews.length === 0 ? (
+                <div className="review-empty-state">No reviews yet for this product.</div>
+              ) : (
+                <div className="review-list">
+                  {reviews.map((review) => (
+                    <article key={review._id} className="review-item">
+                      <div className="review-item-top">
+                        <div>
+                          <strong>{review.customerName || 'Verified buyer'}</strong>
+                          <div className="review-item-date">
+                            {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Recently'}
+                          </div>
+                        </div>
+                        <div className="review-item-stars" aria-label={`${review.rating} out of 5`}>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <span key={star} className={review.rating >= star ? 'filled' : ''}>★</span>
+                          ))}
+                        </div>
+                      </div>
+                      {review.title ? <h4>{review.title}</h4> : null}
+                      {review.comment ? <p>{review.comment}</p> : null}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
 
         {relatedProducts && relatedProducts.length > 0 && (
           <section className="related-products">

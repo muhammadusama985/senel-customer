@@ -53,6 +53,7 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   const savings = getSavings();
   const hasStockLimit = typeof maxQty === 'number' && maxQty > 0;
   const disableIncrement = hasStockLimit && selectedQuantity >= maxQty;
+  const disableDecrement = selectedQuantity <= moq;
 
   return (
     <div className="tiered-pricing">
@@ -124,8 +125,8 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
         <div className="quantity-controls">
           <button
             className="quantity-btn"
-            onClick={() => onQuantityChange(Math.max(moq, selectedQuantity - moq))}
-            disabled={selectedQuantity <= moq}
+            onClick={() => onQuantityChange(Math.max(moq, selectedQuantity - 1))}
+            disabled={disableDecrement}
           >
             -
           </button>
@@ -144,12 +145,12 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
             }}
             min={moq}
             max={hasStockLimit ? maxQty : undefined}
-            step={moq}
+            step={1}
             className="quantity-input"
           />
           <button
             className="quantity-btn"
-            onClick={() => onQuantityChange(selectedQuantity + moq)}
+            onClick={() => onQuantityChange(selectedQuantity + 1)}
             disabled={disableIncrement}
           >
             +

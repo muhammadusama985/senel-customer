@@ -131,6 +131,7 @@ export const Header: React.FC = () => {
               <div className="nav-more">
                 <span className="nav-link nav-link-more">More</span>
                 <div className="nav-more-menu">
+                  <Link to="/blog" className="nav-more-item">Blog</Link>
                   <Link to="/pages/about" className="nav-more-item">About</Link>
                   <Link to="/pages/contact" className="nav-more-item">Contact</Link>
                   <Link to="/pages/faq" className="nav-more-item">FAQ</Link>
@@ -316,6 +317,10 @@ export const Header: React.FC = () => {
 
           <Link to="/deals" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
             <span>{t('nav.deals', 'Deals')}</span>
+            <span className="mobile-link-arrow">&rarr;</span>
+          </Link>
+          <Link to="/blog" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+            <span>Blog</span>
             <span className="mobile-link-arrow">&rarr;</span>
           </Link>
           <Link to="/pages/about" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>

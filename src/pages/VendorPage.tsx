@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
 import { useVendor, useVendorProducts } from '../hooks/useVendor';
@@ -12,8 +12,11 @@ import './VendorPage.css';
 
 export const VendorPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [isPreferred, setIsPreferred] = useState(false);
+  const [isUpdatingPreferred, setIsUpdatingPreferred] = useState(false);
   const { user } = useAuthStore();
 
   const { data: vendor, isLoading: vendorLoading } = useVendor(slug || '');
@@ -30,11 +33,13 @@ export const VendorPage: React.FC = () => {
   const togglePreferred = async () => {
     if (!user) {
       toast.error('Please login to save suppliers');
+      navigate('/login', { state: { from: location.pathname } });
       return;
     }
     if (!vendor?._id) return;
 
     try {
+      setIsUpdatingPreferred(true);
       if (isPreferred) {
         await api.delete(`/preferred-suppliers/me/${vendor._id}`);
         setIsPreferred(false);
@@ -46,6 +51,8 @@ export const VendorPage: React.FC = () => {
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to update supplier');
+    } finally {
+      setIsUpdatingPreferred(false);
     }
   };
 
@@ -118,7 +125,7 @@ export const VendorPage: React.FC = () => {
                 </div>
               )}
 
-              <button className="btn btn-outline preferred-btn" onClick={togglePreferred}>
+              <button className="btn btn-outline preferred-btn" onClick={togglePreferred} disabled={isUpdatingPreferred}>
                 {isPreferred ? 'Remove Preferred Supplier' : 'Save as Preferred Supplier'}
               </button>
             </div>

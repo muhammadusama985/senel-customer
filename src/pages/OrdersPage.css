@@ -114,3 +114,44 @@
   border-radius: 0.6rem;
   background: var(--bg-secondary);
 }
+
+.refund-modal {
+  width: min(640px, 100%);
+}
+
+.refund-form-grid {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.refund-form-grid input,
+.refund-form-grid textarea {
+  width: 100%;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+}
+
+.refund-form-grid textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.refund-form-grid input::placeholder,
+.refund-form-grid textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+@media (min-width: 700px) {
+  .refund-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .refund-form-grid textarea {
+    grid-column: 1 / -1;
+  }
+}

@@ -21,6 +21,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const { addItem } = useCartStore();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
+  const hasEnoughVariantStock = product.hasVariants
+    ? (product.variants || []).some((variant) => Number(variant.stockQty || 0) >= Number(product.moq || 1))
+    : true;
+  const isOutOfStock = product.hasVariants
+    ? !hasEnoughVariantStock
+    : Number(product.stockQty || 0) < Number(product.moq || 1);
 
   React.useEffect(() => {
     setIsWishlisted(isInWishlist(product._id));
@@ -68,7 +74,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       return;
     }
 
-    if (Number(product.stockQty || 0) < Number(product.moq || 1)) {
+    if (isOutOfStock) {
       toast.error('This product does not currently have enough stock for the minimum order.');
       navigate(`/products/${product.slug}`);
       return;
@@ -128,8 +134,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             )}
           </button>
 
-          <div className={`product-badge ${isHovered ? 'hovered' : ''}`}>
-            {product.moq}+ MOQ
+          <div className={`product-badge ${isHovered ? 'hovered' : ''} ${isOutOfStock ? 'out-of-stock' : ''}`}>
+            {isOutOfStock ? 'Out of Stock' : `${product.moq}+ MOQ`}
           </div>
         </div>
 
@@ -167,7 +173,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <button
             className={`btn btn-primary add-to-cart-btn ${isAddingToCart ? 'loading' : ''}`}
             onClick={handleAddToCart}
-            disabled={isAddingToCart || (!product.hasVariants && Number(product.stockQty || 0) < Number(product.moq || 1))}
+            disabled={isAddingToCart || isOutOfStock}
           >
             {isAddingToCart ? (
               <>
@@ -177,7 +183,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             ) : (
               <>
                 <ShoppingBagIcon className="icon-small" />
-                Add to Cart
+                {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
               </>
             )}
           </button>

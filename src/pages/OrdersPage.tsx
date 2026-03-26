@@ -5,6 +5,7 @@ import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-
 import { loadStripe } from '@stripe/stripe-js';
 import api from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { useCartStore } from '../store/cartStore';
 import { useI18n } from '../i18n';
 import { formatMoney } from '../utils/currency';
 import './OrdersPage.css';
@@ -74,6 +75,9 @@ interface StripeIntentResponse {
 }
 
 interface ReorderResponse {
+  cart?: {
+    items?: any[];
+  };
   unavailableItems?: Array<{ productId?: string; reason?: string }>;
 }
 
@@ -162,6 +166,7 @@ export const OrdersPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
   const { user } = useAuthStore();
+  const { normalizeServerItems, setCartFromItems } = useCartStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(false);
@@ -240,6 +245,9 @@ export const OrdersPage: React.FC = () => {
   const reorder = async (orderId: string) => {
     try {
       const response = await api.post<ReorderResponse>('/reorder/me', { orderId, mode: 'replace' });
+      if (response.data?.cart?.items) {
+        setCartFromItems(normalizeServerItems(response.data.cart.items));
+      }
       const unavailableCount = response.data?.unavailableItems?.length || 0;
       if (unavailableCount > 0) {
         toast.success(`Available items moved to cart. ${unavailableCount} item(s) were skipped because they are no longer available.`);

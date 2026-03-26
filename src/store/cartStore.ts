@@ -15,6 +15,7 @@ export interface CartItem {
   variantSku?: string;
   currency?: 'EUR' | 'TRY' | 'USD';
   moq?: number;
+  availableStock?: number;
   requiresManualShipping?: boolean;
 }
 
@@ -74,6 +75,7 @@ export const useCartStore = create<CartState>()(
           variantSku: raw.variantSku || '',
           currency: raw.currency || 'EUR',
           moq: Number(raw.moq || 1),
+          availableStock: Number(raw.availableStock || 0),
           requiresManualShipping: Boolean(raw.requiresManualShipping),
         }));
       },
@@ -157,14 +159,21 @@ export const useCartStore = create<CartState>()(
           return;
         }
 
-        set({ isLoading: true });
         try {
-          await api.post('/cart/me/items', {
+          const response = await api.post<CartResponse>('/cart/me/items', {
             productId,
             qty: quantity,
             variantSku,
           });
-          await get().fetchCart();
+          const cart = response.data.cart;
+          const normalizedItems = get().normalizeServerItems(cart.items || []);
+          set({
+            items: normalizedItems,
+            subtotal: cart.subtotal || normalizedItems.reduce((sum, item) => sum + item.lineTotal, 0),
+            itemCount: cart.totalItems || normalizedItems.reduce((sum, item) => sum + item.quantity, 0),
+            isLoading: false,
+            error: null,
+          });
         } catch (error: any) {
           set({ 
             error: error.response?.data?.message || 'Failed to add item',
@@ -188,12 +197,19 @@ export const useCartStore = create<CartState>()(
           return;
         }
 
-        set({ isLoading: true });
         try {
           const item = get().items.find((i) => i.cartItemId === cartItemId);
           if (item) {
-            await api.patch(`/cart/me/items/${item.cartItemId}`, { qty: quantity });
-            await get().fetchCart();
+            const response = await api.patch<CartResponse>(`/cart/me/items/${item.cartItemId}`, { qty: quantity });
+            const cart = response.data.cart;
+            const normalizedItems = get().normalizeServerItems(cart.items || []);
+            set({
+              items: normalizedItems,
+              subtotal: cart.subtotal || normalizedItems.reduce((sum, cartItem) => sum + cartItem.lineTotal, 0),
+              itemCount: cart.totalItems || normalizedItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0),
+              isLoading: false,
+              error: null,
+            });
           }
         } catch (error: any) {
           set({ 
@@ -214,12 +230,19 @@ export const useCartStore = create<CartState>()(
           return;
         }
 
-        set({ isLoading: true });
         try {
           const item = get().items.find((i) => i.cartItemId === cartItemId);
           if (item) {
-            await api.delete(`/cart/me/items/${item.cartItemId}`);
-            await get().fetchCart();
+            const response = await api.delete<CartResponse>(`/cart/me/items/${item.cartItemId}`);
+            const cart = response.data.cart;
+            const normalizedItems = get().normalizeServerItems(cart.items || []);
+            set({
+              items: normalizedItems,
+              subtotal: cart.subtotal || normalizedItems.reduce((sum, cartItem) => sum + cartItem.lineTotal, 0),
+              itemCount: cart.totalItems || normalizedItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0),
+              isLoading: false,
+              error: null,
+            });
           }
         } catch (error: any) {
           set({ 
@@ -236,10 +259,17 @@ export const useCartStore = create<CartState>()(
           return;
         }
 
-        set({ isLoading: true });
         try {
-          await api.delete('/cart/me');
-          set({ items: [], subtotal: 0, itemCount: 0, isLoading: false });
+          const response = await api.delete<CartResponse>('/cart/me');
+          const cart = response.data.cart;
+          const normalizedItems = get().normalizeServerItems(cart.items || []);
+          set({
+            items: normalizedItems,
+            subtotal: cart.subtotal || 0,
+            itemCount: cart.totalItems || 0,
+            isLoading: false,
+            error: null,
+          });
         } catch (error: any) {
           set({ 
             error: error.response?.data?.message || 'Failed to clear cart',

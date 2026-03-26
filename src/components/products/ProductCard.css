@@ -39,7 +39,7 @@
   transition: transform 0.35s ease;
 }
 
-.product-image.hovered {
+.product-card:hover .product-image {
   transform: scale(1.05);
 }
 
@@ -60,11 +60,6 @@
   transition: opacity 0.22s ease, transform 0.22s ease, background-color 0.22s ease, border-color 0.22s ease;
   z-index: 2;
   color: white;
-  opacity: 0;
-  transform: translateY(-6px);
-}
-
-.wishlist-btn.visible {
   opacity: 1;
   transform: translateY(0);
 }
@@ -101,8 +96,8 @@
   font-size: 0.72rem;
   font-weight: 600;
   z-index: 2;
-  transform: translateY(8px);
-  opacity: 0;
+  transform: translateY(0);
+  opacity: 1;
   transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
@@ -110,11 +105,6 @@
   background: rgba(220, 38, 38, 0.92);
   border-color: rgba(248, 113, 113, 0.45);
   color: #fff;
-}
-
-.product-badge.hovered {
-  transform: translateY(0);
-  opacity: 1;
 }
 
 .product-info {

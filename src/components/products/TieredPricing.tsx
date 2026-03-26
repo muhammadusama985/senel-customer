@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import './TieredPricing.css';
 
@@ -24,6 +24,7 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   maxQty,
   currencySymbol = 'EUR ',
 }) => {
+  const [quantityInput, setQuantityInput] = useState(String(selectedQuantity || moq));
   const sortedTiers = [...tiers].sort((a, b) => a.minQty - b.minQty);
   const activeTier = [...sortedTiers]
     .reverse()
@@ -54,6 +55,25 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   const hasStockLimit = typeof maxQty === 'number' && maxQty > 0;
   const disableIncrement = hasStockLimit && selectedQuantity >= maxQty;
   const disableDecrement = selectedQuantity <= moq;
+
+  useEffect(() => {
+    setQuantityInput(String(selectedQuantity || moq));
+  }, [moq, selectedQuantity]);
+
+  const commitQuantityInput = () => {
+    const parsed = parseInt(quantityInput, 10);
+    if (Number.isNaN(parsed)) {
+      setQuantityInput(String(selectedQuantity || moq));
+      return;
+    }
+
+    const normalized = Math.max(moq, parsed);
+    if (hasStockLimit && normalized > maxQty) {
+      onQuantityChange(maxQty);
+      return;
+    }
+    onQuantityChange(normalized);
+  };
 
   return (
     <div className="tiered-pricing">
@@ -133,15 +153,16 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
           <input
             id="quantity"
             type="number"
-            value={selectedQuantity}
+            value={quantityInput}
             onChange={(e) => {
-              const val = parseInt(e.target.value, 10);
-              if (Number.isNaN(val) || val < moq) return;
-              if (hasStockLimit && val > maxQty) {
-                onQuantityChange(maxQty);
-                return;
+              setQuantityInput(e.target.value);
+            }}
+            onBlur={commitQuantityInput}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                commitQuantityInput();
               }
-              onQuantityChange(val);
             }}
             min={moq}
             max={hasStockLimit ? maxQty : undefined}

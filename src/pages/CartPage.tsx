@@ -116,6 +116,8 @@ export const CartPage: React.FC = () => {
               const key = item.cartItemId || item.productId;
               const minimumOrder = Math.max(Number(item.moq || 1), 1);
               const nextDecreaseQty = item.quantity - 1;
+              const availableStock = Number(item.availableStock || 0);
+              const exceedsLiveStock = availableStock > 0 && item.quantity >= availableStock;
               return (
                 <div key={key} className="cart-item">
                   <div className="cart-item-image">
@@ -128,6 +130,9 @@ export const CartPage: React.FC = () => {
                     </Link>
                     <div className="cart-item-price">{formatMoney(item.unitPrice, item.currency)} per unit</div>
                     <div className="cart-item-price">Minimum order: {minimumOrder}</div>
+                    {availableStock > 0 ? (
+                      <div className="cart-item-price">Available stock: {availableStock}</div>
+                    ) : null}
                   </div>
 
                   <div className="cart-item-quantity">
@@ -143,7 +148,7 @@ export const CartPage: React.FC = () => {
 
                     <button
                       onClick={() => handleUpdateQuantity(key, item.quantity + 1)}
-                      disabled={updatingItems.has(key)}
+                      disabled={updatingItems.has(key) || exceedsLiveStock}
                       className="quantity-btn"
                     >
                       <PlusIcon className="icon-small" />

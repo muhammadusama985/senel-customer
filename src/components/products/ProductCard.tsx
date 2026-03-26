@@ -17,8 +17,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-
   const { addItem } = useCartStore();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
   const hasEnoughVariantStock = product.hasVariants
@@ -111,19 +109,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   return (
     <div
       className="product-card"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <Link to={`/products/${product.slug}`} className="product-link">
         <div className="product-image-container">
           <img
             src={imageUrl}
             alt={product.title}
-            className={`product-image ${isHovered ? 'hovered' : ''}`}
+            className="product-image"
             loading="lazy"
           />
           <button
-            className={`wishlist-btn ${isWishlisted ? 'active' : ''} ${isHovered ? 'visible' : ''}`}
+            className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
             onClick={handleWishlist}
             aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           >
@@ -134,7 +130,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             )}
           </button>
 
-          <div className={`product-badge ${isHovered ? 'hovered' : ''} ${isOutOfStock ? 'out-of-stock' : ''}`}>
+          <div className={`product-badge ${isOutOfStock ? 'out-of-stock' : ''}`}>
             {isOutOfStock ? 'Out of Stock' : `${product.moq}+ MOQ`}
           </div>
         </div>

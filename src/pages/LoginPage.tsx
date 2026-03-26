@@ -15,6 +15,12 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const redirectTo = typeof location.state?.from === 'string' ? location.state.from : '/';
 
+  React.useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate, user]);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();

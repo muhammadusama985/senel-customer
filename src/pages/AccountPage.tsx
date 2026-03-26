@@ -177,6 +177,13 @@ export const AccountPage: React.FC = () => {
     void loadDisputes();
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    if (tab === 'suppliers') {
+      void loadPreferredSuppliers();
+    }
+  }, [tab, user]);
+
   const profileSummary = useMemo(
     () => [
       { label: 'Email', value: user?.email || '-' },

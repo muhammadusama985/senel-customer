@@ -77,97 +77,86 @@
 }
 
 .categories-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
 }
 
-.category-section {
-  background-color: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  padding: 1.25rem;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.08);
-}
-
-.category-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  text-decoration: none;
-  color: inherit;
-  transition: color 0.2s;
-}
-
-.category-main:hover .category-main-title {
-  color: var(--accent);
-}
-
-.category-main-title {
-  font-size: 1.22rem;
-  margin: 0;
-  transition: color 0.2s;
-}
-
-.category-count {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-}
-
-.category-arrow {
-  font-size: 1.2rem;
-  color: var(--text-secondary);
-}
-
-.subcategories-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.8rem;
-}
-
-.subcategory-card {
+.category-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 1rem 0.8rem;
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
   text-decoration: none;
   color: inherit;
-  transition: all 0.3s;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.02), transparent),
+    var(--card-bg);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-.subcategory-card:hover {
+.category-card:hover {
+  transform: translateY(-4px);
   border-color: var(--accent);
-  transform: translateY(-3px);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.12);
 }
 
-.subcategory-image {
-  width: 54px;
-  height: 54px;
-  object-fit: cover;
-  border-radius: 50%;
-  margin-bottom: 1rem;
-}
-
-.subcategory-name {
-  text-align: center;
-  font-size: 0.82rem;
-  color: var(--text-primary);
-}
-
-.subcategory-card.view-all {
+.category-card-media {
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(135deg, rgba(91, 46, 255, 0.12), rgba(255, 122, 0, 0.12));
+  display: flex;
+  align-items: center;
   justify-content: center;
-  background-color: transparent;
-  border: 2px dashed var(--border);
+  overflow: hidden;
 }
 
-.view-all-text {
+.category-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.category-card-placeholder {
+  width: 4.25rem;
+  height: 4.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.category-card-body {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem 1rem 1.1rem;
+}
+
+.category-card-eyebrow {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.category-card-title {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.category-card-cta {
   color: var(--accent);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.84rem;
 }
 
 /* Loading Skeletons */
@@ -218,8 +207,8 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .subcategories-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .categories-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -232,23 +221,13 @@
     grid-template-columns: 1fr;
   }
 
-  .subcategories-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .category-main {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .category-section {
-    padding: 1rem;
+  .categories-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 480px) {
-  .subcategories-grid {
+  .categories-grid {
     grid-template-columns: 1fr;
   }
 }

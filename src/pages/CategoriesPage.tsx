@@ -22,9 +22,6 @@ export const CategoriesPage: React.FC = () => {
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const parentCategories: Category[] = filteredCategories.filter((c: Category) => !c.parentId) || [];
-  const childCategories: Category[] = filteredCategories.filter((c: Category) => c.parentId) || [];
-
   return (
     <div className="categories-page">
       <div className="container">
@@ -57,48 +54,22 @@ export const CategoriesPage: React.FC = () => {
           </div>
         ) : (
           <div className="categories-grid">
-            {parentCategories.map((category: Category) => {
-              const subcategories: Category[] = childCategories.filter(
-                (c: Category) => c.parentId === category._id
-              );
-              
-              return (
-                <div key={category._id} className="category-section">
-                  <Link to={`/products?categoryId=${category._id}`} className="category-main">
-                    <div>
-                      <h2 className="category-main-title">{category.name}</h2>
-                      <span className="category-count">{subcategories.length} subcategories</span>
-                    </div>
-                    <span className="category-arrow">&rarr;</span>
-                  </Link>
-                  
-                  {subcategories.length > 0 && (
-                    <div className="subcategories-grid">
-                      {subcategories.slice(0, 4).map((sub: Category) => (
-                        <Link
-                          key={sub._id}
-                          to={`/products?categoryId=${sub._id}`}
-                          className="subcategory-card"
-                        >
-                          {sub.imageUrl && (
-                            <img src={sub.imageUrl} alt={sub.name} className="subcategory-image" />
-                          )}
-                          <span className="subcategory-name">{sub.name}</span>
-                        </Link>
-                      ))}
-                      {subcategories.length > 4 && (
-                        <Link
-                          to={`/products?categoryId=${category._id}`}
-                          className="subcategory-card view-all"
-                        >
-                          <span className="view-all-text">+{subcategories.length - 4} more</span>
-                        </Link>
-                      )}
-                    </div>
+            {filteredCategories.map((category: Category) => (
+              <Link key={category._id} to={`/products?categoryId=${category._id}`} className="category-card">
+                <div className="category-card-media">
+                  {category.imageUrl ? (
+                    <img src={category.imageUrl} alt={category.name} className="category-card-image" />
+                  ) : (
+                    <div className="category-card-placeholder">{category.name.charAt(0)}</div>
                   )}
                 </div>
-              );
-            })}
+                <div className="category-card-body">
+                  <span className="category-card-eyebrow">{category.parentId ? 'Subcategory' : 'Main Category'}</span>
+                  <h2 className="category-card-title">{category.name}</h2>
+                  <span className="category-card-cta">Explore Products</span>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
 

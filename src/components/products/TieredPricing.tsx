@@ -76,7 +76,6 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   const commitQuantityInput = () => {
     const parsed = parseInt(quantityInput, 10);
     if (Number.isNaN(parsed)) {
-      updateQuantityInput(String(selectedQuantity || moq));
       return;
     }
 

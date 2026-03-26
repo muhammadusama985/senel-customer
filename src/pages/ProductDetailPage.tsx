@@ -90,13 +90,6 @@ export const ProductDetailPage: React.FC = () => {
     ? Number(selectedVariant?.stockQty || 0)
     : Number(product?.stockQty || 0);
 
-  useEffect(() => {
-    if (!product) return;
-    if (availableStock > 0 && quantity > availableStock) {
-      setQuantity(Math.max(product.moq, availableStock));
-    }
-  }, [availableStock, quantity, product]);
-
   if (isLoading) {
     return (
       <div className="product-detail-loading">
@@ -154,15 +147,8 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   const handleQuantityChange = (nextQuantity: number) => {
-    const normalized = Math.max(product.moq, nextQuantity);
-    if (canMeetMinimumOrder) {
-      const safeQuantity = Math.min(normalized, availableStock);
-      setQuantity(safeQuantity);
-      setQuantityInputValue(String(safeQuantity));
-      return;
-    }
-    setQuantity(normalized);
-    setQuantityInputValue(String(normalized));
+    setQuantity(nextQuantity);
+    setQuantityInputValue(String(nextQuantity));
   };
 
   const handleWishlist = async () => {

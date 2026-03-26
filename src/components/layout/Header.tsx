@@ -12,13 +12,22 @@ import {
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { useI18n } from '../../i18n';
+import api from '../../api/client';
 import './Header.css';
+
+interface SearchSuggestion {
+  _id: string;
+  slug: string;
+  title: string;
+}
 
 export const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [language, setLanguage] = useState<'en' | 'de' | 'tr'>(
     (localStorage.getItem('appLanguage') as 'en' | 'de' | 'tr') || 'en'
@@ -27,6 +36,7 @@ export const Header: React.FC = () => {
     (localStorage.getItem('appTheme') as 'dark' | 'light') || 'light'
   );
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const { user, logout } = useAuthStore();
   const { t } = useI18n();
@@ -54,6 +64,13 @@ export const Header: React.FC = () => {
         !accountMenuRef.current.contains(event.target as Node)
       ) {
         setIsAccountMenuOpen(false);
+      }
+
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setIsSearchFocused(false);
       }
     };
 
@@ -90,13 +107,53 @@ export const Header: React.FC = () => {
     localStorage.setItem('appTheme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    const query = searchQuery.trim();
+
+    if (query.length < 2) {
+      setSuggestions([]);
+      setIsSuggestionsLoading(false);
+      return;
+    }
+
+    const timer = window.setTimeout(async () => {
+      try {
+        setIsSuggestionsLoading(true);
+        const response = await api.get<{ items?: SearchSuggestion[] }>(
+          `/shop/products?q=${encodeURIComponent(query)}&limit=6`
+        );
+        setSuggestions(Array.isArray(response.data.items) ? response.data.items : []);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setIsSuggestionsLoading(false);
+      }
+    }, 220);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
+  const showSuggestions = isSearchFocused && (searchQuery.trim().length >= 2 || suggestions.length > 0);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/products?q=${encodeURIComponent(searchQuery)}`);
       setSearchQuery('');
+      setSuggestions([]);
+      setIsSearchFocused(false);
       setIsMenuOpen(false);
     }
+  };
+
+  const handleSuggestionSelect = (suggestion: SearchSuggestion) => {
+    navigate(`/products/${suggestion.slug}`);
+    setSearchQuery('');
+    setSuggestions([]);
+    setIsSearchFocused(false);
+    setIsMenuOpen(false);
   };
 
   const handleLogout = () => {
@@ -150,7 +207,7 @@ export const Header: React.FC = () => {
               onSubmit={handleSearch}
               className={`search-form ${isSearchFocused ? 'focused' : ''}`}
             >
-              <div className="search-wrapper">
+              <div className="search-wrapper" ref={searchRef}>
                 <MagnifyingGlassIcon className="search-icon" />
                 <input
                   type="text"
@@ -158,18 +215,45 @@ export const Header: React.FC = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
                   className="search-input"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     className="search-clear"
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSuggestions([]);
+                    }}
                     aria-label="Clear search"
                   >
                     <XMarkIcon className="icon-small" />
                   </button>
+                )}
+
+                {showSuggestions && (
+                  <div className="search-suggestions">
+                    {isSuggestionsLoading ? (
+                      <div className="search-suggestion-empty">Searching products...</div>
+                    ) : suggestions.length > 0 ? (
+                      suggestions.map((suggestion) => (
+                        <button
+                          key={suggestion._id}
+                          type="button"
+                          className="search-suggestion-item"
+                          onMouseDown={(event) => {
+                            event.preventDefault();
+                            handleSuggestionSelect(suggestion);
+                          }}
+                        >
+                          <MagnifyingGlassIcon className="icon-small" />
+                          <span>{suggestion.title}</span>
+                        </button>
+                      ))
+                    ) : searchQuery.trim().length >= 2 ? (
+                      <div className="search-suggestion-empty">No matching products found.</div>
+                    ) : null}
+                  </div>
                 )}
               </div>
             </form>

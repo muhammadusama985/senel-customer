@@ -1,6 +1,33 @@
 .home-page {
   min-height: 100vh;
   isolation: isolate;
+  position: relative;
+}
+
+.home-page::before,
+.home-page::after {
+  content: '';
+  position: fixed;
+  inset: auto;
+  width: 28rem;
+  height: 28rem;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(60px);
+  opacity: 0.22;
+}
+
+.home-page::before {
+  top: 6rem;
+  right: -8rem;
+  background: radial-gradient(circle, rgba(242, 140, 40, 0.7), transparent 68%);
+}
+
+.home-page::after {
+  bottom: 10rem;
+  left: -8rem;
+  background: radial-gradient(circle, rgba(31, 95, 139, 0.65), transparent 68%);
 }
 
 .home-page > section {
@@ -26,6 +53,10 @@
   opacity: 0;
   transform: translateY(16px);
   animation: sectionReveal 0.65s ease-out forwards;
+}
+
+.home-page > section:hover::before {
+  opacity: 0.85;
 }
 
 .home-page > section:nth-of-type(1) {

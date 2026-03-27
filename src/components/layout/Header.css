@@ -2,15 +2,19 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  background-color: var(--bg-secondary);
-  backdrop-filter: blur(10px);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.12), transparent),
+    var(--bg-secondary);
+  backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .header.scrolled {
-  background-color: var(--bg-secondary);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.16), transparent),
+    var(--bg-secondary);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
 }
 
 .header .container {
@@ -32,6 +36,11 @@
   align-items: center;
   text-decoration: none;
   min-width: 0;
+  transition: transform 0.3s ease;
+}
+
+.logo-wrapper:hover {
+  transform: translateY(-2px) scale(1.01);
 }
 
 .logo-image {
@@ -60,13 +69,35 @@
   text-decoration: none;
   font-size: 0.92rem;
   font-weight: 600;
-  padding: 0.4rem 0;
+  padding: 0.55rem 0.1rem;
   white-space: nowrap;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
+  position: relative;
 }
 
 .nav-link:hover {
   color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.1rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--gradient-primary);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.24s ease;
+}
+
+.nav-link:hover::after,
+.nav-more:hover .nav-link-more::after,
+.nav-more:focus-within .nav-link-more::after {
+  transform: scaleX(1);
 }
 
 .nav-more {
@@ -87,7 +118,8 @@
   border: 1px solid var(--border);
   border-radius: 0.7rem;
   background: var(--bg-secondary);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(16px);
   padding: 0.35rem;
   display: none;
   z-index: 15;
@@ -124,6 +156,7 @@
   flex: 0 1 360px;
   width: min(360px, 100%);
   min-width: 0;
+  position: relative;
 }
 
 .search-wrapper {
@@ -142,8 +175,10 @@
   border: 1px solid var(--border);
   border-radius: 0.9rem;
   background: var(--bg-secondary);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(16px);
   z-index: 40;
+  animation: searchDrop 0.18s ease-out;
 }
 
 .search-suggestion-item {
@@ -184,12 +219,14 @@
   width: 100%;
   height: 2.75rem;
   padding: 0 2.4rem 0 2.55rem;
-  background-color: var(--bg-secondary);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.1), transparent),
+    var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 0.8rem;
   color: var(--text-primary);
   font-size: 0.9rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .search-input::placeholder {
@@ -198,12 +235,13 @@
 
 .search-input:focus {
   outline: none;
-  border-color: var(--border-light);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(31, 95, 139, 0.12), var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 .search-form.focused .search-input {
-  border-color: var(--border-light);
+  border-color: var(--accent);
 }
 
 .search-clear {
@@ -251,13 +289,15 @@
   color: var(--text-secondary);
   border: 1px solid transparent;
   background-color: transparent;
-  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, transform 0.22s ease, box-shadow 0.22s ease;
 }
 
 .action-icon:hover {
   color: var(--text-primary);
   border-color: var(--border);
   background-color: var(--bg-secondary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .icon {
@@ -285,6 +325,7 @@
   align-items: center;
   justify-content: center;
   background: var(--gradient-primary);
+  box-shadow: 0 8px 18px rgba(242, 140, 40, 0.34);
 }
 
 .badge-text {
@@ -313,9 +354,11 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background-color: var(--bg-secondary);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(16px);
   display: none;
   overflow: hidden;
+  animation: dropdownLift 0.18s ease-out;
 }
 
 .user-dropdown.open {
@@ -484,6 +527,28 @@
   border-color: var(--border);
   color: var(--text-primary);
   background-color: rgba(255, 255, 255, 0.02);
+}
+
+@keyframes dropdownLift {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes searchDrop {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .mobile-nav-link.login {

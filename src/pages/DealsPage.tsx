@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ProductCard } from '../components/products/ProductCard';
 import { useProducts } from '../hooks/useProducts';
 import { useI18n } from '../i18n';
@@ -12,6 +12,10 @@ export const DealsPage: React.FC = () => {
     page: 1,
     limit: 12,
   });
+
+  useEffect(() => {
+    document.title = `${t('deals.title', 'Hot Products')} | Senel Customer`;
+  }, [t]);
 
   return (
     <div className="deals-page">

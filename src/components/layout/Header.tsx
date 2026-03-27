@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
+  BellIcon,
   MagnifyingGlassIcon,
   ShoppingBagIcon,
   UserIcon,
@@ -181,6 +182,7 @@ export const Header: React.FC = () => {
 
           <div className="header-center">
             <nav className="nav-desktop">
+              <Link to="/" className="nav-link">{t('nav.home', 'Home')}</Link>
               <Link to="/categories" className="nav-link">{t('nav.categories', 'Categories')}</Link>
               <Link to="/suppliers" className="nav-link">{t('nav.suppliers', 'Suppliers')}</Link>
               <Link to="/products" className="nav-link">{t('nav.products', 'Products')}</Link>
@@ -281,6 +283,14 @@ export const Header: React.FC = () => {
 
               <Link to="/wishlist" className="action-icon wishlist-icon" aria-label="Wishlist">
                 <HeartIcon className="icon" />
+              </Link>
+
+              <Link
+                to={user ? '/account?tab=notifications' : '/login'}
+                className="action-icon notification-icon"
+                aria-label="Notifications"
+              >
+                <BellIcon className="icon" />
               </Link>
 
               <Link to="/cart" className="action-icon cart-icon" aria-label="Cart">
@@ -384,6 +394,11 @@ export const Header: React.FC = () => {
         </div>
 
         <nav className="mobile-nav-links">
+          <Link to="/" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+            <span>{t('nav.home', 'Home')}</span>
+            <span className="mobile-link-arrow">&rarr;</span>
+          </Link>
+
           <Link to="/categories" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
             <span>{t('nav.categories', 'Categories')}</span>
             <span className="mobile-link-arrow">&rarr;</span>
@@ -401,6 +416,14 @@ export const Header: React.FC = () => {
 
           <Link to="/hot-products" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
             <span>{t('nav.deals', 'Hot Products')}</span>
+            <span className="mobile-link-arrow">&rarr;</span>
+          </Link>
+          <Link
+            to={user ? '/account?tab=notifications' : '/login'}
+            className="mobile-nav-link"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <span>{t('account.notifications', 'Notifications')}</span>
             <span className="mobile-link-arrow">&rarr;</span>
           </Link>
           <Link to="/blog" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>

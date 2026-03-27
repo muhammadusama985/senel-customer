@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/client';
 import { useAuthStore } from '../store/authStore';
@@ -119,9 +119,15 @@ const safeDate = (value?: string) => {
 
 export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useI18n();
   const { user } = useAuthStore();
-  const [tab, setTab] = useState<TabKey>('profile');
+  const initialTab = (searchParams.get('tab') as TabKey) || 'profile';
+  const [tab, setTab] = useState<TabKey>(
+    ['profile', 'addresses', 'suppliers', 'disputes', 'recent', 'notifications', 'announcements'].includes(initialTab)
+      ? initialTab
+      : 'profile'
+  );
 
   const [profileForm, setProfileForm] = useState({
     firstName: '',
@@ -178,6 +184,26 @@ export const AccountPage: React.FC = () => {
       preferredLanguage: user.preferredLanguage || 'en',
     });
   }, [user]);
+
+  useEffect(() => {
+    const nextTab = searchParams.get('tab') as TabKey | null;
+    if (
+      nextTab &&
+      ['profile', 'addresses', 'suppliers', 'disputes', 'recent', 'notifications', 'announcements'].includes(nextTab) &&
+      nextTab !== tab
+    ) {
+      setTab(nextTab);
+    }
+  }, [searchParams, tab]);
+
+  useEffect(() => {
+    const current = searchParams.get('tab');
+    if (current !== tab) {
+      const next = new URLSearchParams(searchParams);
+      next.set('tab', tab);
+      setSearchParams(next, { replace: true });
+    }
+  }, [tab, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (!user) return;

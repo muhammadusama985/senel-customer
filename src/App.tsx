@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { Layout } from './components/layout/Layout';
@@ -72,7 +72,8 @@ function App() {
               <Route path="/wishlist" element={<WishlistPage />} />
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/account" element={<AccountPage />} />
-              <Route path="/deals" element={<DealsPage />} />
+              <Route path="/deals" element={<Navigate to="/hot-products" replace />} />
+              <Route path="/hot-products" element={<DealsPage />} />
               <Route path="/senel-products" element={<SenelProductsPage />} />
               <Route path="/blog" element={<BlogListPage />} />
               <Route path="/blog/:slug" element={<BlogDetailPage />} />

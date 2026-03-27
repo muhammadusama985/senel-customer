@@ -184,7 +184,7 @@ export const Header: React.FC = () => {
               <Link to="/categories" className="nav-link">{t('nav.categories', 'Categories')}</Link>
               <Link to="/suppliers" className="nav-link">{t('nav.suppliers', 'Suppliers')}</Link>
               <Link to="/products" className="nav-link">{t('nav.products', 'Products')}</Link>
-              <Link to="/deals" className="nav-link">{t('nav.deals', 'Deals')}</Link>
+              <Link to="/hot-products" className="nav-link">{t('nav.deals', 'Hot Products')}</Link>
               <div className="nav-more">
                 <span className="nav-link nav-link-more">More</span>
                 <div className="nav-more-menu">
@@ -399,8 +399,8 @@ export const Header: React.FC = () => {
             <span className="mobile-link-arrow">&rarr;</span>
           </Link>
 
-          <Link to="/deals" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
-            <span>{t('nav.deals', 'Deals')}</span>
+          <Link to="/hot-products" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+            <span>{t('nav.deals', 'Hot Products')}</span>
             <span className="mobile-link-arrow">&rarr;</span>
           </Link>
           <Link to="/blog" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>

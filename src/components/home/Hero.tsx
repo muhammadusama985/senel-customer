@@ -25,7 +25,7 @@ export const Hero: React.FC = () => {
   const heroImageUrl = resolveMediaUrl(activeBanner?.imageUrl);
   const heroBackground = heroImageUrl
     ? {
-        backgroundImage: `linear-gradient(110deg, rgba(7, 9, 20, 0.78) 0%, rgba(7, 9, 20, 0.45) 40%, rgba(7, 9, 20, 0.2) 100%), url(${heroImageUrl})`,
+        backgroundImage: `url(${heroImageUrl})`,
         backgroundSize: '100% 100%',
         backgroundRepeat: 'no-repeat',
       }

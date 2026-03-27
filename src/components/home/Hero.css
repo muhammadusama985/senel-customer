@@ -65,6 +65,7 @@
 
 .hero-content {
   padding: clamp(1rem, 3vw, 1.6rem);
+  animation: softRise 0.65s ease-out 0.12s both;
 }
 
 .hero-title {
@@ -91,6 +92,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  animation: softRise 0.55s ease-out 0.24s both;
 }
 
 .hero-dot {

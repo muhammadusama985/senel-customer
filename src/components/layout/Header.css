@@ -29,6 +29,7 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 1rem;
+  animation: softRise 0.55s ease-out;
 }
 
 .logo-wrapper {
@@ -143,6 +144,7 @@
 .nav-more-item:hover {
   color: var(--text-primary);
   background: var(--bg-tertiary);
+  transform: translateX(4px);
 }
 
 .header-tools {
@@ -197,6 +199,7 @@
 
 .search-suggestion-item:hover {
   background: var(--bg-tertiary);
+  transform: translateX(4px);
 }
 
 .search-suggestion-empty {
@@ -298,6 +301,13 @@
   background-color: var(--bg-secondary);
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle:hover .icon,
+.wishlist-icon:hover .icon,
+.cart-icon:hover .icon,
+.user-button:hover .icon {
+  animation: floatDrift 0.85s ease;
 }
 
 .icon {
@@ -527,6 +537,7 @@
   border-color: var(--border);
   color: var(--text-primary);
   background-color: rgba(255, 255, 255, 0.02);
+  transform: translateX(4px);
 }
 
 @keyframes dropdownLift {

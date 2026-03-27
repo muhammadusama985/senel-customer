@@ -243,6 +243,26 @@ canvas {
   50% { box-shadow: var(--shadow-lg), var(--shadow-glow); }
 }
 
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-140%);
+  }
+  100% {
+    transform: translateX(140%);
+  }
+}
+
+@keyframes softRise {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Animation helpers */
 @keyframes fadeIn {
   from {

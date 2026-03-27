@@ -17,6 +17,7 @@
   background: none;
   -webkit-text-fill-color: var(--text-primary);
   color: var(--text-primary);
+  animation: softRise 0.55s ease-out;
 }
 
 .view-all-link {
@@ -74,6 +75,14 @@
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18);
 }
 
+.category-card:nth-child(odd) {
+  animation: softRise 0.55s ease-out both;
+}
+
+.category-card:nth-child(even) {
+  animation: softRise 0.55s ease-out 0.1s both;
+}
+
 .category-image {
   position: relative;
   width: 100%;
@@ -91,6 +100,10 @@
 
 .category-card:hover .category-image img {
   transform: scale(1.03);
+}
+
+.category-card:hover .category-link-text {
+  transform: translateX(6px);
 }
 
 .category-placeholder {
@@ -128,6 +141,7 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  transition: transform 0.22s ease, color 0.22s ease;
 }
 
 .categories-loader {

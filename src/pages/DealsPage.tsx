@@ -22,7 +22,6 @@ export const DealsPage: React.FC = () => {
         </div>
 
         <section className="deals-section">
-          <h2>{t('deals.hotList', 'Hot Products')}</h2>
           {isLoading ? (
             <div className="card">Loading hot products...</div>
           ) : (hotProductsData?.items || []).length === 0 ? (

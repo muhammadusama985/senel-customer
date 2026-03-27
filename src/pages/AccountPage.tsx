@@ -457,13 +457,13 @@ export const AccountPage: React.FC = () => {
 
         <div className="account-layout">
           <aside className="card account-sidebar">
-            <button className={tab === 'profile' ? 'active' : ''} onClick={() => setTab('profile')}>{t('account.profile', 'Profile')}</button>
-            <button className={tab === 'addresses' ? 'active' : ''} onClick={() => setTab('addresses')}>{t('account.addresses', 'Addresses')}</button>
-            <button className={tab === 'suppliers' ? 'active' : ''} onClick={() => setTab('suppliers')}>{t('account.preferred', 'Preferred Suppliers')}</button>
-            <button className={tab === 'disputes' ? 'active' : ''} onClick={() => setTab('disputes')}>Disputes</button>
-            <button className={tab === 'recent' ? 'active' : ''} onClick={() => setTab('recent')}>{t('account.recent', 'Recently Viewed')}</button>
-            <button className={tab === 'notifications' ? 'active' : ''} onClick={() => setTab('notifications')}>{t('account.notifications', 'Notifications')}</button>
-            <button className={tab === 'announcements' ? 'active' : ''} onClick={() => setTab('announcements')}>{t('account.announcements', 'Announcements')}</button>
+            <button type="button" className={tab === 'profile' ? 'active' : ''} onClick={() => setTab('profile')}>{t('account.profile', 'Profile')}</button>
+            <button type="button" className={tab === 'addresses' ? 'active' : ''} onClick={() => setTab('addresses')}>{t('account.addresses', 'Addresses')}</button>
+            <button type="button" className={tab === 'suppliers' ? 'active' : ''} onClick={() => setTab('suppliers')}>{t('account.preferred', 'Preferred Suppliers')}</button>
+            <button type="button" className={tab === 'disputes' ? 'active' : ''} onClick={() => setTab('disputes')}>Disputes</button>
+            <button type="button" className={tab === 'recent' ? 'active' : ''} onClick={() => setTab('recent')}>{t('account.recent', 'Recently Viewed')}</button>
+            <button type="button" className={tab === 'notifications' ? 'active' : ''} onClick={() => setTab('notifications')}>{t('account.notifications', 'Notifications')}</button>
+            <button type="button" className={tab === 'announcements' ? 'active' : ''} onClick={() => setTab('announcements')}>{t('account.announcements', 'Announcements')}</button>
           </aside>
 
           <section className="card account-content">
@@ -548,7 +548,7 @@ export const AccountPage: React.FC = () => {
                     <h3>{t('account.savedAddresses', 'Saved Addresses')}</h3>
                     <p className="muted">Add, edit, and reuse shipping addresses for faster checkout.</p>
                   </div>
-                  <button className="btn btn-primary" onClick={startNewAddress}>Add Address</button>
+                  <button type="button" className="btn btn-primary" onClick={startNewAddress}>Add Address</button>
                 </div>
 
                 {showAddressForm && (
@@ -628,9 +628,9 @@ export const AccountPage: React.FC = () => {
                             {address.isDefault ? <span className="status-pill">Default</span> : null}
                           </div>
                           <div className="row-actions">
-                            <button className="btn btn-outline" onClick={() => startEditAddress(address)}>Edit</button>
-                            {!address.isDefault ? <button className="btn btn-outline" onClick={() => setDefaultAddress(address._id)}>Set Default</button> : null}
-                            <button className="btn btn-outline" onClick={() => deleteAddress(address._id)}>Delete</button>
+                            <button type="button" className="btn btn-outline" onClick={() => startEditAddress(address)}>Edit</button>
+                            {!address.isDefault ? <button type="button" className="btn btn-outline" onClick={() => setDefaultAddress(address._id)}>Set Default</button> : null}
+                            <button type="button" className="btn btn-outline" onClick={() => deleteAddress(address._id)}>Delete</button>
                           </div>
                         </div>
                         <p>{[address.street1, address.street2].filter(Boolean).join(', ')}</p>
@@ -662,7 +662,7 @@ export const AccountPage: React.FC = () => {
                           {item.vendor?.storeSlug ? (
                             <Link className="btn btn-outline" to={`/vendors/${item.vendor.storeSlug}`}>{t('wishlist.view', 'View')}</Link>
                           ) : null}
-                          <button className="btn btn-outline" onClick={() => removePreferredSupplier(item.vendorId)}>{t('wishlist.remove', 'Remove')}</button>
+                          <button type="button" className="btn btn-outline" onClick={() => removePreferredSupplier(item.vendorId)}>{t('wishlist.remove', 'Remove')}</button>
                         </div>
                       </article>
                     ))}
@@ -692,7 +692,7 @@ export const AccountPage: React.FC = () => {
                         <p>{dispute.subject}</p>
                         <p className="muted">{dispute.reason ? dispute.reason.replace('_', ' ') : 'other'} • {safeDate(dispute.createdAt)}</p>
                         <div className="row-actions">
-                          <button className="btn btn-outline" onClick={() => void openDispute(dispute)}>View Discussion</button>
+                          <button type="button" className="btn btn-outline" onClick={() => void openDispute(dispute)}>View Discussion</button>
                         </div>
                       </article>
                     ))}
@@ -708,7 +708,7 @@ export const AccountPage: React.FC = () => {
                     <h3>{t('account.recent', 'Recently Viewed')}</h3>
                     <p className="muted">Quickly revisit products you explored recently.</p>
                   </div>
-                  <button className="btn btn-outline" onClick={clearRecentlyViewed}>{t('account.clear', 'Clear')}</button>
+                  <button type="button" className="btn btn-outline" onClick={clearRecentlyViewed}>{t('account.clear', 'Clear')}</button>
                 </div>
                 {recentlyViewed.length === 0 ? <p className="muted">{t('account.noRecent', 'No recently viewed items.')}</p> : (
                   <div className="account-list-grid">
@@ -738,7 +738,7 @@ export const AccountPage: React.FC = () => {
                         <strong>{notification.title}</strong>
                         <p className="muted">{notification.body || ''}</p>
                         <p className="muted">{safeDate(notification.createdAt)}</p>
-                        {!notification.isRead ? <button className="btn btn-outline" onClick={() => markNotificationRead(notification._id)}>{t('account.markRead', 'Mark Read')}</button> : null}
+                        {!notification.isRead ? <button type="button" className="btn btn-outline" onClick={() => markNotificationRead(notification._id)}>{t('account.markRead', 'Mark Read')}</button> : null}
                       </article>
                     ))}
                   </div>
@@ -761,7 +761,7 @@ export const AccountPage: React.FC = () => {
                         <strong>{announcement.title}</strong>
                         <p className="muted">{announcement.body || ''}</p>
                         <p className="muted">{safeDate(announcement.publishedAt)}</p>
-                        {!announcement.isRead ? <button className="btn btn-outline" onClick={() => markAnnouncementRead(announcement.id)}>{t('account.markRead', 'Mark Read')}</button> : null}
+                        {!announcement.isRead ? <button type="button" className="btn btn-outline" onClick={() => markAnnouncementRead(announcement.id)}>{t('account.markRead', 'Mark Read')}</button> : null}
                       </article>
                     ))}
                   </div>
@@ -777,7 +777,7 @@ export const AccountPage: React.FC = () => {
           <div className="order-modal card refund-modal" onClick={(e) => e.stopPropagation()}>
             <div className="order-modal-head">
               <h3>{selectedDispute.disputeNumber}</h3>
-              <button className="btn btn-outline" onClick={() => setSelectedDispute(null)}>Close</button>
+              <button type="button" className="btn btn-outline" onClick={() => setSelectedDispute(null)}>Close</button>
             </div>
             <p><strong>Status:</strong> {selectedDispute.status.replace('_', ' ')}</p>
             <p><strong>Reason:</strong> {(selectedDispute.reason || 'other').replace('_', ' ')}</p>
@@ -807,7 +807,7 @@ export const AccountPage: React.FC = () => {
                   rows={4}
                 />
                 <div className="account-actions">
-                  <button className="btn btn-primary" onClick={() => void sendDisputeReply()} disabled={disputeBusy || !disputeReply.trim()}>
+                  <button type="button" className="btn btn-primary" onClick={() => void sendDisputeReply()} disabled={disputeBusy || !disputeReply.trim()}>
                     {disputeBusy ? 'Sending...' : 'Send Reply'}
                   </button>
                 </div>

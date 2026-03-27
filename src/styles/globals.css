@@ -7,11 +7,11 @@
   --text-secondary: #4f5f6f;
   --text-muted: #758396;
 
-  --gradient-primary: linear-gradient(135deg, #123458 0%, #2d5b7c 45%, #f28c28 100%);
-  --gradient-hover: linear-gradient(135deg, #0d2743 0%, #214966 45%, #dc781b 100%);
-  --accent: #1f5f8b;
-  --accent-hover: #164968;
-  --accent-light: rgba(31, 95, 139, 0.16);
+  --gradient-primary: linear-gradient(90deg, #5B2EFF 0%, #8A2BE2 45%, #FF6A00 100%);
+  --gradient-hover: linear-gradient(90deg, #4A1EE6 0%, #7B1ED6 45%, #E65C00 100%);
+  --accent: #8A2BE2;
+  --accent-hover: #7B1ED6;
+  --accent-light: rgba(138, 43, 226, 0.16);
 
   --border: rgba(31, 95, 139, 0.16);
   --border-light: rgba(31, 95, 139, 0.28);
@@ -36,24 +36,24 @@
 }
 
 [data-theme='dark'] {
-  --bg-primary: #08111b;
-  --bg-secondary: rgba(12, 22, 35, 0.92);
-  --bg-tertiary: #122233;
+  --bg-primary: #080321;
+  --bg-secondary: #0f0a2a;
+  --bg-tertiary: #1a1338;
 
-  --text-primary: #f6f1e9;
-  --text-secondary: #c5d2df;
-  --text-muted: #88a0b8;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted: #6b7280;
 
-  --border: rgba(133, 178, 214, 0.14);
-  --border-light: rgba(242, 140, 40, 0.28);
+  --border: #2a2a4a;
+  --border-light: #373757;
 
-  --card-bg: rgba(11, 21, 34, 0.84);
-  --card-hover: rgba(17, 30, 46, 0.96);
+  --card-bg: #0f0a2a;
+  --card-hover: #1a1338;
 
-  --shadow-sm: 0 10px 18px rgba(0, 0, 0, 0.22);
-  --shadow-md: 0 18px 34px rgba(0, 0, 0, 0.28);
-  --shadow-lg: 0 32px 60px rgba(0, 0, 0, 0.36);
-  --shadow-glow: 0 20px 48px rgba(242, 140, 40, 0.18);
+  --shadow-sm: 0 4px 6px rgba(91, 46, 255, 0.1);
+  --shadow-md: 0 8px 15px rgba(91, 46, 255, 0.15);
+  --shadow-lg: 0 15px 30px rgba(91, 46, 255, 0.2);
+  --shadow-glow: 0 0 20px rgba(138, 43, 226, 0.3);
 }
 
 [data-theme='light'] {
@@ -104,6 +104,13 @@ body {
   width: 100%;
   min-width: 320px;
   background-attachment: fixed;
+}
+
+[data-theme='dark'] body {
+  background:
+    radial-gradient(circle at top left, rgba(91, 46, 255, 0.18), transparent 24%),
+    radial-gradient(circle at 82% 10%, rgba(138, 43, 226, 0.16), transparent 26%),
+    var(--bg-primary);
 }
 
 #root {

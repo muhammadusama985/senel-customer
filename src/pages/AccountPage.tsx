@@ -122,12 +122,6 @@ export const AccountPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useI18n();
   const { user } = useAuthStore();
-  const initialTab = (searchParams.get('tab') as TabKey) || 'profile';
-  const [tab, setTab] = useState<TabKey>(
-    ['profile', 'addresses', 'suppliers', 'disputes', 'recent', 'notifications', 'announcements'].includes(initialTab)
-      ? initialTab
-      : 'profile'
-  );
 
   const [profileForm, setProfileForm] = useState({
     firstName: '',
@@ -185,25 +179,23 @@ export const AccountPage: React.FC = () => {
     });
   }, [user]);
 
-  useEffect(() => {
-    const nextTab = searchParams.get('tab') as TabKey | null;
-    if (
-      nextTab &&
-      ['profile', 'addresses', 'suppliers', 'disputes', 'recent', 'notifications', 'announcements'].includes(nextTab) &&
-      nextTab !== tab
-    ) {
-      setTab(nextTab);
-    }
-  }, [searchParams, tab]);
+  const validTabs: TabKey[] = ['profile', 'addresses', 'suppliers', 'disputes', 'recent', 'notifications', 'announcements'];
+  const tabParam = searchParams.get('tab') as TabKey | null;
+  const tab: TabKey = tabParam && validTabs.includes(tabParam) ? tabParam : 'profile';
 
   useEffect(() => {
-    const current = searchParams.get('tab');
-    if (current !== tab) {
+    if (!tabParam || !validTabs.includes(tabParam)) {
       const next = new URLSearchParams(searchParams);
-      next.set('tab', tab);
+      next.set('tab', 'profile');
       setSearchParams(next, { replace: true });
     }
-  }, [tab, searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, tabParam]);
+
+  const changeTab = (nextTab: TabKey) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', nextTab);
+    setSearchParams(next, { replace: true });
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -457,13 +449,13 @@ export const AccountPage: React.FC = () => {
 
         <div className="account-layout">
           <aside className="card account-sidebar">
-            <button type="button" className={tab === 'profile' ? 'active' : ''} onClick={() => setTab('profile')}>{t('account.profile', 'Profile')}</button>
-            <button type="button" className={tab === 'addresses' ? 'active' : ''} onClick={() => setTab('addresses')}>{t('account.addresses', 'Addresses')}</button>
-            <button type="button" className={tab === 'suppliers' ? 'active' : ''} onClick={() => setTab('suppliers')}>{t('account.preferred', 'Preferred Suppliers')}</button>
-            <button type="button" className={tab === 'disputes' ? 'active' : ''} onClick={() => setTab('disputes')}>Disputes</button>
-            <button type="button" className={tab === 'recent' ? 'active' : ''} onClick={() => setTab('recent')}>{t('account.recent', 'Recently Viewed')}</button>
-            <button type="button" className={tab === 'notifications' ? 'active' : ''} onClick={() => setTab('notifications')}>{t('account.notifications', 'Notifications')}</button>
-            <button type="button" className={tab === 'announcements' ? 'active' : ''} onClick={() => setTab('announcements')}>{t('account.announcements', 'Announcements')}</button>
+            <button type="button" className={tab === 'profile' ? 'active' : ''} onClick={() => changeTab('profile')}>{t('account.profile', 'Profile')}</button>
+            <button type="button" className={tab === 'addresses' ? 'active' : ''} onClick={() => changeTab('addresses')}>{t('account.addresses', 'Addresses')}</button>
+            <button type="button" className={tab === 'suppliers' ? 'active' : ''} onClick={() => changeTab('suppliers')}>{t('account.preferred', 'Preferred Suppliers')}</button>
+            <button type="button" className={tab === 'disputes' ? 'active' : ''} onClick={() => changeTab('disputes')}>Disputes</button>
+            <button type="button" className={tab === 'recent' ? 'active' : ''} onClick={() => changeTab('recent')}>{t('account.recent', 'Recently Viewed')}</button>
+            <button type="button" className={tab === 'notifications' ? 'active' : ''} onClick={() => changeTab('notifications')}>{t('account.notifications', 'Notifications')}</button>
+            <button type="button" className={tab === 'announcements' ? 'active' : ''} onClick={() => changeTab('announcements')}>{t('account.announcements', 'Announcements')}</button>
           </aside>
 
           <section className="card account-content">

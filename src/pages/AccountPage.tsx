@@ -6,6 +6,8 @@ import { useAuthStore } from '../store/authStore';
 import { useI18n } from '../i18n';
 import './AccountPage.css';
 
+const VALID_ACCOUNT_TABS: TabKey[] = ['profile', 'addresses', 'suppliers', 'disputes', 'recent', 'notifications', 'announcements'];
+
 type TabKey =
   | 'profile'
   | 'addresses'
@@ -122,6 +124,7 @@ export const AccountPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useI18n();
   const { user } = useAuthStore();
+  const [tab, setTab] = useState<TabKey>('profile');
 
   const [profileForm, setProfileForm] = useState({
     firstName: '',
@@ -159,10 +162,6 @@ export const AccountPage: React.FC = () => {
     }
   }, [user, navigate]);
 
-  if (!user) {
-    return null;
-  }
-
   useEffect(() => {
     if (!user) return;
     setProfileForm({
@@ -179,23 +178,23 @@ export const AccountPage: React.FC = () => {
     });
   }, [user]);
 
-  const validTabs: TabKey[] = ['profile', 'addresses', 'suppliers', 'disputes', 'recent', 'notifications', 'announcements'];
-  const tabParam = searchParams.get('tab') as TabKey | null;
-  const tab: TabKey = tabParam && validTabs.includes(tabParam) ? tabParam : 'profile';
-
   useEffect(() => {
-    if (!tabParam || !validTabs.includes(tabParam)) {
-      const next = new URLSearchParams(searchParams);
-      next.set('tab', 'profile');
-      setSearchParams(next, { replace: true });
+    const tabParam = searchParams.get('tab') as TabKey | null;
+    if (tabParam && VALID_ACCOUNT_TABS.includes(tabParam)) {
+      setTab(tabParam);
     }
-  }, [searchParams, setSearchParams, tabParam]);
+  }, [searchParams]);
 
   const changeTab = (nextTab: TabKey) => {
+    setTab(nextTab);
     const next = new URLSearchParams(searchParams);
     next.set('tab', nextTab);
     setSearchParams(next, { replace: true });
   };
+
+  if (!user) {
+    return null;
+  }
 
   useEffect(() => {
     if (!user) return;

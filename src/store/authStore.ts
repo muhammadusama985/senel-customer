@@ -46,14 +46,23 @@ export const useAuthStore = create<AuthState>()(
       register: async (data) => {
         set({ isLoading: true, error: null });
         try {
-          await api.post('/auth/register', {
-            ...data,
-            role: 'customer'
-          });
+          const sanitized = Object.fromEntries(
+            Object.entries({
+              ...data,
+              role: 'customer',
+            }).filter(([, value]) => {
+              if (value === undefined || value === null) return false;
+              if (typeof value === 'string') return value.trim().length > 0;
+              return true;
+            })
+          );
+          await api.post('/auth/register', sanitized);
           set({ user: null, token: null, isLoading: false, error: null });
         } catch (error: any) {
+          const issues = Array.isArray(error?.response?.data?.issues) ? error.response.data.issues : [];
+          const firstIssue = issues[0]?.message;
           set({ 
-            error: error.response?.data?.message || 'Registration failed', 
+            error: firstIssue || error.response?.data?.message || 'Registration failed', 
             isLoading: false 
           });
           throw error;

@@ -27,6 +27,21 @@ export const RegisterPage: React.FC = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const getErrorMessage = (error: any) => {
+    const issues = Array.isArray(error?.response?.data?.issues) ? error.response.data.issues : [];
+    const firstIssue = issues[0];
+    if (typeof firstIssue?.message === 'string' && firstIssue.message.trim()) {
+      return firstIssue.message;
+    }
+    if (typeof error?.response?.data?.message === 'string' && error.response.data.message.trim()) {
+      return error.response.data.message;
+    }
+    if (typeof error?.message === 'string' && error.message.trim()) {
+      return error.message;
+    }
+    return 'Registration failed';
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -101,7 +116,7 @@ export const RegisterPage: React.FC = () => {
       toast.success('Registration successful! Please login to continue.');
       navigate('/login', { replace: true });
     } catch (error: any) {
-      toast.error(error.response?.data?.message || error.message || 'Registration failed');
+      toast.error(getErrorMessage(error));
     }
   };
 

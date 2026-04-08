@@ -2,6 +2,22 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '../api/client';
 
+const asCleanString = (value: unknown): string => {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  if (!value || typeof value !== 'object') return '';
+
+  const candidate = value as Record<string, unknown>;
+  if (typeof candidate.url === 'string') return candidate.url;
+  if (typeof candidate.imageUrl === 'string') return candidate.imageUrl;
+  if (typeof candidate.fileUrl === 'string') return candidate.fileUrl;
+  if (typeof candidate.src === 'string') return candidate.src;
+  if (typeof candidate.title === 'string') return candidate.title;
+  if (typeof candidate.name === 'string') return candidate.name;
+
+  return '';
+};
+
 export interface CartItem {
   cartItemId: string;
   productId: string;
@@ -63,16 +79,16 @@ export const useCartStore = create<CartState>()(
 
       normalizeServerItems: (serverItems: any[] = []) => {
         return serverItems.map((raw: any) => ({
-          cartItemId: String(raw._id || raw.id || raw.productId),
-          productId: String(raw.productId || ''),
-          vendorId: String(raw.vendorId || ''),
-          slug: raw.slug || '',
-          title: raw.title || 'Product',
+          cartItemId: asCleanString(raw._id || raw.id || raw.productId),
+          productId: asCleanString(raw.productId),
+          vendorId: asCleanString(raw.vendorId),
+          slug: asCleanString(raw.slug),
+          title: asCleanString(raw.title) || 'Product',
           quantity: Number(raw.qty || raw.quantity || 0),
           unitPrice: Number(raw.unitPrice || 0),
           lineTotal: Number(raw.lineTotal || 0),
-          imageUrl: raw.imageUrl || '',
-          variantSku: raw.variantSku || '',
+          imageUrl: asCleanString(raw.imageUrl),
+          variantSku: asCleanString(raw.variantSku),
           currency: raw.currency || 'EUR',
           moq: Number(raw.moq || 1),
           availableStock: Number(raw.availableStock || 0),
@@ -139,13 +155,13 @@ export const useCartStore = create<CartState>()(
                 {
                   cartItemId: productId,
                   productId,
-                  vendorId: productData?.vendorId || '',
-                  slug: productData?.slug || '',
-                  title: productData?.title || 'Product',
+                  vendorId: asCleanString(productData?.vendorId),
+                  slug: asCleanString(productData?.slug),
+                  title: asCleanString(productData?.title) || 'Product',
                   quantity,
                   unitPrice,
                   lineTotal: unitPrice * quantity,
-                  imageUrl: productData?.imageUrl,
+                  imageUrl: asCleanString(productData?.imageUrl),
                   variantSku,
                   currency: productData?.currency || 'EUR',
                   moq: productData?.moq,

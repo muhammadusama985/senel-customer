@@ -19,6 +19,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addItem } = useCartStore();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
   const isWishlisted = isInWishlist(product._id);
+  const asCleanString = (value: unknown, fallback = ''): string => {
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return String(value);
+    if (!value || typeof value !== 'object') return fallback;
+
+    const candidate = value as Record<string, unknown>;
+    if (typeof candidate.url === 'string') return candidate.url;
+    if (typeof candidate.imageUrl === 'string') return candidate.imageUrl;
+    if (typeof candidate.fileUrl === 'string') return candidate.fileUrl;
+    if (typeof candidate.src === 'string') return candidate.src;
+    if (typeof candidate.title === 'string') return candidate.title;
+    if (typeof candidate.name === 'string') return candidate.name;
+
+    return fallback;
+  };
+
+  const safeTitle = asCleanString(product.title, 'Product');
+  const safeSlug = asCleanString(product.slug, product._id);
   const hasEnoughVariantStock = product.hasVariants
     ? (product.variants || []).some((variant) => Number(variant.stockQty || 0) >= Number(product.moq || 1))
     : true;
@@ -63,13 +81,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           border: '1px solid var(--border)',
         },
       });
-      navigate(`/products/${product.slug}`);
+      navigate(`/products/${safeSlug}`);
       return;
     }
 
     if (isOutOfStock) {
       toast.error('This product does not currently have enough stock for the minimum order.');
-      navigate(`/products/${product.slug}`);
+      navigate(`/products/${safeSlug}`);
       return;
     }
 
@@ -77,8 +95,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     try {
       await addItem(product._id, product.moq, '', {
         vendorId: product.vendorId,
-        slug: product.slug,
-        title: product.title,
+        slug: safeSlug,
+        title: safeTitle,
         unitPrice: lowestPrice,
         imageUrl,
         currency: product.currency,
@@ -99,17 +117,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   const lowestPrice = product.priceTiers?.[0]?.unitPrice || 0;
-  const imageUrl = product.imageUrls?.[0] || '/images/placeholder.jpg';
+  const imageUrl = asCleanString(product.imageUrls?.[0], '/images/placeholder.jpg');
 
   return (
     <div
       className="product-card"
     >
-      <Link to={`/products/${product.slug}`} className="product-link">
+      <Link to={`/products/${safeSlug}`} className="product-link">
         <div className="product-image-container">
           <img
             src={imageUrl}
-            alt={product.title}
+            alt={safeTitle}
             className="product-image"
             loading="lazy"
           />
@@ -131,7 +149,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
 
         <div className="product-info">
-          <h3 className="product-title">{product.title}</h3>
+          <h3 className="product-title">{safeTitle}</h3>
 
           <div className="product-price-section">
             <div className="product-price">

@@ -37,12 +37,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const safeTitle = asCleanString(product.title, 'Product');
   const safeSlug = asCleanString(product.slug, product._id);
-  const hasEnoughVariantStock = product.hasVariants
-    ? (product.variants || []).some((variant) => Number(variant.stockQty || 0) >= Number(product.moq || 1))
-    : true;
-  const isOutOfStock = product.hasVariants
-    ? !hasEnoughVariantStock
-    : Number(product.stockQty || 0) < Number(product.moq || 1);
+  const isOutOfStock = Number(product.stockQty || 0) < Number(product.moq || 1);
 
   const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();

@@ -64,8 +64,7 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
 
-    const firstInStockVariant = product.variants?.find((variant: any) => Number(variant.stockQty || 0) > 0);
-    setSelectedVariantSku(firstInStockVariant?.sku || product.variants?.[0]?.sku || '');
+    setSelectedVariantSku(product.variants?.[0]?.sku || '');
   }, [product]);
 
   useEffect(() => {
@@ -86,9 +85,7 @@ export const ProductDetailPage: React.FC = () => {
   const selectedVariant = product?.hasVariants
     ? product.variants?.find((variant: any) => variant.sku === selectedVariantSku)
     : null;
-  const availableStock = product?.hasVariants
-    ? Number(selectedVariant?.stockQty || 0)
-    : Number(product?.stockQty || 0);
+  const availableStock = Number(product?.stockQty || 0);
 
   if (isLoading) {
     return (

@@ -9,8 +9,7 @@ interface ProductSpecsProps {
 
 export const ProductSpecs: React.FC<ProductSpecsProps> = ({ product }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const totalVariantStock = (product.variants || []).reduce((sum, variant) => sum + Number(variant.stockQty || 0), 0);
-  const displayStock = product.hasVariants ? totalVariantStock : product.stockQty;
+  const displayStock = product.stockQty;
   const displaySku = product.hasVariants
     ? (product.variants || []).map((variant) => variant.sku).filter(Boolean).join(', ')
     : product.sku || 'N/A';

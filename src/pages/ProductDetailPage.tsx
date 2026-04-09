@@ -28,9 +28,7 @@ interface ProductReview {
 
 const getReadableAttributeValue = (value: unknown) => {
   const text = String(value || '').trim();
-  if (!text) return '';
-  const match = text.match(/^(.+?)\s*\(#?[0-9a-f]{6}\)$/i);
-  return match ? match[1].trim() : text;
+  return text;
 };
 
 const getReadableAttributesMap = (attributes: Record<string, unknown> = {}) =>

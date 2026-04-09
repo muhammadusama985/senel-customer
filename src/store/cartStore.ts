@@ -29,6 +29,7 @@ export interface CartItem {
   lineTotal: number;
   imageUrl?: string;
   variantSku?: string;
+  variantAttributes?: Record<string, string>;
   currency?: 'EUR' | 'TRY' | 'USD';
   moq?: number;
   availableStock?: number;
@@ -89,6 +90,15 @@ export const useCartStore = create<CartState>()(
           lineTotal: Number(raw.lineTotal || 0),
           imageUrl: asCleanString(raw.imageUrl),
           variantSku: asCleanString(raw.variantSku),
+          variantAttributes:
+            raw.variantAttributes && typeof raw.variantAttributes === 'object'
+              ? Object.fromEntries(
+                  Object.entries(raw.variantAttributes as Record<string, unknown>).map(([key, value]) => [
+                    asCleanString(key),
+                    asCleanString(value),
+                  ]),
+                )
+              : {},
           currency: raw.currency || 'EUR',
           moq: Number(raw.moq || 1),
           availableStock: Number(raw.availableStock || 0),
@@ -163,6 +173,7 @@ export const useCartStore = create<CartState>()(
                   lineTotal: unitPrice * quantity,
                   imageUrl: asCleanString(productData?.imageUrl),
                   variantSku,
+                  variantAttributes: productData?.variantAttributes || {},
                   currency: productData?.currency || 'EUR',
                   moq: productData?.moq,
                   requiresManualShipping: productData?.requiresManualShipping,
@@ -180,6 +191,7 @@ export const useCartStore = create<CartState>()(
             productId,
             qty: quantity,
             variantSku,
+            variantAttributes: productData?.variantAttributes || {},
           });
           const cart = response.data.cart;
           const normalizedItems = get().normalizeServerItems(cart.items || []);
@@ -313,6 +325,7 @@ export const useCartStore = create<CartState>()(
                 productId: item.productId,
                 qty: item.quantity,
                 variantSku: item.variantSku || '',
+                variantAttributes: item.variantAttributes || {},
               });
             } catch {
               // Keep merge resilient; skip invalid/out-of-stock items.

@@ -36,48 +36,6 @@ const getReadableAttributesMap = (attributes: Record<string, unknown> = {}) =>
     Object.entries(attributes).map(([key, value]) => [key, getReadableAttributeValue(value)]),
   );
 
-const getVariantMatchScore = (
-  variantAttributes: Record<string, string>,
-  desiredAttributes: Record<string, string>,
-) =>
-  Object.entries(desiredAttributes).reduce(
-    (score, [key, value]) => score + (variantAttributes[key] === value ? 1 : 0),
-    0,
-  );
-
-const findMatchingVariant = (
-  variants: any[] = [],
-  desiredAttributes: Record<string, string>,
-  changedAttributeKey?: string,
-) => {
-  const normalizedVariants = variants.map((variant) => ({
-    variant,
-    readableAttributes: getReadableAttributesMap(variant.attributes || {}),
-  }));
-
-  const exactMatch = normalizedVariants.find(({ readableAttributes }) =>
-    Object.entries(desiredAttributes).every(([key, value]) => readableAttributes[key] === value),
-  );
-  if (exactMatch) return exactMatch.variant;
-
-  if (changedAttributeKey) {
-    const changedValue = desiredAttributes[changedAttributeKey];
-    const compatibleVariants = normalizedVariants
-      .filter(({ readableAttributes }) => readableAttributes[changedAttributeKey] === changedValue)
-      .sort(
-        (left, right) =>
-          getVariantMatchScore(right.readableAttributes, desiredAttributes) -
-          getVariantMatchScore(left.readableAttributes, desiredAttributes),
-      );
-
-    if (compatibleVariants.length) {
-      return compatibleVariants[0].variant;
-    }
-  }
-
-  return normalizedVariants[0]?.variant || null;
-};
-
 export const ProductDetailPage: React.FC = () => {
   const { t } = useI18n();
   const { slug } = useParams<{ slug: string }>();
@@ -116,13 +74,24 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
 
-    const firstVariant = product.variants?.[0];
-    if (!firstVariant) {
+    const groupedOptions = Object.entries(
+      (product.variants || []).reduce((acc: Record<string, string[]>, variant: any) => {
+        Object.entries(getReadableAttributesMap(variant.attributes || {})).forEach(([key, value]) => {
+          if (!acc[key]) acc[key] = [];
+          if (!acc[key].includes(value)) acc[key].push(value);
+        });
+        return acc;
+      }, {}),
+    );
+
+    if (!groupedOptions.length) {
       setSelectedAttributes({});
       return;
     }
 
-    const nextSelectedAttributes = getReadableAttributesMap(firstVariant.attributes || {});
+    const nextSelectedAttributes = Object.fromEntries(
+      groupedOptions.map(([key, values]) => [key, values[0] || '']),
+    );
     setSelectedAttributes(nextSelectedAttributes);
   }, [product]);
 
@@ -163,7 +132,18 @@ export const ProductDetailPage: React.FC = () => {
         ),
       ) || null
     : null;
-  const selectedVariantSku = selectedVariant?.sku || '';
+  const selectedOptionVariants = product?.hasVariants
+    ? (product.variants || []).filter((variant: any) =>
+        Object.entries(selectedAttributes).some(
+          ([key, value]) => getReadableAttributeValue(variant.attributes?.[key]) === value,
+        ),
+      )
+    : [];
+  const isSelectionComplete = attributeOptions.every(([attributeKey]) => Boolean(selectedAttributes[attributeKey]));
+  const selectedVariantSku =
+    selectedVariant?.sku ||
+    selectedOptionVariants[0]?.sku ||
+    '';
   const availableStock = Number(product?.stockQty || 0);
 
   useEffect(() => {
@@ -209,11 +189,13 @@ export const ProductDetailPage: React.FC = () => {
 
   const isWishlisted = isInWishlist(product._id);
   const selectedVariantImages = selectedVariant?.imageUrls || [];
+  const selectedOptionImages = selectedOptionVariants.flatMap((variant: any) => variant.imageUrls || []);
   const allVariantImages = (product.variants || []).flatMap((variant: any) => variant.imageUrls || []);
   const galleryImages = Array.from(
     new Set(
       [
         ...selectedVariantImages,
+        ...selectedOptionImages,
         ...(product.imageUrls || []),
         ...allVariantImages,
       ].filter(Boolean),
@@ -237,17 +219,10 @@ export const ProductDetailPage: React.FC = () => {
     if (!product?.hasVariants) return;
 
     setSelectedAttributes((prev) => {
-      const nextSelectedAttributes = {
+      return {
         ...prev,
         [attributeKey]: optionValue,
       };
-
-      const matchedVariant = findMatchingVariant(product.variants || [], nextSelectedAttributes, attributeKey);
-      if (!matchedVariant) {
-        return nextSelectedAttributes;
-      }
-
-      return getReadableAttributesMap(matchedVariant.attributes || {});
     });
     setSelectedImage(0);
   };
@@ -297,7 +272,7 @@ export const ProductDetailPage: React.FC = () => {
     const typedQuantity = parseInt(quantityInputValue, 10);
     const quantityToValidate = Number.isNaN(typedQuantity) ? quantity : typedQuantity;
 
-    if (product.hasVariants && !selectedVariantSku) {
+    if (product.hasVariants && (!isSelectionComplete || !selectedVariantSku)) {
       toast.error('Please select a product option first');
       return;
     }
@@ -330,6 +305,7 @@ export const ProductDetailPage: React.FC = () => {
         title: product.title,
         unitPrice: product.priceTiers?.[0]?.unitPrice || 0,
         imageUrl: images[0],
+        variantAttributes: selectedAttributes,
         currency: product.currency,
         moq: product.moq,
       });
@@ -455,7 +431,7 @@ export const ProductDetailPage: React.FC = () => {
               <button
                 className="btn btn-primary btn-large add-to-cart-btn"
                 onClick={handleAddToCart}
-                disabled={isAddingToCart || isOutOfStock || quantityExceedsStock || (product.hasVariants && !selectedVariant)}
+                disabled={isAddingToCart || isOutOfStock || quantityExceedsStock || (product.hasVariants && (!isSelectionComplete || !selectedVariantSku))}
               >
                 <ShoppingBagIcon className="add-to-cart-btn__icon" />
                 <span className="add-to-cart-btn__label">

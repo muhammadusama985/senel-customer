@@ -123,6 +123,10 @@ export const ProductDetailPage: React.FC = () => {
   const selectedVariantSku = selectedVariant?.sku || '';
   const availableStock = Number(product?.stockQty || 0);
 
+  useEffect(() => {
+    setSelectedImage(0);
+  }, [selectedVariantSku, product?._id]);
+
   if (isLoading) {
     return (
       <div className="product-detail-loading">
@@ -161,11 +165,14 @@ export const ProductDetailPage: React.FC = () => {
   }
 
   const isWishlisted = isInWishlist(product._id);
+  const selectedVariantImages = selectedVariant?.imageUrls || [];
+  const allVariantImages = (product.variants || []).flatMap((variant: any) => variant.imageUrls || []);
   const galleryImages = Array.from(
     new Set(
       [
+        ...selectedVariantImages,
         ...(product.imageUrls || []),
-        ...(selectedVariant?.imageUrls || []),
+        ...allVariantImages,
       ].filter(Boolean),
     ),
   );

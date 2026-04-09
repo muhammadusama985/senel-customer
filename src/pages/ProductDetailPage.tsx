@@ -128,11 +128,15 @@ export const ProductDetailPage: React.FC = () => {
   }
 
   const isWishlisted = isInWishlist(product._id);
-  const images = selectedVariant?.imageUrls?.length
-    ? selectedVariant.imageUrls
-    : product.imageUrls?.length
-      ? product.imageUrls
-      : ['/images/placeholder.jpg'];
+  const galleryImages = Array.from(
+    new Set(
+      [
+        ...(selectedVariant?.imageUrls || []),
+        ...(product.imageUrls || []),
+      ].filter(Boolean),
+    ),
+  );
+  const images = galleryImages.length ? galleryImages : ['/images/placeholder.jpg'];
   const currencySymbol = product.currency === 'USD' ? '$' : product.currency === 'TRY' ? 'TRY ' : 'EUR ';
   const canMeetMinimumOrder = availableStock >= product.moq;
   const quantityExceedsStock = canMeetMinimumOrder && quantity > availableStock;

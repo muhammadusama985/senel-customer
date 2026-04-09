@@ -264,6 +264,12 @@
   margin-top: -0.15rem;
 }
 
+.variant-attribute-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
 .variant-selector-label {
   color: var(--text-secondary);
   font-size: 0.875rem;

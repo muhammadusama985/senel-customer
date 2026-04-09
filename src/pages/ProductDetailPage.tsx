@@ -40,7 +40,7 @@ export const ProductDetailPage: React.FC = () => {
   const [quantity, setQuantity] = useState(0);
   const [quantityInputValue, setQuantityInputValue] = useState('');
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedVariantSku, setSelectedVariantSku] = useState('');
+  const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -67,11 +67,20 @@ export const ProductDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!product?.hasVariants) {
-      setSelectedVariantSku('');
+      setSelectedAttributes({});
       return;
     }
 
-    setSelectedVariantSku(product.variants?.[0]?.sku || '');
+    const firstVariant = product.variants?.[0];
+    if (!firstVariant) {
+      setSelectedAttributes({});
+      return;
+    }
+
+    const nextSelectedAttributes = Object.fromEntries(
+      Object.entries(firstVariant.attributes || {}).map(([key, value]) => [key, getReadableAttributeValue(value)]),
+    );
+    setSelectedAttributes(nextSelectedAttributes);
   }, [product]);
 
   useEffect(() => {
@@ -89,9 +98,29 @@ export const ProductDetailPage: React.FC = () => {
       .finally(() => setReviewsLoading(false));
   }, [product?._id]);
 
+  const attributeOptions = product?.hasVariants
+    ? Object.entries(
+        (product.variants || []).reduce((acc: Record<string, string[]>, variant: any) => {
+          Object.entries(variant.attributes || {}).forEach(([key, value]) => {
+            const readableValue = getReadableAttributeValue(value);
+            if (!acc[key]) acc[key] = [];
+            if (!acc[key].includes(readableValue)) {
+              acc[key].push(readableValue);
+            }
+          });
+          return acc;
+        }, {}),
+      )
+    : [];
+
   const selectedVariant = product?.hasVariants
-    ? product.variants?.find((variant: any) => variant.sku === selectedVariantSku)
+    ? product.variants?.find((variant: any) =>
+        Object.entries(selectedAttributes).every(
+          ([key, value]) => getReadableAttributeValue(variant.attributes?.[key]) === value,
+        ),
+      ) || null
     : null;
+  const selectedVariantSku = selectedVariant?.sku || '';
   const availableStock = Number(product?.stockQty || 0);
 
   if (isLoading) {
@@ -135,8 +164,8 @@ export const ProductDetailPage: React.FC = () => {
   const galleryImages = Array.from(
     new Set(
       [
-        ...(selectedVariant?.imageUrls || []),
         ...(product.imageUrls || []),
+        ...(selectedVariant?.imageUrls || []),
       ].filter(Boolean),
     ),
   );
@@ -152,6 +181,14 @@ export const ProductDetailPage: React.FC = () => {
       return `${parts.join(' / ')} (${variant.sku})`;
     }
     return variant?.sku || 'Variant';
+  };
+
+  const handleAttributeSelection = (attributeKey: string, optionValue: string) => {
+    setSelectedAttributes((prev) => ({
+      ...prev,
+      [attributeKey]: optionValue,
+    }));
+    setSelectedImage(0);
   };
 
   const handleQuantityChange = (nextQuantity: number) => {
@@ -313,24 +350,25 @@ export const ProductDetailPage: React.FC = () => {
 
             {product.hasVariants && (
               <div className="variant-selector-section">
-                <label htmlFor="variant-sku" className="variant-selector-label">
-                  Select Option:
-                </label>
-                <select
-                  id="variant-sku"
-                  className="variant-selector"
-                  value={selectedVariantSku}
-                  onChange={(e) => {
-                    setSelectedVariantSku(e.target.value);
-                    setSelectedImage(0);
-                  }}
-                >
-                  {(product.variants || []).map((variant: any) => (
-                    <option key={variant.sku} value={variant.sku}>
-                      {getVariantLabel(variant)}
-                    </option>
-                  ))}
-                </select>
+                {attributeOptions.map(([attributeKey, options]) => (
+                  <div key={attributeKey} className="variant-attribute-group">
+                    <label htmlFor={`attribute-${attributeKey}`} className="variant-selector-label">
+                      {attributeKey}
+                    </label>
+                    <select
+                      id={`attribute-${attributeKey}`}
+                      className="variant-selector"
+                      value={selectedAttributes[attributeKey] || ''}
+                      onChange={(e) => handleAttributeSelection(attributeKey, e.target.value)}
+                    >
+                      {options.map((option) => (
+                        <option key={`${attributeKey}-${option}`} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
                 <div className={`variant-stock ${isOutOfStock ? 'out' : ''}`}>
                   {availableStock <= 0
                     ? 'Out of stock'
@@ -356,7 +394,7 @@ export const ProductDetailPage: React.FC = () => {
               <button
                 className="btn btn-primary btn-large add-to-cart-btn"
                 onClick={handleAddToCart}
-                disabled={isAddingToCart || isOutOfStock || quantityExceedsStock || (product.hasVariants && !selectedVariantSku)}
+                disabled={isAddingToCart || isOutOfStock || quantityExceedsStock || (product.hasVariants && !selectedVariant)}
               >
                 <ShoppingBagIcon className="add-to-cart-btn__icon" />
                 <span className="add-to-cart-btn__label">

@@ -44,6 +44,7 @@ export const ProductDetailPage: React.FC = () => {
   const [quantityInputValue, setQuantityInputValue] = useState('');
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
+  const [lastChangedAttributeKey, setLastChangedAttributeKey] = useState<string>('');
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -93,6 +94,7 @@ export const ProductDetailPage: React.FC = () => {
       groupedOptions.map(([key, values]) => [key, values[0] || '']),
     );
     setSelectedAttributes(nextSelectedAttributes);
+    setLastChangedAttributeKey(groupedOptions[0]?.[0] || '');
   }, [product]);
 
   useEffect(() => {
@@ -133,11 +135,23 @@ export const ProductDetailPage: React.FC = () => {
       ) || null
     : null;
   const selectedOptionVariants = product?.hasVariants
-    ? (product.variants || []).filter((variant: any) =>
-        Object.entries(selectedAttributes).some(
-          ([key, value]) => getReadableAttributeValue(variant.attributes?.[key]) === value,
-        ),
-      )
+    ? (() => {
+        const variants = product.variants || [];
+        const prioritizedByLastChanged = lastChangedAttributeKey
+          ? variants.filter(
+              (variant: any) =>
+                getReadableAttributeValue(variant.attributes?.[lastChangedAttributeKey]) ===
+                selectedAttributes[lastChangedAttributeKey],
+            )
+          : [];
+        const matchingOtherSelections = variants.filter((variant: any) =>
+          Object.entries(selectedAttributes).some(
+            ([key, value]) => getReadableAttributeValue(variant.attributes?.[key]) === value,
+          ),
+        );
+
+        return Array.from(new Set([...prioritizedByLastChanged, ...matchingOtherSelections]));
+      })()
     : [];
   const isSelectionComplete = attributeOptions.every(([attributeKey]) => Boolean(selectedAttributes[attributeKey]));
   const selectedVariantSku =
@@ -224,6 +238,7 @@ export const ProductDetailPage: React.FC = () => {
         [attributeKey]: optionValue,
       };
     });
+    setLastChangedAttributeKey(attributeKey);
     setSelectedImage(0);
   };
 

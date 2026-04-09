@@ -33,6 +33,53 @@ const getReadableAttributeValue = (value: unknown) => {
   return match ? match[1].trim() : text;
 };
 
+const getReadableAttributesMap = (attributes: Record<string, unknown> = {}) =>
+  Object.fromEntries(
+    Object.entries(attributes).map(([key, value]) => [key, getReadableAttributeValue(value)]),
+  );
+
+const getVariantMatchScore = (
+  variantAttributes: Record<string, string>,
+  desiredAttributes: Record<string, string>,
+) =>
+  Object.entries(desiredAttributes).reduce(
+    (score, [key, value]) => score + (variantAttributes[key] === value ? 1 : 0),
+    0,
+  );
+
+const findMatchingVariant = (
+  variants: any[] = [],
+  desiredAttributes: Record<string, string>,
+  changedAttributeKey?: string,
+) => {
+  const normalizedVariants = variants.map((variant) => ({
+    variant,
+    readableAttributes: getReadableAttributesMap(variant.attributes || {}),
+  }));
+
+  const exactMatch = normalizedVariants.find(({ readableAttributes }) =>
+    Object.entries(desiredAttributes).every(([key, value]) => readableAttributes[key] === value),
+  );
+  if (exactMatch) return exactMatch.variant;
+
+  if (changedAttributeKey) {
+    const changedValue = desiredAttributes[changedAttributeKey];
+    const compatibleVariants = normalizedVariants
+      .filter(({ readableAttributes }) => readableAttributes[changedAttributeKey] === changedValue)
+      .sort(
+        (left, right) =>
+          getVariantMatchScore(right.readableAttributes, desiredAttributes) -
+          getVariantMatchScore(left.readableAttributes, desiredAttributes),
+      );
+
+    if (compatibleVariants.length) {
+      return compatibleVariants[0].variant;
+    }
+  }
+
+  return normalizedVariants[0]?.variant || null;
+};
+
 export const ProductDetailPage: React.FC = () => {
   const { t } = useI18n();
   const { slug } = useParams<{ slug: string }>();
@@ -77,9 +124,7 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
 
-    const nextSelectedAttributes = Object.fromEntries(
-      Object.entries(firstVariant.attributes || {}).map(([key, value]) => [key, getReadableAttributeValue(value)]),
-    );
+    const nextSelectedAttributes = getReadableAttributesMap(firstVariant.attributes || {});
     setSelectedAttributes(nextSelectedAttributes);
   }, [product]);
 
@@ -191,10 +236,21 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   const handleAttributeSelection = (attributeKey: string, optionValue: string) => {
-    setSelectedAttributes((prev) => ({
-      ...prev,
-      [attributeKey]: optionValue,
-    }));
+    if (!product?.hasVariants) return;
+
+    setSelectedAttributes((prev) => {
+      const nextSelectedAttributes = {
+        ...prev,
+        [attributeKey]: optionValue,
+      };
+
+      const matchedVariant = findMatchingVariant(product.variants || [], nextSelectedAttributes, attributeKey);
+      if (!matchedVariant) {
+        return nextSelectedAttributes;
+      }
+
+      return getReadableAttributesMap(matchedVariant.attributes || {});
+    });
     setSelectedImage(0);
   };
 

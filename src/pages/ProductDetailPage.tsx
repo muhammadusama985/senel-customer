@@ -26,6 +26,13 @@ interface ProductReview {
   createdAt?: string;
 }
 
+const getReadableAttributeValue = (value: unknown) => {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  const match = text.match(/^(.+?)\s*\(#?[0-9a-f]{6}\)$/i);
+  return match ? match[1].trim() : text;
+};
+
 export const ProductDetailPage: React.FC = () => {
   const { t } = useI18n();
   const { slug } = useParams<{ slug: string }>();
@@ -140,7 +147,7 @@ export const ProductDetailPage: React.FC = () => {
   const isOutOfStock = availableStock <= 0 || !canMeetMinimumOrder;
 
   const getVariantLabel = (variant: any) => {
-    const parts = Object.entries(variant?.attributes || {}).map(([key, value]) => `${key}: ${value}`);
+    const parts = Object.entries(variant?.attributes || {}).map(([key, value]) => `${key}: ${getReadableAttributeValue(value)}`);
     if (parts.length) {
       return `${parts.join(' / ')} (${variant.sku})`;
     }

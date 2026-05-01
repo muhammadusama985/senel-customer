@@ -93,7 +93,7 @@ export const FeaturedSuppliers: React.FC = () => {
           </div>
         ) : (
           <div className="error-message">
-            No suppliers found
+            {t('home.noSuppliers', 'No suppliers found')}
           </div>
         )}
       </div>

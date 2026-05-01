@@ -37,7 +37,7 @@ const getReadableAttributesMap = (attributes: Record<string, unknown> = {}) =>
   );
 
 export const ProductDetailPage: React.FC = () => {
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(0);
@@ -110,7 +110,7 @@ export const ProductDetailPage: React.FC = () => {
       .then((response) => setReviews(Array.isArray(response.data.items) ? response.data.items : []))
       .catch(() => setReviews([]))
       .finally(() => setReviewsLoading(false));
-  }, [product?._id]);
+  }, [lang, product?._id]);
 
   const attributeOptions = product?.hasVariants
     ? Object.entries(
@@ -250,10 +250,10 @@ export const ProductDetailPage: React.FC = () => {
   const handleWishlist = async () => {
     if (isWishlisted) {
       await removeFromWishlist(product._id);
-      toast.success('Removed from wishlist');
+      toast.success(t('wishlist.removed', 'Removed from wishlist'));
     } else {
       await addToWishlist(product._id);
-      toast.success('Added to wishlist');
+      toast.success(t('wishlist.added', 'Added to wishlist'));
     }
   };
 
@@ -275,9 +275,9 @@ export const ProductDetailPage: React.FC = () => {
       const response = await api.get<{ items: ProductReview[] }>(`/reviews/product/${product._id}`);
       setReviews(Array.isArray(response.data.items) ? response.data.items : []);
       setReviewForm({ rating: 5, title: '', comment: '' });
-      toast.success('Review submitted successfully');
+      toast.success(t('product.reviewSubmitted', 'Review submitted successfully'));
     } catch (reviewError: any) {
-      toast.error(reviewError.response?.data?.message || 'Failed to submit review');
+      toast.error(reviewError.response?.data?.message || t('product.reviewSubmitFailed', 'Failed to submit review'));
     } finally {
       setSubmittingReview(false);
     }
@@ -288,22 +288,22 @@ export const ProductDetailPage: React.FC = () => {
     const quantityToValidate = Number.isNaN(typedQuantity) ? quantity : typedQuantity;
 
     if (product.hasVariants && (!isSelectionComplete || !selectedVariantSku)) {
-      toast.error('Please select a product option first');
+      toast.error(t('cart.optionRequired', 'Please select a product option first.'));
       return;
     }
 
     if (quantityToValidate < product.moq) {
-      toast.error(`Minimum order quantity is ${product.moq}`);
+      toast.error(t('product.minimumOrderQty', 'Minimum order quantity is {{qty}}', { qty: product.moq }));
       return;
     }
 
     if (isOutOfStock) {
-      toast.error('Low stock');
+      toast.error(t('product.lowStock', 'Low stock'));
       return;
     }
 
     if (quantityExceedsStock || quantityToValidate > availableStock) {
-      toast.error('Low stock');
+      toast.error(t('product.lowStock', 'Low stock'));
       return;
     }
 
@@ -324,9 +324,9 @@ export const ProductDetailPage: React.FC = () => {
         currency: product.currency,
         moq: product.moq,
       });
-      toast.success(`Added ${quantityToValidate} units to cart`);
+      toast.success(t('cart.addedToCart', 'Added {{qty}} units to cart', { qty: quantityToValidate }));
     } catch (error) {
-      toast.error('Failed to add to cart');
+      toast.error(t('cart.failedAdd', 'Failed to add to cart'));
     } finally {
       setIsAddingToCart(false);
     }
@@ -337,8 +337,8 @@ export const ProductDetailPage: React.FC = () => {
       <div className="container">
         <Breadcrumbs
           items={[
-            { label: 'Home', path: '/' },
-            { label: 'Products', path: '/products' },
+            { label: t('nav.home', 'Home'), path: '/' },
+            { label: t('nav.products', 'Products'), path: '/products' },
             { label: product.title, path: `/products/${product.slug}` }
           ]}
         />
@@ -391,7 +391,7 @@ export const ProductDetailPage: React.FC = () => {
               <button
                 className={`product-detail-wishlist-btn ${isWishlisted ? 'active' : ''}`}
                 onClick={handleWishlist}
-                aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                aria-label={isWishlisted ? t('product.removeWishlist', 'Remove from wishlist') : t('product.addWishlist', 'Add to wishlist')}
               >
                 {isWishlisted ? <HeartSolidIcon className="icon" /> : <HeartIcon className="icon" />}
                 <span>{isWishlisted ? t('product.saved', 'Saved') : t('product.saveWishlist', 'Save to Favorites')}</span>
@@ -423,10 +423,13 @@ export const ProductDetailPage: React.FC = () => {
                 ))}
                 <div className={`variant-stock ${isOutOfStock ? 'out' : ''}`}>
                   {availableStock <= 0
-                    ? 'Out of stock'
+                    ? t('product.outOfStock', 'Out of stock')
                     : !canMeetMinimumOrder
-                      ? `Only ${availableStock} units available. Minimum order is ${product.moq}.`
-                      : `${availableStock} units available`}
+                      ? t('product.onlyUnitsAvailable', 'Only {{qty}} units available. Minimum order is {{moq}}.', {
+                          qty: availableStock,
+                          moq: product.moq,
+                        })
+                      : t('product.unitsAvailable', '{{qty}} units available', { qty: availableStock })}
                 </div>
               </div>
             )}
@@ -464,11 +467,14 @@ export const ProductDetailPage: React.FC = () => {
         <section className="product-reviews-section">
           <div className="reviews-header">
             <div>
-              <h2>Customer Reviews</h2>
+              <h2>{t('product.customerReviews', 'Customer Reviews')}</h2>
               <p className="reviews-subtitle">
                 {reviews.length
-                  ? `${reviews.length} verified review${reviews.length === 1 ? '' : 's'}`
-                  : 'No reviews yet. Be the first verified buyer to share feedback.'}
+                  ? t('product.reviewCountVerified', '{{count}} verified review{{suffix}}', {
+                      count: reviews.length,
+                      suffix: reviews.length === 1 ? '' : 's',
+                    })
+                  : t('product.reviewEmptyLead', 'No reviews yet. Be the first verified buyer to share feedback.')}
               </p>
             </div>
             {!user ? (
@@ -476,15 +482,15 @@ export const ProductDetailPage: React.FC = () => {
                 className="btn btn-outline"
                 onClick={() => navigate('/login', { state: { from: `/products/${product.slug}` } })}
               >
-                Login to Review
+                {t('product.loginToReview', 'Login to Review')}
               </button>
             ) : null}
           </div>
 
           <div className="reviews-grid">
             <form className="review-form-card" onSubmit={handleReviewSubmit}>
-              <h3>Write a Review</h3>
-              <label className="review-label" htmlFor="review-rating">Rating</label>
+              <h3>{t('product.writeReview', 'Write a Review')}</h3>
+              <label className="review-label" htmlFor="review-rating">{t('product.rating', 'Rating')}</label>
               <div id="review-rating" className="review-stars-input">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
@@ -492,52 +498,55 @@ export const ProductDetailPage: React.FC = () => {
                     type="button"
                     className={`review-star-btn ${reviewForm.rating >= star ? 'active' : ''}`}
                     onClick={() => setReviewForm((prev) => ({ ...prev, rating: star }))}
-                    aria-label={`Rate ${star} star${star === 1 ? '' : 's'}`}
+                    aria-label={t('product.reviewAria', 'Rate {{count}} star{{suffix}}', {
+                      count: star,
+                      suffix: star === 1 ? '' : 's',
+                    })}
                   >
                     ★
                   </button>
                 ))}
               </div>
 
-              <label className="review-label" htmlFor="review-title">Title</label>
+              <label className="review-label" htmlFor="review-title">{t('product.reviewTitle', 'Title')}</label>
               <input
                 id="review-title"
                 type="text"
                 value={reviewForm.title}
                 onChange={(event) => setReviewForm((prev) => ({ ...prev, title: event.target.value }))}
-                placeholder="Short review title"
+                placeholder={t('product.reviewTitlePlaceholder', 'Short review title')}
                 className="review-input"
               />
 
-              <label className="review-label" htmlFor="review-comment">Your Review</label>
+              <label className="review-label" htmlFor="review-comment">{t('product.reviewBody', 'Your Review')}</label>
               <textarea
                 id="review-comment"
                 value={reviewForm.comment}
                 onChange={(event) => setReviewForm((prev) => ({ ...prev, comment: event.target.value }))}
-                placeholder="Share what you liked, quality details, delivery experience, or anything helpful."
+                placeholder={t('product.reviewBodyPlaceholder', 'Share what you liked, quality details, delivery experience, or anything helpful.')}
                 className="review-textarea"
                 rows={5}
               />
 
               <button className="btn btn-primary" type="submit" disabled={submittingReview}>
-                {submittingReview ? 'Submitting...' : 'Submit Review'}
+                {submittingReview ? t('product.submittingReview', 'Submitting...') : t('product.submitReview', 'Submit Review')}
               </button>
             </form>
 
             <div className="review-list-card">
               {reviewsLoading ? (
-                <div className="review-empty-state">Loading reviews...</div>
+                <div className="review-empty-state">{t('product.loadingReviews', 'Loading reviews...')}</div>
               ) : reviews.length === 0 ? (
-                <div className="review-empty-state">No reviews yet for this product.</div>
+                <div className="review-empty-state">{t('product.noProductReviews', 'No reviews yet for this product.')}</div>
               ) : (
                 <div className="review-list">
                   {reviews.map((review) => (
                     <article key={review._id} className="review-item">
                       <div className="review-item-top">
                         <div>
-                          <strong>{review.customerName || 'Verified buyer'}</strong>
+                          <strong>{review.customerName || t('product.verifiedBuyer', 'Verified buyer')}</strong>
                           <div className="review-item-date">
-                            {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Recently'}
+                            {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : t('product.recently', 'Recently')}
                           </div>
                         </div>
                         <div className="review-item-stars" aria-label={`${review.rating} out of 5`}>

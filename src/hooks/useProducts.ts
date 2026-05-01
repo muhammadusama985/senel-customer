@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
 import { Product } from '../types/product';
+import { useI18n } from '../i18n';
 
 export interface ProductsQueryParams {
   q?: string;
@@ -30,6 +31,7 @@ interface ProductsResponse {
 }
 
 export const useProducts = (params: ProductsQueryParams = {}) => {
+  const { lang } = useI18n();
   const {
     q = '',
     categoryId,
@@ -50,7 +52,7 @@ export const useProducts = (params: ProductsQueryParams = {}) => {
   } = params;
 
   return useQuery({
-    queryKey: ['products', params],
+    queryKey: ['products', params, lang],
     queryFn: async () => {
       const searchParams = new URLSearchParams();
       
@@ -79,8 +81,9 @@ export const useProducts = (params: ProductsQueryParams = {}) => {
 };
 
 export const useProduct = (slug: string) => {
+  const { lang } = useI18n();
   return useQuery({
-    queryKey: ['product', slug],
+    queryKey: ['product', slug, lang],
     queryFn: async () => {
       const response = await api.get<{ product: Product }>(`/shop/products/${slug}`);
       return response.data.product;
@@ -91,8 +94,9 @@ export const useProduct = (slug: string) => {
 };
 
 export const useRelatedProducts = (productId: string, limit: number = 4) => {
+  const { lang } = useI18n();
   return useQuery({
-    queryKey: ['related-products', productId],
+    queryKey: ['related-products', productId, limit, lang],
     queryFn: async () => {
       const response = await api.get(`/shop/recommendations/${productId}`, {
         params: { limit }
@@ -105,8 +109,9 @@ export const useRelatedProducts = (productId: string, limit: number = 4) => {
 };
 
 export const useTrendingProducts = (limit: number = 8) => {
+  const { lang } = useI18n();
   return useQuery({
-    queryKey: ['trending', limit],
+    queryKey: ['trending', limit, lang],
     queryFn: async () => {
       const response = await api.get('/shop/trending', {
         params: { limit }

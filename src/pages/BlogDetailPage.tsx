@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../api/client';
 import { Breadcrumbs } from '../components/common/Breadcrumbs';
+import { useI18n } from '../i18n';
 import { resolveMediaUrl } from '../utils/media';
 import './BlogDetailPage.css';
 
@@ -17,6 +18,7 @@ interface BlogPost {
 
 export const BlogDetailPage: React.FC = () => {
   const { slug = '' } = useParams<{ slug: string }>();
+  const { lang, t } = useI18n();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,37 +34,36 @@ export const BlogDetailPage: React.FC = () => {
         setPost(response.data.post || null);
       } catch (err: any) {
         setPost(null);
-        setError(err.response?.data?.message || 'Blog post not found');
+        setError(err.response?.data?.message || t('blog.notFound', 'Blog post not found'));
       } finally {
         setLoading(false);
       }
     };
 
     void load();
-  }, [slug]);
+  }, [lang, slug, t]);
 
   return (
     <div className="blog-detail-page">
       <div className="container">
         <Breadcrumbs
           items={[
-            { label: 'Home', path: '/' },
-            { label: 'Blog', path: '/blog' },
+            { label: t('nav.home', 'Home'), path: '/' },
+            { label: t('blog.title', 'Blog'), path: '/blog' },
             { label: post?.title || slug, path: `/blog/${slug}` },
           ]}
         />
 
         <article className="card blog-detail-card">
           {loading ? (
-            <p>Loading post...</p>
+            <p>{t('blog.loadingPost', 'Loading post...')}</p>
           ) : error ? (
             <p>{error}</p>
           ) : (
             <>
               <h1>{post?.title}</h1>
               <p className="muted">
-                {post?.authorName || 'Senel'}{' '}
-                {post?.publishedAt ? `• ${new Date(post.publishedAt).toLocaleDateString()}` : ''}
+                {post?.authorName || 'Senel'} {post?.publishedAt ? `• ${new Date(post.publishedAt).toLocaleDateString()}` : ''}
               </p>
               {post?.coverImageUrl && <img src={resolveMediaUrl(post.coverImageUrl)} alt={post.title} className="blog-detail-cover" />}
               <div

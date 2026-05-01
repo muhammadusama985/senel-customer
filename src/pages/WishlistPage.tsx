@@ -26,7 +26,7 @@ interface WishlistItem {
 }
 
 export const WishlistPage: React.FC = () => {
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
   const { addItem } = useCartStore();
   const { removeFromWishlist, fetchWishlist } = useWishlistStore();
   const [items, setItems] = useState<WishlistItem[]>([]);
@@ -43,7 +43,7 @@ export const WishlistPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [t]);
+  }, [fetchWishlist, lang, t]);
 
   useEffect(() => {
     void loadWishlist();
@@ -55,7 +55,7 @@ export const WishlistPage: React.FC = () => {
       setItems((prev) => prev.filter((item) => item.productId !== productId));
       toast.success(t('wishlist.remove', 'Remove'));
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to remove item');
+      toast.error(error.response?.data?.message || t('wishlist.failedRemove', 'Failed to remove item'));
     }
   };
 
@@ -75,7 +75,7 @@ export const WishlistPage: React.FC = () => {
       });
       toast.success(t('wishlist.addToCart', 'Add to Cart'));
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to add to cart');
+      toast.error(error.response?.data?.message || t('wishlist.failedAddCart', 'Failed to add to cart'));
     }
   };
 
@@ -101,7 +101,9 @@ export const WishlistPage: React.FC = () => {
                   />
                   <h3>{product.title}</h3>
                   <p className="muted">
-                    MOQ: {product.moq || 1} | From {formatMoney(Number(product.priceTiers?.[0]?.unitPrice || 0), product.currency)}
+                    MOQ: {product.moq || 1} | {t('wishlist.fromPrice', 'From {{price}}', {
+                      price: formatMoney(Number(product.priceTiers?.[0]?.unitPrice || 0), product.currency),
+                    })}
                   </p>
                   <div className="wishlist-actions">
                     <Link to={`/products/${product.slug || product._id}`} className="btn btn-outline">{t('wishlist.view', 'View')}</Link>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import api from '../api/client';
 import { Breadcrumbs } from '../components/common/Breadcrumbs';
+import { useI18n } from '../i18n';
 import './CmsPage.css';
 
 interface CmsPageData {
@@ -24,6 +25,7 @@ const aliasToSlug: Record<string, string> = {
 export const CmsPage: React.FC = () => {
   const location = useLocation();
   const { slug = '' } = useParams<{ slug: string }>();
+  const { lang, t } = useI18n();
   const [page, setPage] = useState<CmsPageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -46,30 +48,30 @@ export const CmsPage: React.FC = () => {
         setPage(response.data.page || null);
       } catch (err: any) {
         setPage(null);
-        setError(err.response?.data?.message || 'Page not found');
+        setError(err.response?.data?.message || t('cms.notFound', 'Page not found'));
       } finally {
         setLoading(false);
       }
     };
 
     void load();
-  }, [pageSlug]);
+  }, [lang, pageSlug, t]);
 
-  const title = page?.title || pageSlug || 'Page';
+  const title = page?.title || t(`cms.${pageSlug}`, pageSlug || 'Page');
 
   return (
     <div className="cms-page">
       <div className="container">
         <Breadcrumbs
           items={[
-            { label: 'Home', path: '/' },
+            { label: t('nav.home', 'Home'), path: '/' },
             { label: title, path: `/pages/${pageSlug}` },
           ]}
         />
 
         <article className="card cms-content">
           {loading ? (
-            <p>Loading content...</p>
+            <p>{t('cms.loading', 'Loading content...')}</p>
           ) : error ? (
             <div>
               <h1>{title}</h1>

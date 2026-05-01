@@ -6,6 +6,7 @@ import { useCartStore } from '../../store/cartStore';
 import { useWishlistStore } from '../../store/wishlistStore';
 import { Product } from '../../types/product';
 import { formatMoney } from '../../utils/currency';
+import { useI18n } from '../../i18n';
 import toast from 'react-hot-toast';
 import './ProductCard.css';
 
@@ -15,6 +16,7 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { addItem } = useCartStore();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
@@ -45,7 +47,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
     if (isWishlisted) {
       await removeFromWishlist(product._id);
-      toast.success('Removed from wishlist', {
+      toast.success(t('wishlist.removed', 'Removed from wishlist'), {
         style: {
           background: 'var(--card-bg)',
           color: 'var(--text-primary)',
@@ -54,7 +56,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       });
     } else {
       await addToWishlist(product._id);
-      toast.success('Added to wishlist', {
+      toast.success(t('wishlist.added', 'Added to wishlist'), {
         style: {
           background: 'var(--card-bg)',
           color: 'var(--text-primary)',
@@ -69,7 +71,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     e.stopPropagation();
 
     if (product.hasVariants) {
-      toast('Please select a product option first.', {
+      toast(t('cart.optionRequired', 'Please select a product option first.'), {
         style: {
           background: 'var(--card-bg)',
           color: 'var(--text-primary)',
@@ -81,7 +83,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     }
 
     if (isOutOfStock) {
-      toast.error('This product does not currently have enough stock for the minimum order.');
+      toast.error(t('cart.lowStockMoq', 'This product does not currently have enough stock for the minimum order.'));
       navigate(`/products/${safeSlug}`);
       return;
     }
@@ -97,7 +99,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         currency: product.currency,
         moq: product.moq,
       });
-      toast.success(`Added ${product.moq} units to cart`, {
+      toast.success(t('cart.addedToCart', 'Added {{qty}} units to cart', { qty: product.moq }), {
         style: {
           background: 'var(--card-bg)',
           color: 'var(--text-primary)',
@@ -105,7 +107,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         },
       });
     } catch (error) {
-      toast.error('Failed to add to cart');
+      toast.error(t('cart.failedAdd', 'Failed to add to cart'));
     } finally {
       setIsAddingToCart(false);
     }
@@ -129,7 +131,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <button
             className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
             onClick={handleWishlist}
-            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            aria-label={isWishlisted ? t('wishlist.removeLabel', 'Remove from wishlist') : t('wishlist.addLabel', 'Add to wishlist')}
           >
             {isWishlisted ? (
               <HeartSolidIcon className="icon animate-heart" />
@@ -139,7 +141,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </button>
 
           <div className={`product-badge ${isOutOfStock ? 'out-of-stock' : ''}`}>
-            {isOutOfStock ? 'Out of Stock' : `${product.moq}+ MOQ`}
+            {isOutOfStock ? t('product.outOfStock', 'Out of Stock') : `${product.moq}+ MOQ`}
           </div>
         </div>
 
@@ -169,7 +171,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               </div>
             ) : (
               <div className="product-rating">
-                <span className="no-rating">New Arrival</span>
+                <span className="no-rating">{t('product.newArrival', 'New Arrival')}</span>
               </div>
             )}
           </div>
@@ -182,12 +184,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             {isAddingToCart ? (
               <>
                 <span className="loader-small"></span>
-                Adding...
+                {t('product.adding', 'Adding...')}
               </>
             ) : (
               <>
                 <ShoppingBagIcon className="icon-small" />
-                {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+                {isOutOfStock ? t('product.outOfStock', 'Out of Stock') : t('product.addToCart', 'Add to Cart')}
               </>
             )}
           </button>

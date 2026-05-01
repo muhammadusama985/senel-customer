@@ -88,11 +88,11 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
       />
 
       <div className="filter-section">
-        <h4 className="filter-title">{t('filters.priceRange', 'Price Range')} (&euro;)</h4>
+        <h4 className="filter-title">{t('filters.priceRange', 'Price Range')}</h4>
         <div className="price-range">
           <input
             type="number"
-            placeholder="Min"
+            placeholder={t('filters.min', 'Min')}
             value={priceRange.min}
             onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
             className="price-input"
@@ -101,7 +101,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
           <span className="price-separator">-</span>
           <input
             type="number"
-            placeholder="Max"
+            placeholder={t('filters.max', 'Max')}
             value={priceRange.max}
             onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
             className="price-input"
@@ -114,7 +114,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
         <h4 className="filter-title">{t('filters.minOrderQty', 'Minimum Order Quantity')}</h4>
         <input
           type="number"
-          placeholder="MOQ"
+          placeholder={t('filters.moqShort', 'MOQ')}
           value={filters.minMoq || ''}
           onChange={(e) => handleChange('minMoq', e.target.value)}
           className="filter-input"

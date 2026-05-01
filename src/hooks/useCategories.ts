@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
+import { useI18n } from '../i18n';
 
 export interface Category {
   _id: string;
@@ -16,8 +17,9 @@ interface CategoriesResponse {
 }
 
 export const useCategories = (limit?: number) => {
+  const { lang } = useI18n();
   return useQuery<Category[]>({
-    queryKey: ['categories'],
+    queryKey: ['categories', lang],
     queryFn: async () => {
       const response = await api.get<CategoriesResponse>('/shop/categories');
       const categories = response.data.categories || [];

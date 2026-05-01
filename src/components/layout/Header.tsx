@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
-import { useI18n } from '../../i18n';
+import { setAppLanguage, useI18n } from '../../i18n';
 import api from '../../api/client';
 import './Header.css';
 
@@ -30,9 +30,6 @@ export const Header: React.FC = () => {
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'de' | 'tr'>(
-    (localStorage.getItem('appLanguage') as 'en' | 'de' | 'tr') || 'en'
-  );
   const [theme, setTheme] = useState<'dark' | 'light'>(
     (localStorage.getItem('appTheme') as 'dark' | 'light') || 'light'
   );
@@ -40,7 +37,7 @@ export const Header: React.FC = () => {
   const searchRef = useRef<HTMLDivElement>(null);
 
   const { user, logout } = useAuthStore();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { itemCount, fetchCart } = useCartStore();
   const navigate = useNavigate();
 
@@ -164,8 +161,7 @@ export const Header: React.FC = () => {
   };
 
   const handleLanguageChange = (value: 'en' | 'de' | 'tr') => {
-    setLanguage(value);
-    localStorage.setItem('appLanguage', value);
+    setAppLanguage(value);
   };
 
   const toggleTheme = () => {
@@ -188,17 +184,17 @@ export const Header: React.FC = () => {
               <Link to="/products" className="nav-link">{t('nav.products', 'Products')}</Link>
               <Link to="/hot-products" className="nav-link">{t('nav.deals', 'Hot Products')}</Link>
               <div className="nav-more">
-                <span className="nav-link nav-link-more">More</span>
+                <span className="nav-link nav-link-more">{t('nav.more', 'More')}</span>
                 <div className="nav-more-menu">
-                  <Link to="/blog" className="nav-more-item">Blog</Link>
-                  <Link to="/pages/about" className="nav-more-item">About</Link>
-                  <Link to="/pages/contact" className="nav-more-item">Contact</Link>
-                  <Link to="/pages/faq" className="nav-more-item">FAQ</Link>
-                  <Link to="/pages/help" className="nav-more-item">Help</Link>
-                  <Link to="/pages/shipping" className="nav-more-item">Shipping</Link>
-                  <Link to="/pages/returns" className="nav-more-item">Returns</Link>
-                  <Link to="/pages/terms" className="nav-more-item">Terms</Link>
-                  <Link to="/pages/privacy" className="nav-more-item">Privacy</Link>
+                  <Link to="/blog" className="nav-more-item">{t('blog.title', 'Blog')}</Link>
+                  <Link to="/pages/about" className="nav-more-item">{t('cms.about', 'About')}</Link>
+                  <Link to="/pages/contact" className="nav-more-item">{t('cms.contact', 'Contact')}</Link>
+                  <Link to="/pages/faq" className="nav-more-item">{t('cms.faq', 'FAQ')}</Link>
+                  <Link to="/pages/help" className="nav-more-item">{t('cms.help', 'Help')}</Link>
+                  <Link to="/pages/shipping" className="nav-more-item">{t('cms.shipping', 'Shipping')}</Link>
+                  <Link to="/pages/returns" className="nav-more-item">{t('cms.returns', 'Returns')}</Link>
+                  <Link to="/pages/terms" className="nav-more-item">{t('cms.terms', 'Terms')}</Link>
+                  <Link to="/pages/privacy" className="nav-more-item">{t('cms.privacy', 'Privacy')}</Link>
                 </div>
               </div>
             </nav>
@@ -213,7 +209,7 @@ export const Header: React.FC = () => {
                 <MagnifyingGlassIcon className="search-icon" />
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder={t('search.placeholder', 'Search products...')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
@@ -227,7 +223,7 @@ export const Header: React.FC = () => {
                       setSearchQuery('');
                       setSuggestions([]);
                     }}
-                    aria-label="Clear search"
+                    aria-label={t('search.clear', 'Clear search')}
                   >
                     <XMarkIcon className="icon-small" />
                   </button>
@@ -236,7 +232,7 @@ export const Header: React.FC = () => {
                 {showSuggestions && (
                   <div className="search-suggestions">
                     {isSuggestionsLoading ? (
-                      <div className="search-suggestion-empty">Searching products...</div>
+                      <div className="search-suggestion-empty">{t('search.loading', 'Searching products...')}</div>
                     ) : suggestions.length > 0 ? (
                       suggestions.map((suggestion) => (
                         <button
@@ -253,7 +249,7 @@ export const Header: React.FC = () => {
                         </button>
                       ))
                     ) : searchQuery.trim().length >= 2 ? (
-                      <div className="search-suggestion-empty">No matching products found.</div>
+                      <div className="search-suggestion-empty">{t('search.noMatches', 'No matching products found.')}</div>
                     ) : null}
                   </div>
                 )}
@@ -264,7 +260,7 @@ export const Header: React.FC = () => {
               <button
                 type="button"
                 className="action-icon theme-toggle"
-                aria-label="Toggle theme"
+                aria-label={t('theme.toggle', 'Toggle theme')}
                 onClick={toggleTheme}
               >
                 {theme === 'dark' ? <SunIcon className="icon" /> : <MoonIcon className="icon" />}
@@ -272,9 +268,9 @@ export const Header: React.FC = () => {
 
               <select
                 className="lang-select"
-                value={language}
+                value={lang}
                 onChange={(e) => handleLanguageChange(e.target.value as 'en' | 'de' | 'tr')}
-                aria-label="Select language"
+                aria-label={t('search.aria', 'Select language')}
               >
                 <option value="en">EN</option>
                 <option value="de">DE</option>
@@ -316,7 +312,7 @@ export const Header: React.FC = () => {
                     <UserIcon className="icon" />
                   </button>
 
-                  <div className={`user-dropdown ${isAccountMenuOpen ? 'open' : ''}`}>
+                <div className={`user-dropdown ${isAccountMenuOpen ? 'open' : ''}`}>
                     <div className="dropdown-header">
                       <span className="user-email">{user.email}</span>
                     </div>
@@ -327,7 +323,7 @@ export const Header: React.FC = () => {
                       onClick={() => setIsAccountMenuOpen(false)}
                     >
                       <UserIcon className="icon-small" />
-                      My Account
+                      {t('account.title', 'My Account')}
                     </Link>
 
                     <Link
@@ -336,7 +332,7 @@ export const Header: React.FC = () => {
                       onClick={() => setIsAccountMenuOpen(false)}
                     >
                       <ShoppingBagIcon className="icon-small" />
-                      Orders
+                      {t('account.ordersLink', 'Orders')}
                     </Link>
 
                     <Link
@@ -345,13 +341,13 @@ export const Header: React.FC = () => {
                       onClick={() => setIsAccountMenuOpen(false)}
                     >
                       <HeartIcon className="icon-small" />
-                      Wishlist
+                      {t('wishlist.title', 'Wishlist')}
                     </Link>
 
                     <div className="dropdown-divider"></div>
 
                     <button onClick={handleLogout} className="dropdown-item logout">
-                      <span>Logout</span>
+                      <span>{t('account.logout', 'Logout')}</span>
                     </button>
                   </div>
                 </div>
@@ -365,7 +361,7 @@ export const Header: React.FC = () => {
               <button
                 className={`mobile-menu-button ${isMenuOpen ? 'active' : ''}`}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+                aria-label={isMenuOpen ? t('menu.close', 'Close menu') : t('menu.open', 'Open menu')}
               >
                 <span className="hamburger-line"></span>
                 <span className="hamburger-line"></span>
@@ -383,11 +379,11 @@ export const Header: React.FC = () => {
 
       <div className={`nav-mobile ${isMenuOpen ? 'open' : ''}`}>
         <div className="mobile-menu-header">
-          <span className="mobile-menu-title">Menu</span>
+          <span className="mobile-menu-title">{t('menu.title', 'Menu')}</span>
           <button
             className="mobile-menu-close"
             onClick={() => setIsMenuOpen(false)}
-            aria-label="Close mobile menu"
+            aria-label={t('menu.close', 'Close mobile menu')}
           >
             <XMarkIcon className="icon" />
           </button>
@@ -427,33 +423,33 @@ export const Header: React.FC = () => {
             <span className="mobile-link-arrow">&rarr;</span>
           </Link>
           <Link to="/blog" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
-            <span>Blog</span>
+            <span>{t('blog.title', 'Blog')}</span>
             <span className="mobile-link-arrow">&rarr;</span>
           </Link>
           <Link to="/pages/about" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
-            <span>About</span>
+            <span>{t('cms.about', 'About')}</span>
             <span className="mobile-link-arrow">&rarr;</span>
           </Link>
           <Link to="/pages/contact" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
-            <span>Contact</span>
+            <span>{t('cms.contact', 'Contact')}</span>
             <span className="mobile-link-arrow">&rarr;</span>
           </Link>
           <Link to="/pages/faq" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
-            <span>FAQ</span>
+            <span>{t('cms.faq', 'FAQ')}</span>
             <span className="mobile-link-arrow">&rarr;</span>
           </Link>
           <Link to="/pages/help" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
-            <span>Help</span>
+            <span>{t('cms.help', 'Help')}</span>
             <span className="mobile-link-arrow">&rarr;</span>
           </Link>
 
           <div className="mobile-language">
-            <span>Language</span>
+            <span>{t('menu.language', 'Language')}</span>
             <select
               className="lang-select"
-              value={language}
+              value={lang}
               onChange={(e) => handleLanguageChange(e.target.value as 'en' | 'de' | 'tr')}
-              aria-label="Select language"
+              aria-label={t('search.aria', 'Select language')}
             >
               <option value="en">English</option>
               <option value="de">German</option>
@@ -462,13 +458,13 @@ export const Header: React.FC = () => {
           </div>
 
           <button type="button" className="mobile-nav-link" onClick={toggleTheme}>
-            <span>{theme === 'dark' ? 'Light Theme' : 'Dark Theme'}</span>
-            <span className="mobile-link-arrow">{theme === 'dark' ? 'On' : 'Off'}</span>
+            <span>{theme === 'dark' ? t('theme.light', 'Light Theme') : t('theme.dark', 'Dark Theme')}</span>
+            <span className="mobile-link-arrow">{theme === 'dark' ? t('theme.on', 'On') : t('theme.off', 'Off')}</span>
           </button>
 
           {!user && (
             <Link to="/login" className="mobile-nav-link login" onClick={() => setIsMenuOpen(false)}>
-              <span>Login / Register</span>
+              <span>{t('auth.loginRegister', 'Login / Register')}</span>
               <span className="mobile-link-arrow">&rarr;</span>
             </Link>
           )}

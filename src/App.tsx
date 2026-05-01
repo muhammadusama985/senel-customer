@@ -25,6 +25,7 @@ import { BlogDetailPage } from './pages/BlogDetailPage';
 import './App.css';
 import { VendorsListPage } from './pages/VendorsListPage';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { useI18n } from './i18n';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +40,7 @@ const queryClient = new QueryClient({
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
   const { fetchWishlist } = useWishlistStore();
+  const { t } = useI18n();
 
   useEffect(() => {
     checkAuth();
@@ -51,7 +53,7 @@ function App() {
   if (isLoading) {
     return (
       <div className="loading-screen">
-        <div className="loader">Loading...</div>
+        <div className="loader">{t('common.loading', 'Loading...')}</div>
       </div>
     );
   }

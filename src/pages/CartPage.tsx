@@ -31,7 +31,7 @@ export const CartPage: React.FC = () => {
     try {
       await updateQuantity(cartItemId, newQuantity);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to update quantity');
+      toast.error(error?.response?.data?.message || t('cart.failedUpdate', 'Failed to update quantity'));
     } finally {
       setUpdatingItems((prev) => {
         const next = new Set(prev);
@@ -42,28 +42,28 @@ export const CartPage: React.FC = () => {
   };
 
   const handleRemoveItem = async (cartItemId: string) => {
-    if (!window.confirm('Remove this item from cart?')) return;
+    if (!window.confirm(t('cart.removeConfirm', 'Remove this item from cart?'))) return;
     try {
       await removeItem(cartItemId);
-      toast.success('Item removed from cart');
+      toast.success(t('cart.removed', 'Item removed from cart'));
     } catch {
-      toast.error('Failed to remove item');
+      toast.error(t('cart.failedRemove', 'Failed to remove item'));
     }
   };
 
   const handleClearCart = async () => {
-    if (!window.confirm('Clear your entire cart?')) return;
+    if (!window.confirm(t('cart.clearConfirm', 'Clear your entire cart?'))) return;
     try {
       await clearCart();
-      toast.success('Cart cleared');
+      toast.success(t('cart.cleared', 'Cart cleared'));
     } catch {
-      toast.error('Failed to clear cart');
+      toast.error(t('cart.failedClear', 'Failed to clear cart'));
     }
   };
 
   const handleCheckout = () => {
     if (!user) {
-      toast.error('Please login to checkout');
+      toast.error(t('cart.loginCheckout', 'Please login to checkout'));
       navigate('/login', { state: { from: '/checkout' } });
       return;
     }
@@ -89,10 +89,10 @@ export const CartPage: React.FC = () => {
       <div className="cart-page-empty">
         <div className="container">
           <div className="empty-cart">
-            <h2>Your cart is empty</h2>
-            <p>Looks like you have not added any items yet.</p>
+            <h2>{t('cart.emptyTitle', 'Your cart is empty')}</h2>
+            <p>{t('cart.emptySubtitle', 'Looks like you have not added any items yet.')}</p>
             <Link to="/products" className="btn btn-primary">
-              Start Shopping
+              {t('cart.startShopping', 'Start Shopping')}
             </Link>
           </div>
         </div>
@@ -106,7 +106,7 @@ export const CartPage: React.FC = () => {
         <div className="cart-header">
           <h1>{t('cart.title', 'Shopping Cart')}</h1>
           <button onClick={handleClearCart} className="clear-cart-btn">
-            Clear Cart
+            {t('cart.clearCart', 'Clear Cart')}
           </button>
         </div>
 
@@ -128,10 +128,10 @@ export const CartPage: React.FC = () => {
                     <Link to={`/products/${item.slug || item.productId}`} className="cart-item-title">
                       {item.title}
                     </Link>
-                    <div className="cart-item-price">{formatMoney(item.unitPrice, item.currency)} per unit</div>
-                    <div className="cart-item-price">Minimum order: {minimumOrder}</div>
+                    <div className="cart-item-price">{formatMoney(item.unitPrice, item.currency)} {t('cart.perUnit', 'per unit')}</div>
+                    <div className="cart-item-price">{t('cart.minimumOrder', 'Minimum order: {{qty}}', { qty: minimumOrder })}</div>
                     {availableStock > 0 ? (
-                      <div className="cart-item-price">Available stock: {availableStock}</div>
+                      <div className="cart-item-price">{t('cart.availableStock', 'Available stock: {{qty}}', { qty: availableStock })}</div>
                     ) : null}
                   </div>
 
@@ -160,7 +160,7 @@ export const CartPage: React.FC = () => {
                     <button
                       onClick={() => handleRemoveItem(key)}
                       className="remove-item-btn"
-                      aria-label="Remove item"
+                      aria-label={t('cart.removeItem', 'Remove item')}
                     >
                       <TrashIcon className="icon-small" />
                     </button>
@@ -171,20 +171,20 @@ export const CartPage: React.FC = () => {
           </div>
 
           <div className="cart-summary">
-            <h3>Order Summary</h3>
+            <h3>{t('cart.orderSummary', 'Order Summary')}</h3>
 
             <div className="summary-row">
-              <span>Subtotal ({itemCount} items)</span>
+              <span>{t('cart.subtotalItems', 'Subtotal ({{count}} items)', { count: itemCount })}</span>
               <span>{formatMoney(subtotal, items[0]?.currency)}</span>
             </div>
 
             <div className="summary-row">
-              <span>Shipping</span>
-              <span>Calculated at checkout</span>
+              <span>{t('cart.shipping', 'Shipping')}</span>
+              <span>{t('cart.calculatedCheckout', 'Calculated at checkout')}</span>
             </div>
 
             <div className="summary-row total">
-              <span>Estimated Total</span>
+              <span>{t('cart.estimatedTotal', 'Estimated Total')}</span>
               <span>{formatMoney(subtotal, items[0]?.currency)}</span>
             </div>
 
@@ -194,7 +194,7 @@ export const CartPage: React.FC = () => {
 
             <Link to="/products" className="continue-shopping">
               <ArrowLeftIcon className="icon-small" />
-              Continue Shopping
+              {t('cart.continueShopping', 'Continue Shopping')}
             </Link>
           </div>
         </div>

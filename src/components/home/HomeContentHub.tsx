@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';
+import { useI18n } from '../../i18n';
 import { resolveMediaUrl } from '../../utils/media';
 import './HomeContentHub.css';
 
@@ -13,6 +14,7 @@ interface BlogPostListItem {
 }
 
 export const HomeContentHub: React.FC = () => {
+  const { lang, t } = useI18n();
   const [blogs, setBlogs] = useState<BlogPostListItem[]>([]);
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export const HomeContentHub: React.FC = () => {
     };
 
     void load();
-  }, []);
+  }, [lang]);
 
   const hasBlogs = blogs.length > 0;
 
@@ -36,8 +38,8 @@ export const HomeContentHub: React.FC = () => {
         <div className="hub-grid">
           <article className="hub-card">
             <div className="hub-header">
-              <h2>Latest Blog Posts</h2>
-              <Link to="/blog" className="hub-link">View all</Link>
+              <h2>{t('home.latestBlogPosts', 'Latest Blog Posts')}</h2>
+              <Link to="/blog" className="hub-link">{t('common.viewAll', 'View all')}</Link>
             </div>
             {hasBlogs ? (
               <div className="hub-blog-list">
@@ -50,13 +52,13 @@ export const HomeContentHub: React.FC = () => {
                     )}
                     <div>
                       <h3>{post.title}</h3>
-                      <p>{post.summary || 'Read latest updates from Senel.'}</p>
+                      <p>{post.summary || t('home.readLatest', 'Read latest updates from Senel.')}</p>
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="hub-empty">No blog posts available yet.</p>
+              <p className="hub-empty">{t('blog.empty', 'No blog posts available yet.')}</p>
             )}
           </article>
         </div>

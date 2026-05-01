@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
 import { Breadcrumbs } from '../components/common/Breadcrumbs';
+import { useI18n } from '../i18n';
 import { resolveMediaUrl } from '../utils/media';
 import './BlogListPage.css';
 
@@ -15,6 +16,7 @@ interface BlogPostListItem {
 }
 
 export const BlogListPage: React.FC = () => {
+  const { lang, t } = useI18n();
   const [items, setItems] = useState<BlogPostListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -27,29 +29,30 @@ export const BlogListPage: React.FC = () => {
         const response = await api.get<{ items: BlogPostListItem[] }>('/blog');
         setItems(Array.isArray(response.data.items) ? response.data.items : []);
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load blog');
+        setError(err.response?.data?.message || t('blog.loadFailed', 'Failed to load blog'));
       } finally {
         setLoading(false);
       }
     };
+
     void load();
-  }, []);
+  }, [lang, t]);
 
   return (
     <div className="blog-list-page">
       <div className="container">
-        <Breadcrumbs items={[{ label: 'Home', path: '/' }, { label: 'Blog', path: '/blog' }]} />
+        <Breadcrumbs items={[{ label: t('nav.home', 'Home'), path: '/' }, { label: t('blog.title', 'Blog'), path: '/blog' }]} />
         <div className="blog-list-header">
-          <h1>Blog</h1>
-          <p>Updates, guides and marketplace insights.</p>
+          <h1>{t('blog.title', 'Blog')}</h1>
+          <p>{t('blog.subtitle', 'Updates, guides and marketplace insights.')}</p>
         </div>
 
         {loading ? (
-          <div className="card">Loading blog posts...</div>
+          <div className="card">{t('blog.loadingList', 'Loading blog posts...')}</div>
         ) : error ? (
           <div className="card">{error}</div>
         ) : items.length === 0 ? (
-          <div className="card">No blog posts available.</div>
+          <div className="card">{t('blog.none', 'No blog posts available.')}</div>
         ) : (
           <div className="blog-grid">
             {items.map((post) => (
@@ -63,7 +66,7 @@ export const BlogListPage: React.FC = () => {
                   {post.authorName || 'Senel'} {post.publishedAt ? `• ${new Date(post.publishedAt).toLocaleDateString()}` : ''}
                 </p>
                 <Link className="btn btn-outline" to={`/blog/${post.slug}`}>
-                  Read
+                  {t('common.read', 'Read')}
                 </Link>
               </article>
             ))}

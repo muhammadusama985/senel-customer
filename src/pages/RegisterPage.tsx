@@ -330,8 +330,8 @@ export const RegisterPage: React.FC = () => {
                 className="btn btn-primary btn-large register-btn"
                 disabled={isLoading}
               >
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </button>
+                {isLoading ? t('common.loading', 'Loading...') : t('auth.createAccount', 'Create Account')}
+                </button>
             </form>
 
             <div className="register-footer">

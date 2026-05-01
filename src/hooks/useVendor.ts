@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
+import { useI18n } from '../i18n';
 
 export interface Vendor {
   id: string;
@@ -32,8 +33,9 @@ interface VendorsListParams {
 }
 
 export const useVendor = (slug: string) => {
+  const { lang } = useI18n();
   return useQuery({
-    queryKey: ['vendor', slug],
+    queryKey: ['vendor', slug, lang],
     queryFn: async () => {
       const response = await api.get(`/shop/vendors/${slug}`);
       return response.data.vendor;
@@ -44,8 +46,9 @@ export const useVendor = (slug: string) => {
 };
 
 export const useVendorProducts = (slug: string, page: number = 1, limit: number = 12) => {
+  const { lang } = useI18n();
   return useQuery({
-    queryKey: ['vendor-products', slug, page],
+    queryKey: ['vendor-products', slug, page, limit, lang],
     queryFn: async () => {
       const response = await api.get(
         `/shop/vendors/${slug}/products`,
@@ -59,6 +62,7 @@ export const useVendorProducts = (slug: string, page: number = 1, limit: number 
 };
 
 export const useVendorsList = (params: VendorsListParams = {}) => {
+  const { lang } = useI18n();
   const {
     q = '',
     country = '',
@@ -68,7 +72,7 @@ export const useVendorsList = (params: VendorsListParams = {}) => {
   } = params;
 
   return useQuery({
-    queryKey: ['vendors-list', q, country, verified, page, limit],
+    queryKey: ['vendors-list', q, country, verified, page, limit, lang],
     queryFn: async () => {
       const response = await api.get<VendorsListResponse>('/shop/vendors', {
         params: {

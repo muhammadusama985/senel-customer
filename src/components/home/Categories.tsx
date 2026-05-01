@@ -42,7 +42,7 @@ export const Categories: React.FC = () => {
         </div>
 
         {categories?.length ? (
-          <div className="categories-bar" role="list" aria-label="Trending categories">
+          <div className="categories-bar" role="list" aria-label={t('home.trendingCategories', 'Trending Categories')}>
             {categories.map((category: Category) => (
               <Link
                 key={category._id}
@@ -68,7 +68,7 @@ export const Categories: React.FC = () => {
           </div>
         ) : (
           <div className="error-message">
-            No categories found
+            {t('home.noCategories', 'No categories found')}
           </div>
         )}
       </div>

@@ -122,7 +122,7 @@ const safeDate = (value?: string) => {
 export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
   const { user } = useAuthStore();
   const [tab, setTab] = useState<TabKey>('profile');
 
@@ -176,7 +176,7 @@ export const AccountPage: React.FC = () => {
       contactPhone: user.contactPhone || '',
       preferredLanguage: user.preferredLanguage || 'en',
     });
-  }, [user]);
+  }, [lang, user]);
 
   useEffect(() => {
     const tabParam = searchParams.get('tab') as TabKey | null;
@@ -211,7 +211,7 @@ export const AccountPage: React.FC = () => {
     if (tab === 'suppliers') {
       void loadPreferredSuppliers();
     }
-  }, [tab, user]);
+  }, [lang, tab, user]);
 
   const profileSummary = useMemo(
     () => [

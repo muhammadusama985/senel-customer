@@ -24,6 +24,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    config.headers['Accept-Language'] = language;
     config.headers['x-lang'] = language;
     return config;
   },

@@ -182,7 +182,7 @@ const safeDate = (value?: string) => {
 
 export const OrdersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
   const { user } = useAuthStore();
   const { normalizeServerItems, setCartFromItems } = useCartStore();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -220,7 +220,7 @@ export const OrdersPage: React.FC = () => {
   useEffect(() => {
     void loadOrders();
     void loadDisputes();
-  }, []);
+  }, [lang]);
 
   const loadOrders = async () => {
     setLoading(true);

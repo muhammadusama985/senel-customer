@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useI18n } from '../../i18n';
 import './SearchBar.css';
 
 interface SearchBarProps {
@@ -15,6 +16,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = 'Search products...',
   autoFocus = false,
 }) => {
+  const { t } = useI18n();
   const [query, setQuery] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -39,6 +41,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     }
   };
 
+  const resolvedPlaceholder = placeholder === 'Search products...'
+    ? t('search.placeholder', 'Search products...')
+    : placeholder;
+
   return (
     <form className="search-bar" onSubmit={handleSubmit}>
       <MagnifyingGlassIcon className="search-icon" />
@@ -47,7 +53,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         className="search-input"
       />
       {query && (
@@ -55,13 +61,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           type="button"
           onClick={handleClear}
           className="clear-button"
-          aria-label="Clear search"
+          aria-label={t('search.clear', 'Clear search')}
         >
           <XMarkIcon className="clear-icon" />
         </button>
       )}
       <button type="submit" className="search-button">
-        Search
+        {t('common.search', 'Search')}
       </button>
     </form>
   );

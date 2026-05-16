@@ -10,6 +10,7 @@ const messages: Record<AppLanguage, Record<string, string>> = {
     'nav.products': 'Products',
     'nav.deals': 'Hot Products',
     'nav.more': 'More',
+    'auth.loginSuccess': 'Login successful',
     'auth.login': 'Login',
     'auth.register': 'Register',
     'auth.loginRegister': 'Login / Register',
@@ -28,6 +29,7 @@ const messages: Record<AppLanguage, Record<string, string>> = {
     'auth.city': 'City',
     'auth.addressLine': 'Address',
     'auth.confirmPassword': 'Confirm Password',
+    'auth.forgotPassword': 'Forgot Password?',
     'common.save': 'Save',
     'common.cancel': 'Cancel',
     'common.loading': 'Loading...',
@@ -314,6 +316,7 @@ const messages: Record<AppLanguage, Record<string, string>> = {
     'auth.city': 'Stadt',
     'auth.addressLine': 'Adresse',
     'auth.confirmPassword': 'Passwort bestätigen',
+    'auth.forgotPassword': 'Passwort vergessen?',
     'common.save': 'Speichern',
     'common.cancel': 'Abbrechen',
     'common.loading': 'Lädt...',
@@ -600,6 +603,7 @@ const messages: Record<AppLanguage, Record<string, string>> = {
     'auth.city': 'Şehir',
     'auth.addressLine': 'Adres',
     'auth.confirmPassword': 'Şifreyi Onayla',
+    'auth.forgotPassword': 'Şifremi Unuttum?',
     'common.save': 'Kaydet',
     'common.cancel': 'İptal',
     'common.loading': 'Yükleniyor...',
@@ -902,8 +906,8 @@ function subscribeToLanguageChange(callback: () => void) {
 }
 
 export function useI18n() {
-  const lang = useSyncExternalStore(subscribeToLanguageChange, getAppLanguage, () => 'en');
-  const dict = useMemo(() => messages[lang] || messages.en, [lang]);
+  const lang = useSyncExternalStore(subscribeToLanguageChange, getAppLanguage, () => 'en') as AppLanguage;
+  const dict = useMemo((): Record<string, string> => messages[lang] ?? messages['en'], [lang]);
 
   const t = useCallback(
     (key: string, fallback?: string, values?: Record<string, string | number>) => {

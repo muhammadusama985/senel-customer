@@ -113,7 +113,7 @@
 
 .nav-more-menu {
   position: absolute;
-  top: calc(100% + 0.45rem);
+  top: calc(100% + 0.5rem);
   left: 0;
   min-width: 180px;
   border: 1px solid var(--border);
@@ -122,14 +122,21 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
   backdrop-filter: blur(16px);
   padding: 0.35rem;
-  display: none;
+  display: grid;
+  gap: 0.1rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
   z-index: 15;
 }
 
 .nav-more:hover .nav-more-menu,
-.nav-more:focus-within .nav-more-menu {
-  display: grid;
-  gap: 0.1rem;
+.nav-more:focus-within .nav-more-menu,
+.nav-more.open .nav-more-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .nav-more-item {

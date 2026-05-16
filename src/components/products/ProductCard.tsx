@@ -4,6 +4,7 @@ import { ShoppingBagIcon, HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { useCartStore } from '../../store/cartStore';
 import { useWishlistStore } from '../../store/wishlistStore';
+import { useAuthStore } from '../../store/authStore';
 import { Product } from '../../types/product';
 import { formatMoney } from '../../utils/currency';
 import { useI18n } from '../../i18n';
@@ -20,6 +21,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { addItem } = useCartStore();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
+  const { user } = useAuthStore();
   const isWishlisted = isInWishlist(product._id);
   const asCleanString = (value: unknown, fallback = ''): string => {
     if (typeof value === 'string') return value;
@@ -44,6 +46,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Redirect to login if user is not logged in
+    if (!user) {
+      navigate('/login', { state: { from: window.location.pathname } });
+      return;
+    }
 
     if (isWishlisted) {
       await removeFromWishlist(product._id);

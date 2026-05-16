@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { BuildingOfficeIcon, UserIcon, EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import { BuildingOfficeIcon, UserIcon, EnvelopeIcon, LockClosedIcon, ExclamationCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { useI18n } from '../i18n';
 import './RegisterPage.css';
+
+// Helper to extract error message
+const getErrorMessage = (error: any): string => {
+  if (error?.response?.data?.issues?.[0]?.message) return error.response.data.issues[0].message;
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  return 'Registration failed. Please try again.';
+};
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,21 +34,8 @@ export const RegisterPage: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const getErrorMessage = (error: any) => {
-    const issues = Array.isArray(error?.response?.data?.issues) ? error.response.data.issues : [];
-    const firstIssue = issues[0];
-    if (typeof firstIssue?.message === 'string' && firstIssue.message.trim()) {
-      return firstIssue.message;
-    }
-    if (typeof error?.response?.data?.message === 'string' && error.response.data.message.trim()) {
-      return error.response.data.message;
-    }
-    if (typeof error?.message === 'string' && error.message.trim()) {
-      return error.message;
-    }
-    return 'Registration failed';
-  };
+  const [serverError, setServerError] = useState('');
+  const [serverSuccess, setServerSuccess] = useState('');
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -92,12 +87,20 @@ export const RegisterPage: React.FC = () => {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+    if (serverError) {
+      setServerError('');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerError('');
+    setServerSuccess('');
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      toast.error('Please fix the form errors before submitting.');
+      return;
+    }
 
     try {
       await register({
@@ -113,10 +116,19 @@ export const RegisterPage: React.FC = () => {
         addressLine: formData.addressLine,
         preferredLanguage: lang,
       });
+      
+      // Show success alert
+      setServerSuccess('Registration successful! Redirecting to login...');
       toast.success('Registration successful! Please login to continue.');
-      navigate('/login', { replace: true });
+      
+      // Navigate after a short delay to let the user see the success message
+      setTimeout(() => {
+        navigate('/login', { replace: true });
+      }, 1500);
     } catch (error: any) {
-      toast.error(getErrorMessage(error));
+      const errorMsg = getErrorMessage(error);
+      setServerError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -129,6 +141,20 @@ export const RegisterPage: React.FC = () => {
               <h2>{t('auth.createAccount', 'Create Account')}</h2>
               <p>{t('auth.registerSubtitle', 'Join Senel Express as a business buyer')}</p>
             </div>
+
+            {serverSuccess && (
+              <div className="register-success-banner">
+                <CheckCircleIcon className="alert-icon" />
+                <span>{serverSuccess}</span>
+              </div>
+            )}
+
+            {serverError && (
+              <div className="register-server-error">
+                <ExclamationCircleIcon className="alert-icon" />
+                <span>{serverError}</span>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="register-form">
               <div className="form-row">
@@ -295,7 +321,7 @@ export const RegisterPage: React.FC = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Create a password"
+                  placeholder="Create a password (min 8 characters)"
                   className={errors.password ? 'error' : ''}
                 />
                 {errors.password && <span className="error-message">{errors.password}</span>}
@@ -345,3 +371,5 @@ export const RegisterPage: React.FC = () => {
     </div>
   );
 };
+
+export default RegisterPage;

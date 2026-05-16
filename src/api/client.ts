@@ -37,11 +37,22 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
+    // Make sure we preserve the error for the calling code to handle
+    // Don't modify the error object here
+    
+    // Only redirect on 401 if we're NOT on an auth page AND we have a token
+    const isAuthPage = window.location.pathname === '/login' || 
+                       window.location.pathname === '/register' ||
+                       window.location.pathname === '/forgot-password';
+    
+    const hasToken = !!localStorage.getItem('customerToken');
+    
+    if (error.response?.status === 401 && !isAuthPage && hasToken) {
+      // Unauthorized with existing token - clear and redirect
       localStorage.removeItem('customerToken');
       window.location.href = '/login';
     }
+    
     return Promise.reject(error);
   }
 );

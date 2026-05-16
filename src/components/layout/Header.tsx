@@ -30,6 +30,7 @@ export const Header: React.FC = () => {
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [isMoreDropdownOpen, setIsMoreDropdownOpen] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(
     (localStorage.getItem('appTheme') as 'dark' | 'light') || 'light'
   );
@@ -183,7 +184,11 @@ export const Header: React.FC = () => {
               <Link to="/suppliers" className="nav-link">{t('nav.suppliers', 'Suppliers')}</Link>
               <Link to="/products" className="nav-link">{t('nav.products', 'Products')}</Link>
               <Link to="/hot-products" className="nav-link">{t('nav.deals', 'Hot Products')}</Link>
-              <div className="nav-more">
+              <div
+                className={`nav-more ${isMoreDropdownOpen ? 'open' : ''}`}
+                onMouseEnter={() => setIsMoreDropdownOpen(true)}
+                onMouseLeave={() => setIsMoreDropdownOpen(false)}
+              >
                 <span className="nav-link nav-link-more">{t('nav.more', 'More')}</span>
                 <div className="nav-more-menu">
                   <Link to="/blog" className="nav-more-item">{t('blog.title', 'Blog')}</Link>

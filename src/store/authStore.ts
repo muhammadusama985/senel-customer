@@ -31,14 +31,35 @@ export const useAuthStore = create<AuthState>()(
           const response = await api.post('/auth/login', credentials);
           const { accessToken, user } = response.data;
           
+          // Store both token and user in localStorage
           localStorage.setItem('customerToken', accessToken);
+          localStorage.setItem('customerUser', JSON.stringify(user));
+          
+          // Update store state
           set({ user, token: accessToken, isLoading: false });
+          
+          // Sync cart to server
           await useCartStore.getState().syncGuestCartToServer();
         } catch (error: any) {
+          // Extract message from various possible locations
+          let errorMessage = 'Login failed';
+          
+          if (error?.response?.data?.message) {
+            errorMessage = error.response.data.message;
+          } else if (error?.response?.data?.issues?.[0]?.message) {
+            errorMessage = error.response.data.issues[0].message;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          }
+          
+          console.log('AuthStore login error:', errorMessage, error);
+          
           set({ 
-            error: error.response?.data?.message || 'Login failed', 
+            error: errorMessage, 
             isLoading: false 
           });
+          
+          // Re-throw the original error so the component can handle it
           throw error;
         }
       },
@@ -71,12 +92,25 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         localStorage.removeItem('customerToken');
+        localStorage.removeItem('customerUser');
         useCartStore.getState().resetLocalCart();
         set({ user: null, token: null, error: null });
       },
 
       checkAuth: async () => {
         const token = localStorage.getItem('customerToken');
+        const savedUser = localStorage.getItem('customerUser');
+        
+        // If we have a saved user, use it immediately (optimistic UI)
+        if (savedUser) {
+          try {
+            const user = JSON.parse(savedUser);
+            set({ user, token, isLoading: false });
+          } catch {
+            localStorage.removeItem('customerUser');
+          }
+        }
+        
         if (!token) {
           set({ user: null, token: null, isLoading: false });
           return;
@@ -85,11 +119,24 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const response = await api.get('/auth/me');
-          set({ user: response.data.user, token, isLoading: false });
+          const user = response.data.user;
+          
+          // Update saved user data
+          localStorage.setItem('customerUser', JSON.stringify(user));
+          set({ user, token, isLoading: false });
+          
+          // Fetch cart for logged in user
           useCartStore.getState().fetchCart();
-        } catch (error) {
-          localStorage.removeItem('customerToken');
-          set({ user: null, token: null, isLoading: false });
+        } catch (error: any) {
+          // If token is invalid (401), clear everything
+          if (error?.response?.status === 401) {
+            localStorage.removeItem('customerToken');
+            localStorage.removeItem('customerUser');
+            set({ user: null, token: null, isLoading: false });
+          } else {
+            // For other errors (network issue etc), keep the saved user
+            set({ isLoading: false });
+          }
         }
       },
 

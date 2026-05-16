@@ -248,6 +248,12 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   const handleWishlist = async () => {
+    // Redirect to login if user is not logged in
+    if (!user) {
+      navigate('/login', { state: { from: `/products/${product.slug}` } });
+      return;
+    }
+
     if (isWishlisted) {
       await removeFromWishlist(product._id);
       toast.success(t('wishlist.removed', 'Removed from wishlist'));

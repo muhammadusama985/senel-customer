@@ -8,6 +8,8 @@ import { useAuthStore } from './store/authStore';
 import { useWishlistStore } from './store/wishlistStore';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { GoogleCallbackPage } from './pages/GoogleCallbackPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ProductsPage } from './pages/ProductPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
@@ -66,6 +68,8 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/google-callback" element={<GoogleCallbackPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/products/:slug" element={<ProductDetailPage />} />

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCategories } from '../hooks/useCategories';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { resolveMediaUrl } from '../utils/media';
 import './CategoriesPage.css';
 
 interface Category {
@@ -58,7 +59,7 @@ export const CategoriesPage: React.FC = () => {
               <Link key={category._id} to={`/products?categoryId=${category._id}`} className="category-card">
                 <div className="category-card-media">
                   {category.imageUrl ? (
-                    <img src={category.imageUrl} alt={category.name} className="category-card-image" />
+                    <img src={resolveMediaUrl(category.imageUrl)} alt={category.name} className="category-card-image" />
                   ) : (
                     <div className="category-card-placeholder">{category.name.charAt(0)}</div>
                   )}

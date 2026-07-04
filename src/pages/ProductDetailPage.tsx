@@ -469,32 +469,36 @@ export const ProductDetailPage: React.FC = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-              <button
-                type="button"
-                className="btn btn-outline"
-                onClick={() => {
-                  if (!user) {
-                    navigate('/login', { state: { from: `/products/${product.slug}` } });
-                    return;
-                  }
-                  setShowBulkOffer(true);
-                }}
-              >
-                Submit Bulk Offer
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline"
-                onClick={() => {
-                  if (!user) {
-                    navigate('/login', { state: { from: `/products/${product.slug}` } });
-                    return;
-                  }
-                  setShowCustomProduction(true);
-                }}
-              >
-                Custom Production Request
-              </button>
+              {product.vendorId && !(product as any).isPlatformProduct && (product as any).source !== 'admin_platform' && (
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => {
+                      if (!user) {
+                        navigate('/login', { state: { from: `/products/${product.slug}` } });
+                        return;
+                      }
+                      setShowBulkOffer(true);
+                    }}
+                  >
+                    Submit Bulk Offer
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => {
+                      if (!user) {
+                        navigate('/login', { state: { from: `/products/${product.slug}` } });
+                        return;
+                      }
+                      setShowCustomProduction(true);
+                    }}
+                  >
+                    Custom Production Request
+                  </button>
+                </>
+              )}
             </div>
 
             <VendorInfo vendorId={product.vendorId} />

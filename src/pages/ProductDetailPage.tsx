@@ -10,6 +10,8 @@ import { ProductCard } from '../components/products/ProductCard';
 import { TieredPricing } from '../components/products/TieredPricing';
 import { ProductSpecs } from '../components/products/ProductSpecs';
 import { VendorInfo } from '../components/vendor/VendorInfo';
+import { BulkOfferModal } from '../components/negotiation/BulkOfferModal';
+import { CustomProductionModal } from '../components/negotiation/CustomProductionModal';
 import { HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { ShoppingBagIcon } from '@heroicons/react/24/outline';
@@ -54,6 +56,8 @@ export const ProductDetailPage: React.FC = () => {
     title: '',
     comment: '',
   });
+  const [showBulkOffer, setShowBulkOffer] = useState(false);
+  const [showCustomProduction, setShowCustomProduction] = useState(false);
 
   const { data: product, isLoading, error } = useProduct(slug || '');
   const { data: relatedProducts } = useRelatedProducts(product?._id || '', 4);
@@ -464,6 +468,35 @@ export const ProductDetailPage: React.FC = () => {
               </button>
             </div>
 
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => {
+                  if (!user) {
+                    navigate('/login', { state: { from: `/products/${product.slug}` } });
+                    return;
+                  }
+                  setShowBulkOffer(true);
+                }}
+              >
+                Submit Bulk Offer
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => {
+                  if (!user) {
+                    navigate('/login', { state: { from: `/products/${product.slug}` } });
+                    return;
+                  }
+                  setShowCustomProduction(true);
+                }}
+              >
+                Custom Production Request
+              </button>
+            </div>
+
             <VendorInfo vendorId={product.vendorId} />
           </div>
         </div>
@@ -582,6 +615,26 @@ export const ProductDetailPage: React.FC = () => {
           </section>
         )}
       </div>
+
+      {showBulkOffer && (
+        <BulkOfferModal
+          productId={product._id}
+          productTitle={product.title}
+          defaultQty={product.moq || 1}
+          defaultUnitPrice={product.priceTiers?.[0]?.unitPrice || 0}
+          currency={product.currency || 'EUR'}
+          onClose={() => setShowBulkOffer(false)}
+        />
+      )}
+      {showCustomProduction && (
+        <CustomProductionModal
+          productId={product._id}
+          productTitle={product.title}
+          defaultQty={product.moq || 1}
+          currency={product.currency || 'EUR'}
+          onClose={() => setShowCustomProduction(false)}
+        />
+      )}
     </div>
   );
 };

@@ -6,7 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import { useI18n } from '../i18n';
 import './AccountPage.css';
 
-const VALID_ACCOUNT_TABS: TabKey[] = ['profile', 'addresses', 'suppliers', 'disputes', 'recent', 'notifications', 'announcements'];
+const VALID_ACCOUNT_TABS: TabKey[] = ['profile', 'addresses', 'suppliers', 'disputes', 'recent', 'notifications', 'announcements', 'negotiations'];
 
 type TabKey =
   | 'profile'
@@ -15,7 +15,8 @@ type TabKey =
   | 'disputes'
   | 'recent'
   | 'notifications'
-  | 'announcements';
+  | 'announcements'
+  | 'negotiations';
 
 interface Address {
   _id: string;
@@ -455,6 +456,7 @@ export const AccountPage: React.FC = () => {
             <button type="button" className={tab === 'recent' ? 'active' : ''} onClick={() => changeTab('recent')}>{t('account.recent', 'Recently Viewed')}</button>
             <button type="button" className={tab === 'notifications' ? 'active' : ''} onClick={() => changeTab('notifications')}>{t('account.notifications', 'Notifications')}</button>
             <button type="button" className={tab === 'announcements' ? 'active' : ''} onClick={() => changeTab('announcements')}>{t('account.announcements', 'Announcements')}</button>
+            <button type="button" className={tab === 'negotiations' ? 'active' : ''} onClick={() => navigate('/negotiations')}>Negotiations</button>
           </aside>
 
           <section className="card account-content">

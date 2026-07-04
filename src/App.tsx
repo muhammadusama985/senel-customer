@@ -24,6 +24,8 @@ import { SenelProductsPage } from './pages/SenelProductsPage';
 import { CmsPage } from './pages/CmsPage';
 import { BlogListPage } from './pages/BlogListPage';
 import { BlogDetailPage } from './pages/BlogDetailPage';
+import { NegotiationsPage } from './pages/NegotiationsPage';
+import { OfferCheckoutPage } from './pages/OfferCheckoutPage';
 import './App.css';
 import { VendorsListPage } from './pages/VendorsListPage';
 import { CategoriesPage } from './pages/CategoriesPage';
@@ -95,6 +97,8 @@ function App() {
               <Route path="/vendors/:slug" element={<VendorPage />} />
               <Route path="/suppliers" element={<VendorsListPage />} />
               <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/negotiations" element={<NegotiationsPage />} />
+              <Route path="/checkout/offer/:token" element={<OfferCheckoutPage />} />
             </Routes>
           </Layout>
         </ErrorBoundary>

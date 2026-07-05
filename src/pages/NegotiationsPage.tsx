@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/client';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
+import { useCartStore } from '../store/cartStore';
 import type { BulkOffer, CustomProductionRequest } from '../types/negotiation';
 // (i18n not used in this page)
 
@@ -19,6 +20,7 @@ export const NegotiationsPage: React.FC = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { user } = useAuthStore();
+  const { addItem, fetchCart } = useCartStore();
   const [tab, setTab] = useState<Tab>('offers');
   const [offers, setOffers] = useState<BulkOffer[]>([]);
   const [rfqs, setRfqs] = useState<CustomProductionRequest[]>([]);
@@ -186,6 +188,57 @@ export const NegotiationsPage: React.FC = () => {
     navigate(`/checkout/offer/${token}`);
   };
 
+  const addOfferToCart = async (offer: BulkOffer) => {
+    if (!offer.productSnapshot) return;
+    try {
+      await addItem(
+        String(offer.productId),
+        offer.currentQty,
+        '',
+        {
+          vendorId: String(offer.vendorId),
+          slug: offer.productSnapshot.slug,
+          title: offer.productSnapshot.title || 'Product',
+          unitPrice: offer.currentUnitPrice,
+          imageUrl: offer.productSnapshot.imageUrl,
+          currency: (offer.currency as any) || 'EUR',
+          moq: offer.productSnapshot.moq || 1,
+        } as any
+      );
+      toast.success(`Added ${offer.currentQty} units of ${offer.productSnapshot.title} to cart at negotiated price`);
+      await fetchCart();
+      navigate('/cart');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to add to cart');
+    }
+  };
+
+  const addRfqToCart = async (rfq: CustomProductionRequest) => {
+    if (!rfq.productSnapshot || !rfq.quotation) return;
+    const unitPrice = rfq.quotation.unitPrice;
+    try {
+      await addItem(
+        String(rfq.productId),
+        rfq.qty,
+        '',
+        {
+          vendorId: String(rfq.vendorId),
+          slug: rfq.productSnapshot.slug,
+          title: rfq.productSnapshot.title || 'Product',
+          unitPrice,
+          imageUrl: rfq.productSnapshot.imageUrl,
+          currency: (rfq.quotation.currency as any) || 'EUR',
+          moq: 1,
+        } as any
+      );
+      toast.success(`Added ${rfq.qty} units of ${rfq.productSnapshot.title} to cart at quoted price`);
+      await fetchCart();
+      navigate('/cart');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to add to cart');
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -275,13 +328,13 @@ export const NegotiationsPage: React.FC = () => {
                         >
                           Open
                         </button>
-                        {o.status === 'accepted' && o.paymentLink?.token && !o.paymentLink?.usedAt && (
+                        {o.status === 'accepted' && (
                           <button
                             type="button"
                             className="btn btn-primary"
-                            onClick={() => goCheckout(o.paymentLink!.token!)}
+                            onClick={() => addOfferToCart(o)}
                           >
-                            Pay now
+                            Add to Cart
                           </button>
                         )}
                       </div>
@@ -317,13 +370,13 @@ export const NegotiationsPage: React.FC = () => {
                       >
                         Open
                       </button>
-                      {r.status === 'accepted' && r.paymentLink?.token && !r.paymentLink?.usedAt && (
+                      {r.status === 'accepted' && (
                         <button
                           type="button"
                           className="btn btn-primary"
-                          onClick={() => goCheckout(r.paymentLink!.token!)}
+                          onClick={() => addRfqToCart(r)}
                         >
-                          Pay now
+                          Add to Cart
                         </button>
                       )}
                     </div>
@@ -343,7 +396,7 @@ export const NegotiationsPage: React.FC = () => {
           onAccept={buyerAccept}
           onReject={buyerReject}
           onCancel={buyerCancel}
-          onCheckout={goCheckout}
+          onAddToCart={() => addOfferToCart(selectedOffer)}
           busy={busy}
         />
       )}
@@ -354,7 +407,7 @@ export const NegotiationsPage: React.FC = () => {
           onAccept={rfqAccept}
           onReject={rfqReject}
           onCancel={rfqCancel}
-          onCheckout={goCheckout}
+          onAddToCart={() => addRfqToCart(selectedRfq)}
           busy={busy}
         />
       )}
@@ -370,9 +423,9 @@ const NegotiationDetailModal: React.FC<{
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
   onCancel: (id: string) => void;
-  onCheckout: (token: string) => void;
+  onAddToCart: () => void;
   busy: boolean;
-}> = ({ offer, onClose, onCounter, onAccept, onReject, onCancel, onCheckout, busy }) => {
+}> = ({ offer, onClose, onCounter, onAccept, onReject, onCancel, onAddToCart, busy }) => {
   const [qty, setQty] = useState(offer.currentQty);
   const [unitPrice, setUnitPrice] = useState(offer.currentUnitPrice);
   const [notes, setNotes] = useState('');
@@ -403,17 +456,17 @@ const NegotiationDetailModal: React.FC<{
           <strong>Valid until:</strong> {safeDate(offer.validUntil)}
         </p>
 
-        {offer.status === 'accepted' && offer.paymentLink?.token && !offer.paymentLink?.usedAt && (
+        {offer.status === 'accepted' && (
           <div className="account-panel">
             <p>
-              <strong>Both parties agreed.</strong> Use the payment link below to complete checkout and create the order.
+              <strong>Both parties agreed.</strong> Add the agreed quantity at the negotiated price to your cart, then proceed to checkout normally.
             </p>
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => onCheckout(offer.paymentLink!.token!)}
+              onClick={onAddToCart}
             >
-              Go to Checkout
+              Add to Cart at {offer.currentUnitPrice} {offer.currency} / unit
             </button>
           </div>
         )}
@@ -527,9 +580,9 @@ const RFQDetailModal: React.FC<{
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
   onCancel: (id: string) => void;
-  onCheckout: (token: string) => void;
+  onAddToCart: () => void;
   busy: boolean;
-}> = ({ rfq, onClose, onAccept, onReject, onCancel, onCheckout, busy }) => {
+}> = ({ rfq, onClose, onAccept, onReject, onCancel, onAddToCart, busy }) => {
   const terminalStates = ['rejected', 'expired', 'cancelled', 'completed'];
   return (
     <div className="order-modal-backdrop" onClick={onClose}>
@@ -564,17 +617,17 @@ const RFQDetailModal: React.FC<{
           </div>
         )}
 
-        {rfq.status === 'accepted' && rfq.paymentLink?.token && !rfq.paymentLink?.usedAt && (
+        {rfq.status === 'accepted' && (
           <div className="account-panel">
             <p>
-              <strong>Quotation accepted.</strong> Complete payment to start production.
+              <strong>Quotation accepted.</strong> Add the agreed quantity at the quoted price to your cart, then proceed to checkout normally.
             </p>
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => onCheckout(rfq.paymentLink!.token!)}
+              onClick={onAddToCart}
             >
-              Go to Checkout
+              Add to Cart at {rfq.quotation?.unitPrice} {rfq.quotation?.currency} / unit
             </button>
           </div>
         )}

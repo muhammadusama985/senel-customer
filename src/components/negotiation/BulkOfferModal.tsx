@@ -1,30 +1,106 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import api from '../../api/client';
 import toast from 'react-hot-toast';
 import { useI18n } from '../../i18n';
 import { useNavigate } from 'react-router-dom';
 
+interface VariantAttr {
+  [key: string]: string;
+}
+
+interface Variant {
+  sku: string;
+  attributes?: VariantAttr;
+  stockQty?: number;
+  imageUrls?: string[];
+}
+
 interface Props {
-  productId: string;
-  productTitle: string;
-  defaultQty: number;
+  product: {
+    _id: string;
+    title: string;
+    slug: string;
+    moq: number;
+    stockQty: number;
+    hasVariants?: boolean;
+    variants?: Variant[];
+    priceTiers?: { minQty: number; unitPrice: number }[];
+    currency?: string;
+  };
+  defaultQty?: number;
   defaultUnitPrice?: number;
-  currency: string;
   onClose: () => void;
 }
 
-export const BulkOfferModal: React.FC<Props> = ({
-  productId,
-  productTitle,
-  defaultQty,
-  defaultUnitPrice,
-  currency,
-  onClose,
-}) => {
+export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUnitPrice, onClose }) => {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const [qty, setQty] = useState<number>(defaultQty || 1);
-  const [unitPrice, setUnitPrice] = useState<number>(defaultUnitPrice || 0);
+
+  const isVariantProduct = Boolean(product?.hasVariants) && Array.isArray(product?.variants) && product.variants.length > 0;
+  const variants: Variant[] = isVariantProduct ? product.variants || [] : [];
+
+  // Build attribute keys from the variants (e.g. ["Size", "Color"])
+  const attributeKeys = useMemo(() => {
+    const keys: string[] = [];
+    for (const v of variants) {
+      if (!v.attributes) continue;
+      for (const k of Object.keys(v.attributes)) {
+        if (!keys.includes(k)) keys.push(k);
+      }
+    }
+    return keys;
+  }, [variants]);
+
+  // attribute key -> available values (unique, ordered by first appearance)
+  const attributeOptions = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    for (const k of attributeKeys) map[k] = [];
+    for (const v of variants) {
+      if (!v.attributes) continue;
+      for (const k of attributeKeys) {
+        const val = v.attributes[k];
+        if (val && !map[k].includes(val)) map[k].push(val);
+      }
+    }
+    return map;
+  }, [variants, attributeKeys]);
+
+  // user-selected attributes
+  const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
+
+  // When the product is a variant product, auto-pick the first option for each attribute
+  useEffect(() => {
+    if (!isVariantProduct) return;
+    const init: Record<string, string> = {};
+    for (const k of attributeKeys) {
+      init[k] = attributeOptions[k]?.[0] || '';
+    }
+    setSelectedAttributes(init);
+  }, [isVariantProduct, attributeKeys, attributeOptions]);
+
+  // Resolve the variant matching the selected attributes
+  const selectedVariantSku = useMemo(() => {
+    if (!isVariantProduct) return '';
+    const match = variants.find((v) =>
+      attributeKeys.every((k) => (v.attributes || {})[k] === selectedAttributes[k])
+    );
+    return match?.sku || '';
+  }, [isVariantProduct, variants, attributeKeys, selectedAttributes]);
+
+  const selectedVariant = useMemo(
+    () => variants.find((v) => v.sku === selectedVariantSku) || null,
+    [variants, selectedVariantSku]
+  );
+
+  // Available stock depends on whether a variant is selected
+  const availableStock = isVariantProduct
+    ? Number(selectedVariant?.stockQty || 0)
+    : Number(product?.stockQty || 0);
+
+  // Form state
+  const initialQty = Math.max(defaultQty || product?.moq || 1, 1);
+  const [qty, setQty] = useState<number>(initialQty);
+  const [unitPrice, setUnitPrice] = useState<number>(defaultUnitPrice || product?.priceTiers?.[0]?.unitPrice || 0);
   const [notes, setNotes] = useState('');
   const [validDays, setValidDays] = useState<number>(7);
   const [shippingAddress, setShippingAddress] = useState({
@@ -40,20 +116,35 @@ export const BulkOfferModal: React.FC<Props> = ({
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  const currency = product?.currency || 'EUR';
+  const isOutOfStock = availableStock <= 0;
+  const exceedsStock = qty > availableStock;
+  const belowMoq = qty < (product?.moq || 1);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isOutOfStock) return toast.error('This product is out of stock');
+    if (belowMoq)
+      return toast.error(`Quantity must be at least the MOQ (${product?.moq || 1})`);
+    if (exceedsStock)
+      return toast.error(`Only ${availableStock} units available. Please reduce your quantity.`);
+    if (isVariantProduct && !selectedVariantSku) {
+      return toast.error('Please select all product options');
+    }
     if (qty < 1) return toast.error('Quantity must be at least 1');
     if (unitPrice < 0) return toast.error('Unit price cannot be negative');
 
     setSubmitting(true);
     try {
       await api.post('/bulk-offers/buyer', {
-        productId,
+        productId: product._id,
         qty,
         unitPrice,
         currency,
         notes,
         validDays,
+        variantSku: isVariantProduct ? selectedVariantSku : '',
+        variantAttributes: isVariantProduct ? selectedAttributes : {},
         attachments: attachmentUrl
           ? [{ url: attachmentUrl, filename: attachmentUrl.split('/').pop() }]
           : [],
@@ -100,18 +191,73 @@ export const BulkOfferModal: React.FC<Props> = ({
           </button>
         </div>
         <p className="muted">
-          {t('product.bulkOfferFor', 'For')}: <strong>{productTitle}</strong>
+          {t('product.bulkOfferFor', 'For')}: <strong>{product?.title}</strong>
         </p>
+
         <form className="account-form-grid" onSubmit={submit}>
+          {/* Variant pickers (only for variant products) */}
+          {isVariantProduct && (
+            <>
+              <div className="account-field-full" style={{ gridColumn: '1 / -1' }}>
+                <h4>Select product option</h4>
+              </div>
+              {attributeKeys.map((key) => (
+                <div className="account-field" key={key}>
+                  <label>{key}</label>
+                  <select
+                    value={selectedAttributes[key] || ''}
+                    onChange={(e) =>
+                      setSelectedAttributes((prev) => ({ ...prev, [key]: e.target.value }))
+                    }
+                    required
+                  >
+                    {attributeOptions[key]?.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+              <div className="account-field-full" style={{ gridColumn: '1 / -1' }}>
+                <p className={isOutOfStock ? 'muted' : 'muted'}>
+                  Available stock for selected option:{' '}
+                  <strong>{availableStock}</strong> units
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* Stock info (non-variant) */}
+          {!isVariantProduct && (
+            <div className="account-field-full" style={{ gridColumn: '1 / -1' }}>
+              <p className="muted">
+                Available stock: <strong>{availableStock}</strong> units
+              </p>
+            </div>
+          )}
+
           <div className="account-field">
-            <label>Quantity</label>
+            <label>Quantity (max: {availableStock})</label>
             <input
               type="number"
-              min={1}
+              min={Math.max(product?.moq || 1, 1)}
+              max={availableStock || undefined}
               value={qty}
               onChange={(e) => setQty(parseInt(e.target.value, 10) || 1)}
               required
+              disabled={isOutOfStock}
             />
+            {exceedsStock && (
+              <p style={{ color: 'red', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
+                Only {availableStock} units available.
+              </p>
+            )}
+            {belowMoq && (
+              <p style={{ color: 'red', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
+                Minimum order quantity is {product?.moq || 1}.
+              </p>
+            )}
           </div>
           <div className="account-field">
             <label>Target Unit Price ({currency})</label>
@@ -221,7 +367,11 @@ export const BulkOfferModal: React.FC<Props> = ({
             <button type="button" className="btn btn-outline" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={submitting || isOutOfStock || exceedsStock || belowMoq}
+            >
               {submitting ? 'Sending...' : 'Send Offer'}
             </button>
           </div>

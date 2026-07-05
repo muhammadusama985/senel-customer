@@ -622,11 +622,7 @@ export const ProductDetailPage: React.FC = () => {
 
       {showBulkOffer && (
         <BulkOfferModal
-          productId={product._id}
-          productTitle={product.title}
-          defaultQty={product.moq || 1}
-          defaultUnitPrice={product.priceTiers?.[0]?.unitPrice || 0}
-          currency={product.currency || 'EUR'}
+          product={product}
           onClose={() => setShowBulkOffer(false)}
         />
       )}

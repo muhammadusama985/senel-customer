@@ -203,6 +203,8 @@ export const NegotiationsPage: React.FC = () => {
           imageUrl: offer.productSnapshot.imageUrl,
           currency: (offer.currency as any) || 'EUR',
           moq: offer.productSnapshot.moq || 1,
+          customPriceSource: 'offer',
+          customPriceRefId: String(offer._id),
         } as any
       );
       toast.success(`Added ${offer.currentQty} units of ${offer.productSnapshot.title} to cart at negotiated price`);
@@ -229,6 +231,8 @@ export const NegotiationsPage: React.FC = () => {
           imageUrl: rfq.productSnapshot.imageUrl,
           currency: (rfq.quotation.currency as any) || 'EUR',
           moq: 1,
+          customPriceSource: 'rfq',
+          customPriceRefId: String(rfq._id),
         } as any
       );
       toast.success(`Added ${rfq.qty} units of ${rfq.productSnapshot.title} to cart at quoted price`);

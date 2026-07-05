@@ -34,6 +34,9 @@ export interface CartItem {
   moq?: number;
   availableStock?: number;
   requiresManualShipping?: boolean;
+  // Optional fields used when adding from an accepted bulk offer or RFQ
+  customPriceSource?: 'offer' | 'rfq';
+  customPriceRefId?: string;
 }
 
 interface CartResponse {
@@ -192,6 +195,10 @@ export const useCartStore = create<CartState>()(
             qty: quantity,
             variantSku,
             variantAttributes: productData?.variantAttributes || {},
+            // Pass negotiated price when adding from an accepted offer/RFQ
+            customUnitPrice: productData?.customPriceSource ? productData.unitPrice : undefined,
+            customPriceSource: productData?.customPriceSource,
+            customPriceRefId: productData?.customPriceRefId,
           });
           const cart = response.data.cart;
           const normalizedItems = get().normalizeServerItems(cart.items || []);

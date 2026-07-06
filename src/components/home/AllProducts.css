@@ -14,6 +14,9 @@
   scroll-snap-type: x proximity;
   scrollbar-width: thin;
   scrollbar-color: var(--border-light) transparent;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
 }
 
 .all-products-bar::-webkit-scrollbar {
@@ -86,5 +89,29 @@
   .all-products-bar,
   .all-products-loader {
     grid-auto-columns: minmax(185px, 205px);
+  }
+}
+
+@media (max-width: 480px) {
+  .all-products-section {
+    padding: 1.7rem 0 2rem;
+  }
+
+  .all-products-bar,
+  .all-products-loader {
+    grid-auto-columns: minmax(170px, 190px);
+    gap: 0.8rem;
+  }
+
+  .product-skeleton {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 360px) {
+  .all-products-bar,
+  .all-products-loader {
+    grid-auto-columns: minmax(160px, 175px);
+    gap: 0.7rem;
   }
 }

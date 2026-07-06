@@ -453,6 +453,8 @@ export const ProductDetailPage: React.FC = () => {
               moq={product.moq}
               maxQty={canMeetMinimumOrder ? availableStock : undefined}
               currencySymbol={currencySymbol}
+              attributeAdjustments={(product as any).attributeAdjustments}
+              selectedAttributes={product.hasVariants ? selectedAttributes : undefined}
             />
 
             <div className="add-to-cart-section">

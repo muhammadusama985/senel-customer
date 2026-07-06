@@ -17,7 +17,37 @@ interface TieredPricingProps {
   moq: number;
   maxQty?: number;
   currencySymbol?: string;
+  /**
+   * Per-attribute-value price adjustments. Structure:
+   *   { "<AttrName>": { "<Value>": adjustment, ... }, ... }
+   *   e.g. { Color: { Green: -10 }, Size: { Small: -20 } }
+   * Adjustments from all selected attribute values are summed
+   * and applied to every tier's unitPrice.
+   */
+  attributeAdjustments?: Record<string, Record<string, number>>;
+  /**
+   * Currently selected attribute values, e.g. { Color: 'Green', Size: 'Small' }.
+   * Pass the same structure on add-to-cart so backend pricing matches.
+   */
+  selectedAttributes?: Record<string, string>;
 }
+
+const computeAttributeAdjustment = (
+  attributeAdjustments: Record<string, Record<string, number>> | undefined,
+  selectedAttributes: Record<string, string> | undefined
+): number => {
+  if (!attributeAdjustments || !selectedAttributes) return 0;
+  let total = 0;
+  for (const [attrName, attrValue] of Object.entries(selectedAttributes)) {
+    if (attrValue == null || attrValue === '') continue;
+    const attrMap = attributeAdjustments[attrName];
+    if (!attrMap || typeof attrMap !== 'object') continue;
+    const raw = attrMap[attrValue];
+    const num = Number(raw);
+    if (Number.isFinite(num)) total += num;
+  }
+  return total;
+};
 
 export const TieredPricing: React.FC<TieredPricingProps> = ({
   tiers,
@@ -28,21 +58,33 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   moq,
   maxQty,
   currencySymbol = 'EUR ',
+  attributeAdjustments,
+  selectedAttributes,
 }) => {
   const { t } = useI18n();
   const [internalQuantityInput, setInternalQuantityInput] = useState(String(selectedQuantity || moq));
   const quantityInput = inputValue ?? internalQuantityInput;
   const sortedTiers = [...tiers].sort((a, b) => a.minQty - b.minQty);
+  const adjustment = computeAttributeAdjustment(attributeAdjustments, selectedAttributes);
   const activeTier = [...sortedTiers]
     .reverse()
     .find((tier) => selectedQuantity >= tier.minQty) || sortedTiers[0];
   const activeTierMinQty = activeTier?.minQty;
 
+  // Adjusted tier (clamped at 0)
+  const adjustedTierUnitPrice =
+    activeTier != null ? Math.max(0, Number(activeTier.unitPrice) + adjustment) : 0;
+
   const getPriceForQuantity = (qty: number) => {
     const applicableTier = [...sortedTiers]
       .reverse()
       .find((tier) => qty >= tier.minQty);
-    return applicableTier?.unitPrice || sortedTiers[0]?.unitPrice || 0;
+    const baseUnitPrice = applicableTier?.unitPrice || sortedTiers[0]?.unitPrice || 0;
+    return Math.max(0, Number(baseUnitPrice) + adjustment);
+  };
+
+  const getAdjustedUnitPriceForTier = (tier: PriceTier) => {
+    return Math.max(0, Number(tier.unitPrice) + adjustment);
   };
 
   const getSavings = () => {
@@ -100,6 +142,21 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
         <div className="moq-badge">{t('pricing.minimumOrder', 'Minimum Order: {{moq}}+ units', { moq })}</div>
       </div>
 
+      {adjustment !== 0 && (
+        <div className="adjustment-banner">
+          <InformationCircleIcon className="icon-small" />
+          <span>
+            {adjustment > 0
+              ? t('pricing.adjustmentUp', 'Option adjustment: +{{amount}} (applied to all tiers)', {
+                  amount: adjustment.toFixed(2),
+                })
+              : t('pricing.adjustmentDown', 'Option adjustment: {{amount}} (applied to all tiers)', {
+                  amount: adjustment.toFixed(2),
+                })}
+          </span>
+        </div>
+      )}
+
       <div className="price-tiers-table">
         <table>
           <thead>
@@ -113,7 +170,10 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
             {sortedTiers.map((tier, index) => {
               const isActive = tier.minQty === activeTierMinQty;
               const tierSelectable = !hasStockLimit || tier.minQty <= maxQty;
-              const tierTotal = tier.unitPrice * (isActive ? selectedQuantity : tier.minQty);
+              const effectiveUnitPrice = getAdjustedUnitPriceForTier(tier);
+              const tierTotal = effectiveUnitPrice * (isActive ? selectedQuantity : tier.minQty);
+              const hasTierAdjustment = adjustment !== 0;
+              const baseUnitPrice = Number(tier.unitPrice);
 
               return (
                 <tr
@@ -131,9 +191,14 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
                     )}
                   </td>
                   <td className="price-cell">
-                    {currencySymbol}{tier.unitPrice.toFixed(2)}
-                    {index === 0 && (
+                    {currencySymbol}{effectiveUnitPrice.toFixed(2)}
+                    {index === 0 && !hasTierAdjustment && (
                       <span className="base-badge">{t('pricing.base', 'Base')}</span>
+                    )}
+                    {hasTierAdjustment && (
+                      <span className="base-badge adjusted-badge" title={`Base ${currencySymbol}${baseUnitPrice.toFixed(2)}`}>
+                        {currencySymbol}{baseUnitPrice.toFixed(2)}
+                      </span>
                     )}
                   </td>
                   <td className="total-cell">

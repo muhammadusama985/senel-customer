@@ -20,6 +20,7 @@ export interface Product {
   categoryId: string;
   moq: number;
   priceTiers: PriceTier[];
+  attributeAdjustments?: Record<string, Record<string, number>>;
   stockQty: number;
   hasVariants?: boolean;
   variants?: Variant[];

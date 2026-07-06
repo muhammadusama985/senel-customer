@@ -2,6 +2,7 @@ import React from 'react';
 import { Hero } from '../components/home/Hero';
 import { SenelProductsPromo } from '../components/home/SenelProductsPromo';
 import { Categories } from '../components/home/Categories';
+import { AllProducts } from '../components/home/AllProducts';
 import { TrendingProducts } from '../components/home/TrendingProducts';
 import { FeaturedSuppliers } from '../components/home/FeaturedSuppliers';
 import './HomePage.css';
@@ -12,6 +13,7 @@ export const HomePage: React.FC = () => {
       <Hero />
       <SenelProductsPromo />
       <Categories />
+      <AllProducts />
       <TrendingProducts />
       <FeaturedSuppliers />
     </main>

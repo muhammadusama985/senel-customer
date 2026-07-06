@@ -1,0 +1,444 @@
+/* =====================================================================
+   Customer App - Comprehensive Responsive Utilities
+   Applied across all customer pages for consistent behavior on:
+     - Large desktops (>= 1440px)
+     - Standard desktops (1024px - 1439px)
+     - Tablets   (768px - 1023px)
+     - Large phones (480px - 767px)
+     - Small phones (< 480px)
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   GLOBAL RESPONSIVE TYPOGRAPHY (already defined per-page with clamp;
+   this is a safety net for headings used outside .container pages)
+   --------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  h1 { font-size: clamp(1.6rem, 4vw, 2.6rem); }
+  h2 { font-size: clamp(1.35rem, 3.4vw, 2.1rem); }
+  h3 { font-size: clamp(1.15rem, 2.6vw, 1.6rem); }
+}
+
+@media (max-width: 768px) {
+  h1 { font-size: clamp(1.45rem, 5vw, 2.1rem); }
+  h2 { font-size: clamp(1.25rem, 4vw, 1.7rem); }
+  h3 { font-size: clamp(1.05rem, 3vw, 1.4rem); }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.45rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.05rem; }
+}
+
+/* ---------------------------------------------------------------------
+   COMMON LAYOUT HELPERS
+   - .responsive-stack: column on mobile, row on larger screens
+   - .responsive-grid: 4 cols -> 3 -> 2 -> 1
+   --------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .responsive-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+}
+
+.responsive-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .responsive-grid-4 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .responsive-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .responsive-grid-4 { grid-template-columns: 1fr; }
+}
+
+/* ---------------------------------------------------------------------
+   HOMEPAGE
+   --------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .home-page::before,
+  .home-page::after {
+    width: 22rem;
+    height: 22rem;
+    filter: blur(50px);
+  }
+}
+
+@media (max-width: 768px) {
+  .home-page::before,
+  .home-page::after {
+    width: 18rem;
+    height: 18rem;
+    filter: blur(40px);
+  }
+}
+
+@media (max-width: 480px) {
+  .home-page::before,
+  .home-page::after {
+    width: 14rem;
+    height: 14rem;
+    filter: blur(30px);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   PRODUCT DETAIL PAGE - thumbnail sizes scale down on mobile
+   --------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .product-detail-page .thumbnail-btn {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-detail-page .thumbnail-btn {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   CART PAGE - already responsive; reinforce small phones
+   --------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .cart-item {
+    padding: 0.85rem;
+  }
+  .cart-item-image {
+    height: 150px;
+  }
+  .quantity-btn {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+  .cart-summary {
+    padding: 0.9rem;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   ORDERS PAGE - keep tables from overflowing
+   --------------------------------------------------------------------- */
+.orders-page .responsive-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .orders-page {
+    padding-top: 1.1rem;
+  }
+  .orders-page table {
+    font-size: 0.85rem;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   CHECKOUT PAGE
+   --------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .checkout-page .checkout-layout,
+  .checkout-page .checkout-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .checkout-page {
+    padding-top: 1.1rem;
+  }
+  .checkout-page .checkout-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-page .checkout-section {
+    padding: 0.9rem;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   ACCOUNT PAGE
+   --------------------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .account-page .account-summary-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .account-page .account-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .account-page .account-sidebar {
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .account-page .account-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .account-page .account-sidebar {
+    grid-template-columns: 1fr;
+  }
+  .account-page .account-hero {
+    grid-template-columns: 1fr !important;
+  }
+  .account-page .account-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .account-page .account-field-full {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-page .order-modal {
+    max-width: 95vw !important;
+    padding: 0.9rem !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   LOGIN & REGISTER
+   --------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .login-page .login-card,
+  .register-page .register-card,
+  .auth-card {
+    padding: 1.4rem !important;
+    margin: 0.8rem;
+  }
+  .login-page .auth-form-grid,
+  .register-page .auth-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page,
+  .register-page {
+    padding: 1rem !important;
+  }
+  .login-page .login-card,
+  .register-page .register-card,
+  .auth-card {
+    padding: 1rem !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   VENDOR PAGE & VENDORS LIST
+   --------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .vendors-list-page .vendors-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .vendor-page .vendor-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .vendor-page .vendor-info {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  .vendor-page .vendor-logo-wrapper {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .vendors-list-page .vendors-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   ORDERS LIST TABLE
+   --------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .orders-page .orders-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .orders-page .orders-card {
+    padding: 0.85rem !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   WISHLIST
+   --------------------------------------------------------------------- */
+.wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .wishlist-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .wishlist-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .wishlist-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------------------------------------------------------------------
+   DEALS / CATEGORIES / CMS / BLOG PAGES - safe defaults
+   --------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .deals-page .deals-grid,
+  .categories-page .categories-grid,
+  .blog-list-page .blog-grid,
+  .cms-page .cms-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .deals-page .deals-grid,
+  .categories-page .categories-grid,
+  .blog-list-page .blog-grid,
+  .cms-page .cms-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .deals-page .deal-card,
+  .categories-page .category-card,
+  .blog-list-page .blog-card,
+  .cms-page .cms-card {
+    padding: 0.85rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .deals-page .deals-grid,
+  .categories-page .categories-grid,
+  .blog-list-page .blog-grid,
+  .cms-page .cms-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .deals-page,
+  .categories-page,
+  .blog-list-page,
+  .blog-detail-page,
+  .cms-page {
+    padding: 1rem 0 1.5rem !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   BLOG DETAIL
+   --------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .blog-detail-page .blog-content {
+    padding: 1rem !important;
+    font-size: 0.95rem;
+  }
+  .blog-detail-page .blog-hero {
+    padding: 1.2rem !important;
+  }
+  .blog-detail-page .blog-title {
+    font-size: 1.4rem !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   CMS PAGE
+   --------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .cms-page .cms-content {
+    padding: 1rem !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   TABLET LANDSCAPE - safety padding
+   --------------------------------------------------------------------- */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .product-detail-layout {
+    gap: 1.5rem;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   PREVENT HORIZONTAL OVERFLOW ON SMALLEST SCREENS
+   --------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .order-modal-backdrop {
+    padding: 0.5rem;
+  }
+  .order-modal {
+    max-height: 92vh !important;
+    overflow-y: auto !important;
+  }
+  .product-detail-wishlist-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   RESPONSIVE CARDS / FORM GRIDS GENERIC HELPERS
+   --------------------------------------------------------------------- */
+.responsive-card-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.responsive-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .responsive-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .responsive-form-grid .span-2 {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   IMAGES - prevent overflow
+   --------------------------------------------------------------------- */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---------------------------------------------------------------------
+   TABLES - horizontal scroll on small screens
+   --------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}

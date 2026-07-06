@@ -212,3 +212,51 @@
     grid-column: 1 / -1;
   }
 }
+
+@media (max-width: 768px) {
+  .orders-page {
+    padding-top: 1.1rem;
+  }
+  .order-item {
+    padding: 0.9rem !important;
+  }
+  .order-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  .order-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .order-actions button {
+    width: 100%;
+  }
+  .order-modal {
+    max-width: 95vw !important;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .orders-page {
+    padding: 0.9rem 0 1.5rem;
+  }
+  .detail-list li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+  .order-modal-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+  .order-modal-head button {
+    width: 100%;
+  }
+  .dispute-message {
+    padding: 0.6rem !important;
+  }
+}

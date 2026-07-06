@@ -689,4 +689,69 @@
     width: 2.35rem;
     height: 2.35rem;
   }
+
+  .actions {
+    gap: 0.3rem;
+  }
+}
+
+/* Small phones (<= 420px) - hide less essential icons */
+@media (max-width: 420px) {
+  .logo-image {
+    height: 56px;
+    max-width: 200px;
+  }
+
+  /* Hide language select and theme toggle on very small screens
+     (both are still available in the mobile menu) */
+  .header .lang-select,
+  .header .theme-toggle {
+    display: none;
+  }
+
+  .actions {
+    gap: 0.25rem;
+  }
+
+  .action-icon,
+  .mobile-menu-button {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 0.65rem;
+  }
+
+  .icon {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .header-content {
+    gap: 0.5rem;
+    padding: 0.6rem 0 0.7rem;
+  }
+
+  .login-btn {
+    display: none;
+  }
+}
+
+/* Ultra-small phones (<= 360px) - only show essentials */
+@media (max-width: 360px) {
+  /* On ultra-small screens, hide wishlist too - it's in mobile menu */
+  .header .wishlist-icon {
+    display: none;
+  }
+
+  .header-content {
+    grid-template-columns: 1fr auto;
+  }
+
+  .actions {
+    gap: 0.2rem;
+  }
+
+  .nav-mobile {
+    width: 100vw;
+    max-width: 100vw;
+  }
 }

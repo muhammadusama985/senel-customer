@@ -38,6 +38,73 @@ const getReadableAttributesMap = (attributes: Record<string, unknown> = {}) =>
     Object.entries(attributes).map(([key, value]) => [key, getReadableAttributeValue(value)]),
   );
 
+// --- Color swatch helpers (mirror admin VariantEditor so the customer-side
+// can render the same color name → hex mapping when the attribute title is "Color").
+const COLOR_NAME_BY_HEX: Record<string, string> = {
+  '#000000': 'Black',
+  '#ffffff': 'White',
+  '#ff0000': 'Red',
+  '#00ff00': 'Lime',
+  '#0000ff': 'Blue',
+  '#ffff00': 'Yellow',
+  '#ffa500': 'Orange',
+  '#800080': 'Purple',
+  '#ffc0cb': 'Pink',
+  '#a52a2a': 'Brown',
+  '#808080': 'Gray',
+  '#008000': 'Green',
+  '#00ffff': 'Cyan',
+  '#c0c0c0': 'Silver',
+};
+
+const hexToRgb = (hex: string) => {
+  const normalized = hex.replace('#', '');
+  return {
+    r: parseInt(normalized.slice(0, 2), 16),
+    g: parseInt(normalized.slice(2, 4), 16),
+    b: parseInt(normalized.slice(4, 6), 16),
+  };
+};
+
+const nearestColorNameFromHex = (hex: string) => {
+  const target = hexToRgb(hex);
+  let bestName = 'Black';
+  let bestDistance = Number.POSITIVE_INFINITY;
+  Object.entries(COLOR_NAME_BY_HEX).forEach(([candidateHex, candidateName]) => {
+    const candidate = hexToRgb(candidateHex);
+    const distance =
+      (target.r - candidate.r) ** 2 +
+      (target.g - candidate.g) ** 2 +
+      (target.b - candidate.b) ** 2;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestName = candidateName;
+    }
+  });
+  return bestName;
+};
+
+const colorHexFromValue = (value: string) => {
+  const normalized = String(value || '').trim().toLowerCase();
+  const hexMatch = normalized.match(/#([0-9a-f]{6})/i);
+  if (hexMatch) {
+    return `#${hexMatch[1]}`.toLowerCase();
+  }
+  const plainName = normalized.replace(/\s*\(#?[0-9a-f]{6}\)\s*/i, '').trim();
+  const match = Object.entries(COLOR_NAME_BY_HEX).find(
+    ([, label]) => label.toLowerCase() === plainName,
+  );
+  return match?.[0] || '#000000';
+};
+
+const colorNameFromValue = (value: string) => {
+  // Strip any embedded "(#RRGGBB)" so we can show a clean label like "Red"
+  const stripped = String(value || '').replace(/\s*\(#[0-9a-fA-F]{6}\)\s*/g, '').trim();
+  return stripped || String(value || '').trim();
+};
+
+const isColorAttribute = (key: string) => key.trim().toLowerCase() === 'color';
+
 export const ProductDetailPage: React.FC = () => {
   const { lang, t } = useI18n();
   const { slug } = useParams<{ slug: string }>();
@@ -412,25 +479,64 @@ export const ProductDetailPage: React.FC = () => {
 
             {product.hasVariants && (
               <div className="variant-selector-section">
-                {attributeOptions.map(([attributeKey, options]) => (
-                  <div key={attributeKey} className="variant-attribute-group">
-                    <label htmlFor={`attribute-${attributeKey}`} className="variant-selector-label">
-                      {attributeKey}
-                    </label>
-                    <select
-                      id={`attribute-${attributeKey}`}
-                      className="variant-selector"
-                      value={selectedAttributes[attributeKey] || ''}
-                      onChange={(e) => handleAttributeSelection(attributeKey, e.target.value)}
-                    >
-                      {options.map((option) => (
-                        <option key={`${attributeKey}-${option}`} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
+                {attributeOptions.map(([attributeKey, options]) => {
+                  const isColor = isColorAttribute(attributeKey);
+                  const labelId = `attribute-${attributeKey}-label`;
+                  return (
+                    <div key={attributeKey} className="variant-attribute-group">
+                      <label
+                        id={labelId}
+                        htmlFor={isColor ? undefined : `attribute-${attributeKey}`}
+                        className="variant-selector-label"
+                      >
+                        {attributeKey}
+                      </label>
+                      {isColor ? (
+                        <div
+                          className="color-swatch-group"
+                          role="radiogroup"
+                          aria-labelledby={labelId}
+                        >
+                          {options.map((option) => {
+                            const isActive = selectedAttributes[attributeKey] === option;
+                            const hex = colorHexFromValue(option);
+                            const name = colorNameFromValue(option);
+                            return (
+                              <button
+                                key={`${attributeKey}-${option}`}
+                                type="button"
+                                role="radio"
+                                aria-checked={isActive}
+                                className={`color-swatch ${isActive ? 'active' : ''}`}
+                                onClick={() => handleAttributeSelection(attributeKey, option)}
+                                title={option}
+                              >
+                                <span
+                                  className="color-swatch-circle"
+                                  style={{ backgroundColor: hex }}
+                                />
+                                <span className="color-swatch-label">{name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <select
+                          id={`attribute-${attributeKey}`}
+                          className="variant-selector"
+                          value={selectedAttributes[attributeKey] || ''}
+                          onChange={(e) => handleAttributeSelection(attributeKey, e.target.value)}
+                        >
+                          {options.map((option) => (
+                            <option key={`${attributeKey}-${option}`} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  );
+                })}
                 <div className={`variant-stock ${isOutOfStock ? 'out' : ''}`}>
                   {availableStock <= 0
                     ? t('product.outOfStock', 'Out of stock')

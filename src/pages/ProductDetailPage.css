@@ -294,6 +294,63 @@
   color: var(--text-primary);
 }
 
+/* Color swatch picker — only used when the attribute title is "Color" */
+.color-swatch-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.15rem;
+}
+
+.color-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.45rem;
+  min-width: 4.2rem;
+  border-radius: 0.7rem;
+  border: 2px solid transparent;
+  background-color: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  font: inherit;
+  color: var(--text-primary);
+}
+
+.color-swatch:hover {
+  transform: translateY(-1px);
+}
+
+.color-swatch:focus-visible {
+  outline: none;
+  border-color: var(--primary, #5b2eff);
+}
+
+.color-swatch.active {
+  border-color: var(--primary, #5b2eff);
+  background-color: rgba(91, 46, 255, 0.08);
+}
+
+.color-swatch-circle {
+  display: inline-block;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.color-swatch-label {
+  font-size: 0.78rem;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--text-primary);
+  max-width: 4.2rem;
+  word-break: break-word;
+}
+
 .variant-stock {
   color: var(--text-secondary);
   font-size: 0.82rem;

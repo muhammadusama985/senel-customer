@@ -12,17 +12,17 @@ import './LoginPage.css';
 const getErrorMessage = (error: any): string => {
   // Log for debugging
   console.log('Login error:', error);
-  
+
   // Handle axios error format (axios wraps the response)
   // The error from axios typically has:
   // - error.response: the response object
   // - error.response.status: HTTP status code
   // - error.response.data: response body
-  
+
   const response = error?.response;
   const status = response?.status;
   const data = response?.data;
-  
+
   // Check for specific status codes
   if (status === 401) {
     return 'Invalid email or password. Please check your credentials and try again.';
@@ -30,29 +30,47 @@ const getErrorMessage = (error: any): string => {
   if (status === 403) {
     return 'Your account is not active. Please contact support.';
   }
-  
+
   // Check for message in response data (most common)
   if (data?.message) {
     return data.message;
   }
-  
+
   // Check for Zod validation issues (array format)
   if (Array.isArray(data?.issues) && data.issues.length > 0) {
     return data.issues[0].message;
   }
-  
+
   // Check for error string in data
   if (typeof data?.error === 'string') {
     return data.error;
   }
-  
+
   // Check for message in error object itself
   if (error?.message) {
     return error.message;
   }
-  
+
   // Fallback
   return 'An unexpected error occurred. Please try again.';
+};
+
+// Extract per-field errors from Zod-style API responses.
+// Returns an empty object if no field-specific errors are found (so the
+// general banner can still show a friendly top-level message).
+const extractFieldErrors = (error: any): Record<string, string> => {
+  const issues = error?.response?.data?.issues;
+  if (!Array.isArray(issues) || issues.length === 0) {
+    return {};
+  }
+  const fieldErrors: Record<string, string> = {};
+  issues.forEach((issue: any) => {
+    const path = Array.isArray(issue?.path) ? issue.path[0] : issue?.path;
+    if (path && issue?.message && !fieldErrors[path]) {
+      fieldErrors[String(path)] = String(issue.message);
+    }
+  });
+  return fieldErrors;
 };
 
 export const LoginPage: React.FC = () => {
@@ -66,7 +84,20 @@ export const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const redirectTo = '/';
+
+  // Keep form data intact on error; only clear inline field errors as the
+  // user edits those specific fields (other fields keep their data).
+  const clearFieldError = (name: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  };
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
@@ -100,23 +131,42 @@ export const LoginPage: React.FC = () => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
+    setFieldErrors({});
+
+    // Client-side per-field validation: surface a red border + message
+    // under only the offending field(s). Form data is NOT cleared.
+    const localErrors: Record<string, string> = {};
+    if (!email.trim()) {
+      localErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      localErrors.email = 'Please enter a valid email address';
+    }
+    if (!password) {
+      localErrors.password = 'Password is required';
+    }
+    if (Object.keys(localErrors).length > 0) {
+      setFieldErrors(localErrors);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
-    
+
     try {
       // Use the store's login method which properly updates state
       await login({ email, password });
-      
+
       // Sync cart to server after successful login
       await syncGuestCartToServer();
-      
+
       toast.success(t('auth.loginSuccess', 'Login successful'));
-      
+
       // Force a complete page reload to ensure all components pick up the new auth state
       window.location.href = redirectTo;
     } catch (error: any) {
       // Default fallback message
       let errorMsg = 'Login failed. Please check your email and password.';
-      
+
       // Check for message on the error object itself (set by authStore)
       if (error?.message) {
         errorMsg = error.message;
@@ -133,13 +183,20 @@ export const LoginPage: React.FC = () => {
       else if (Array.isArray(error?.response?.data?.issues) && error.response.data.issues.length > 0) {
         errorMsg = error.response.data.issues[0].message;
       }
-      
+
+      // Map API-reported field errors to specific inputs (e.g. "email taken").
+      // Only the matching field shows a red border; data in other fields is preserved.
+      const apiFieldErrors = extractFieldErrors(error);
+      if (Object.keys(apiFieldErrors).length > 0) {
+        setFieldErrors(apiFieldErrors);
+      }
+
       // Set error for banner
       setLoginError(errorMsg);
-      
+
       // Show toast notification
       toast.error(errorMsg);
-      
+
       // Reset loading state
       setIsLoading(false);
     }
@@ -208,24 +265,33 @@ export const LoginPage: React.FC = () => {
               <div style={{ flex: 1, height: '1px', backgroundColor: '#ddd' }}></div>
             </div>
 
-            <form className="auth-form" onSubmit={onSubmit}>
+            <form className="auth-form" onSubmit={onSubmit} noValidate>
               <div className="form-group">
                 <label htmlFor="login-email">{t('auth.email', 'Email')}</label>
                 <input
                   id="login-email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (touched.email || fieldErrors.email) clearFieldError('email');
+                  }}
+                  onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                   placeholder="Enter your email"
-                  required
+                  className={fieldErrors.email ? 'error' : ''}
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  aria-describedby={fieldErrors.email ? 'login-email-error' : undefined}
                 />
+                {fieldErrors.email && (
+                  <span id="login-email-error" className="error-message">{fieldErrors.email}</span>
+                )}
               </div>
 
               <div className="form-group">
                 <label htmlFor="login-password" style={{ display: 'flex', justifyContent: 'space-between' }}>
                   {t('auth.password', 'Password')}
-                  <Link 
-                    to="/forgot-password" 
+                  <Link
+                    to="/forgot-password"
                     style={{ fontSize: '12px', fontWeight: 'normal', color: '#1976d2' }}
                   >
                     Forgot Password?
@@ -235,10 +301,19 @@ export const LoginPage: React.FC = () => {
                   id="login-password"
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (touched.password || fieldErrors.password) clearFieldError('password');
+                  }}
+                  onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
                   placeholder="Enter your password"
-                  required
+                  className={fieldErrors.password ? 'error' : ''}
+                  aria-invalid={Boolean(fieldErrors.password)}
+                  aria-describedby={fieldErrors.password ? 'login-password-error' : undefined}
                 />
+                {fieldErrors.password && (
+                  <span id="login-password-error" className="error-message">{fieldErrors.password}</span>
+                )}
               </div>
 
               <button type="submit" className="btn btn-primary btn-large auth-submit-btn" disabled={isLoading}>

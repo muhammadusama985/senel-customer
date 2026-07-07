@@ -14,6 +14,24 @@ const getErrorMessage = (error: any): string => {
   return 'Registration failed. Please try again.';
 };
 
+// Map Zod-style API field issues to a per-field error object.
+// Returns an empty object if the API didn't return any field-level issues,
+// so the existing top-level banner + toast can still handle general errors.
+const extractFieldErrors = (error: any): Record<string, string> => {
+  const issues = error?.response?.data?.issues;
+  if (!Array.isArray(issues) || issues.length === 0) {
+    return {};
+  }
+  const fieldErrors: Record<string, string> = {};
+  issues.forEach((issue: any) => {
+    const path = Array.isArray(issue?.path) ? issue.path[0] : issue?.path;
+    if (path && issue?.message && !fieldErrors[path]) {
+      fieldErrors[String(path)] = String(issue.message);
+    }
+  });
+  return fieldErrors;
+};
+
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { register, isLoading } = useAuthStore();
@@ -127,7 +145,18 @@ export const RegisterPage: React.FC = () => {
       }, 1500);
     } catch (error: any) {
       const errorMsg = getErrorMessage(error);
-      setServerError(errorMsg);
+
+      // Map any field-level API issues back onto the matching inputs.
+      // Only the matching field shows a red border; data in the other
+      // fields is left intact so the user can correct just that one field.
+      const apiFieldErrors = extractFieldErrors(error);
+      if (Object.keys(apiFieldErrors).length > 0) {
+        setErrors((prev) => ({ ...prev, ...apiFieldErrors }));
+        // Still surface a top-level message in case the user missed it
+        setServerError(errorMsg);
+      } else {
+        setServerError(errorMsg);
+      }
       toast.error(errorMsg);
     }
   };

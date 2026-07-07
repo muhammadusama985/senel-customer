@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import api from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { useI18n } from '../i18n';
+import { extractFieldErrors, extractErrorMessage } from '../utils/formErrors';
 import './AccountPage.css';
 
 const VALID_ACCOUNT_TABS: TabKey[] = ['profile', 'addresses', 'suppliers', 'disputes', 'recent', 'notifications', 'announcements', 'negotiations'];
@@ -139,6 +140,7 @@ export const AccountPage: React.FC = () => {
     contactPhone: '',
     preferredLanguage: 'en' as 'en' | 'de' | 'tr',
   });
+  const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -146,6 +148,7 @@ export const AccountPage: React.FC = () => {
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [isSavingAddress, setIsSavingAddress] = useState(false);
+  const [addressErrors, setAddressErrors] = useState<Record<string, string>>({});
 
   const [preferred, setPreferred] = useState<PreferredSupplier[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<RecentlyViewedItem[]>([]);
@@ -306,13 +309,21 @@ export const AccountPage: React.FC = () => {
 
   const handleSaveProfile = async (event: React.FormEvent) => {
     event.preventDefault();
+    setProfileErrors({});
     setIsSavingProfile(true);
     try {
       const response = await api.patch('/auth/me', profileForm);
       useAuthStore.setState((state) => ({ ...state, user: response.data.user }));
       toast.success('Profile updated successfully');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update profile');
+      // Map API-reported field errors to specific inputs (e.g. "phone invalid").
+      // Only the offending placeholder gets a red border; data in other
+      // inputs is preserved so the user can correct just that one field.
+      const apiFieldErrors = extractFieldErrors(error);
+      if (Object.keys(apiFieldErrors).length > 0) {
+        setProfileErrors(apiFieldErrors);
+      }
+      toast.error(extractErrorMessage(error, 'Failed to update profile'));
     } finally {
       setIsSavingProfile(false);
     }
@@ -320,6 +331,18 @@ export const AccountPage: React.FC = () => {
 
   const handleAddressSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    // Per-field client validation: only the offending input gets a red border.
+    // Form data is NOT cleared; the user can fix just that one field.
+    const localErrors: Record<string, string> = {};
+    if (!addressForm.country.trim()) localErrors.country = 'Country is required';
+    if (!addressForm.city.trim()) localErrors.city = 'City is required';
+    if (!addressForm.street1.trim()) localErrors.street1 = 'Street is required';
+    if (Object.keys(localErrors).length > 0) {
+      setAddressErrors(localErrors);
+      toast.error('Please fix the highlighted field(s).');
+      return;
+    }
+    setAddressErrors({});
     setIsSavingAddress(true);
     try {
       if (editingAddressId) {
@@ -334,7 +357,11 @@ export const AccountPage: React.FC = () => {
       setEditingAddressId(null);
       setShowAddressForm(false);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save address');
+      const apiFieldErrors = extractFieldErrors(error);
+      if (Object.keys(apiFieldErrors).length > 0) {
+        setAddressErrors(apiFieldErrors);
+      }
+      toast.error(extractErrorMessage(error, 'Failed to save address'));
     } finally {
       setIsSavingAddress(false);
     }
@@ -343,6 +370,7 @@ export const AccountPage: React.FC = () => {
   const startNewAddress = () => {
     setEditingAddressId(null);
     setAddressForm(emptyAddressForm());
+    setAddressErrors({});
     setShowAddressForm(true);
   };
 
@@ -361,6 +389,7 @@ export const AccountPage: React.FC = () => {
       notes: address.notes || '',
       isDefault: Boolean(address.isDefault),
     });
+    setAddressErrors({});
     setShowAddressForm(true);
   };
 
@@ -383,6 +412,7 @@ export const AccountPage: React.FC = () => {
         setAddressForm(emptyAddressForm());
         setEditingAddressId(null);
         setShowAddressForm(false);
+        setAddressErrors({});
       }
       toast.success('Address removed');
     } catch (error: any) {
@@ -461,7 +491,7 @@ export const AccountPage: React.FC = () => {
 
           <section className="card account-content">
             {tab === 'profile' && (
-              <form className="account-form-grid" onSubmit={handleSaveProfile}>
+              <form className="account-form-grid" onSubmit={handleSaveProfile} noValidate>
                 <div className="account-section-head">
                   <div>
                     <h3>Profile</h3>
@@ -469,46 +499,71 @@ export const AccountPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="account-field">
-                  <label>Email</label>
-                  <input value={user?.email || ''} disabled />
-                </div>
-                <div className="account-field">
-                  <label>Phone</label>
-                  <input value={profileForm.phone} onChange={(e) => setProfileForm((prev) => ({ ...prev, phone: e.target.value }))} />
-                </div>
-                <div className="account-field">
-                  <label>First Name</label>
-                  <input value={profileForm.firstName} onChange={(e) => setProfileForm((prev) => ({ ...prev, firstName: e.target.value }))} />
-                </div>
-                <div className="account-field">
-                  <label>Last Name</label>
-                  <input value={profileForm.lastName} onChange={(e) => setProfileForm((prev) => ({ ...prev, lastName: e.target.value }))} />
-                </div>
-                <div className="account-field">
-                  <label>Company Name</label>
-                  <input value={profileForm.companyName} onChange={(e) => setProfileForm((prev) => ({ ...prev, companyName: e.target.value }))} />
-                </div>
-                <div className="account-field">
-                  <label>Tax ID</label>
-                  <input value={profileForm.taxId} onChange={(e) => setProfileForm((prev) => ({ ...prev, taxId: e.target.value }))} />
-                </div>
-                <div className="account-field">
-                  <label>Country</label>
-                  <input value={profileForm.country} onChange={(e) => setProfileForm((prev) => ({ ...prev, country: e.target.value }))} />
-                </div>
-                <div className="account-field">
-                  <label>City</label>
-                  <input value={profileForm.city} onChange={(e) => setProfileForm((prev) => ({ ...prev, city: e.target.value }))} />
-                </div>
-                <div className="account-field account-field-full">
-                  <label>Address Line</label>
-                  <input value={profileForm.addressLine} onChange={(e) => setProfileForm((prev) => ({ ...prev, addressLine: e.target.value }))} />
-                </div>
-                <div className="account-field">
-                  <label>Contact Phone</label>
-                  <input value={profileForm.contactPhone} onChange={(e) => setProfileForm((prev) => ({ ...prev, contactPhone: e.target.value }))} />
-                </div>
+                {(() => {
+                  // Helper: clear per-field error when user edits that field
+                  // (other fields' data is preserved).
+                  const clearProfileError = (field: string) => {
+                    setProfileErrors((prev) => {
+                      if (!prev[field]) return prev;
+                      const next = { ...prev };
+                      delete next[field];
+                      return next;
+                    });
+                  };
+                  const field = (name: string) => ({
+                    className: profileErrors[name] ? 'input-error' : '',
+                    'aria-invalid': Boolean(profileErrors[name]),
+                  });
+                  const renderInput = (
+                    fieldName: string,
+                    label: string,
+                    value: string,
+                    onChange: (next: string) => void,
+                    options: { full?: boolean; type?: string } = {},
+                  ) => (
+                    <div className={`account-field ${options.full ? 'account-field-full' : ''}`}>
+                      <label>{label}</label>
+                      <input
+                        {...field(fieldName)}
+                        type={options.type || 'text'}
+                        value={value}
+                        onChange={(e) => {
+                          onChange(e.target.value);
+                          clearProfileError(fieldName);
+                        }}
+                      />
+                      {profileErrors[fieldName] && (
+                        <span className="account-field-error">{profileErrors[fieldName]}</span>
+                      )}
+                    </div>
+                  );
+                  return (
+                    <>
+                      <div className="account-field">
+                        <label>Email</label>
+                        <input value={user?.email || ''} disabled />
+                      </div>
+                      {renderInput('phone', 'Phone', profileForm.phone,
+                        (v) => setProfileForm((prev) => ({ ...prev, phone: v })))}
+                      {renderInput('firstName', 'First Name', profileForm.firstName,
+                        (v) => setProfileForm((prev) => ({ ...prev, firstName: v })))}
+                      {renderInput('lastName', 'Last Name', profileForm.lastName,
+                        (v) => setProfileForm((prev) => ({ ...prev, lastName: v })))}
+                      {renderInput('companyName', 'Company Name', profileForm.companyName,
+                        (v) => setProfileForm((prev) => ({ ...prev, companyName: v })))}
+                      {renderInput('taxId', 'Tax ID', profileForm.taxId,
+                        (v) => setProfileForm((prev) => ({ ...prev, taxId: v })))}
+                      {renderInput('country', 'Country', profileForm.country,
+                        (v) => setProfileForm((prev) => ({ ...prev, country: v })))}
+                      {renderInput('city', 'City', profileForm.city,
+                        (v) => setProfileForm((prev) => ({ ...prev, city: v })))}
+                      {renderInput('addressLine', 'Address Line', profileForm.addressLine,
+                        (v) => setProfileForm((prev) => ({ ...prev, addressLine: v })), { full: true })}
+                      {renderInput('contactPhone', 'Contact Phone', profileForm.contactPhone,
+                        (v) => setProfileForm((prev) => ({ ...prev, contactPhone: v })), { type: 'tel' })}
+                    </>
+                  );
+                })()}
                 <div className="account-field">
                   <label>Language</label>
                   <select
@@ -545,47 +600,79 @@ export const AccountPage: React.FC = () => {
                 </div>
 
                 {showAddressForm && (
-                  <form className="account-form-grid account-panel" onSubmit={handleAddressSubmit}>
-                    <div className="account-field">
-                      <label>Label</label>
-                      <input value={addressForm.label} onChange={(e) => setAddressForm((prev) => ({ ...prev, label: e.target.value }))} />
-                    </div>
-                    <div className="account-field">
-                      <label>Company Name</label>
-                      <input value={addressForm.companyName} onChange={(e) => setAddressForm((prev) => ({ ...prev, companyName: e.target.value }))} />
-                    </div>
-                    <div className="account-field">
-                      <label>Contact Person</label>
-                      <input value={addressForm.contactPerson} onChange={(e) => setAddressForm((prev) => ({ ...prev, contactPerson: e.target.value }))} />
-                    </div>
-                    <div className="account-field">
-                      <label>Phone</label>
-                      <input value={addressForm.phone} onChange={(e) => setAddressForm((prev) => ({ ...prev, phone: e.target.value }))} />
-                    </div>
-                    <div className="account-field">
-                      <label>Country</label>
-                      <input value={addressForm.country} onChange={(e) => setAddressForm((prev) => ({ ...prev, country: e.target.value }))} required />
-                    </div>
-                    <div className="account-field">
-                      <label>City</label>
-                      <input value={addressForm.city} onChange={(e) => setAddressForm((prev) => ({ ...prev, city: e.target.value }))} required />
-                    </div>
-                    <div className="account-field">
-                      <label>Postal Code</label>
-                      <input value={addressForm.postalCode} onChange={(e) => setAddressForm((prev) => ({ ...prev, postalCode: e.target.value }))} />
-                    </div>
-                    <div className="account-field account-field-full">
-                      <label>Street 1</label>
-                      <input value={addressForm.street1} onChange={(e) => setAddressForm((prev) => ({ ...prev, street1: e.target.value }))} required />
-                    </div>
-                    <div className="account-field account-field-full">
-                      <label>Street 2</label>
-                      <input value={addressForm.street2} onChange={(e) => setAddressForm((prev) => ({ ...prev, street2: e.target.value }))} />
-                    </div>
-                    <div className="account-field account-field-full">
-                      <label>Notes</label>
-                      <textarea value={addressForm.notes} onChange={(e) => setAddressForm((prev) => ({ ...prev, notes: e.target.value }))} rows={4} />
-                    </div>
+                  <form className="account-form-grid account-panel" onSubmit={handleAddressSubmit} noValidate>
+                    {(() => {
+                      // Clear per-field error when user edits that field only.
+                      // Other inputs preserve their data and their state.
+                      const clearAddressError = (field: string) => {
+                        setAddressErrors((prev) => {
+                          if (!prev[field]) return prev;
+                          const next = { ...prev };
+                          delete next[field];
+                          return next;
+                        });
+                      };
+                      const fieldProps = (name: string) => ({
+                        className: addressErrors[name] ? 'input-error' : '',
+                        'aria-invalid': Boolean(addressErrors[name]),
+                      });
+                      const renderField = (
+                        name: string,
+                        label: string,
+                        value: string,
+                        onChange: (v: string) => void,
+                        opts: { full?: boolean; required?: boolean } = {},
+                      ) => (
+                        <div className={`account-field ${opts.full ? 'account-field-full' : ''}`}>
+                          <label>{label}{opts.required ? ' *' : ''}</label>
+                          <input
+                            {...fieldProps(name)}
+                            value={value}
+                            onChange={(e) => {
+                              onChange(e.target.value);
+                              clearAddressError(name);
+                            }}
+                          />
+                          {addressErrors[name] && (
+                            <span className="account-field-error">{addressErrors[name]}</span>
+                          )}
+                        </div>
+                      );
+                      return (
+                        <>
+                          {renderField('label', 'Label', addressForm.label,
+                            (v) => setAddressForm((prev) => ({ ...prev, label: v })))}
+                          {renderField('companyName', 'Company Name', addressForm.companyName,
+                            (v) => setAddressForm((prev) => ({ ...prev, companyName: v })))}
+                          {renderField('contactPerson', 'Contact Person', addressForm.contactPerson,
+                            (v) => setAddressForm((prev) => ({ ...prev, contactPerson: v })))}
+                          {renderField('phone', 'Phone', addressForm.phone,
+                            (v) => setAddressForm((prev) => ({ ...prev, phone: v })))}
+                          {renderField('country', 'Country', addressForm.country,
+                            (v) => setAddressForm((prev) => ({ ...prev, country: v })),
+                            { required: true })}
+                          {renderField('city', 'City', addressForm.city,
+                            (v) => setAddressForm((prev) => ({ ...prev, city: v })),
+                            { required: true })}
+                          {renderField('postalCode', 'Postal Code', addressForm.postalCode,
+                            (v) => setAddressForm((prev) => ({ ...prev, postalCode: v })))}
+                          {renderField('street1', 'Street 1', addressForm.street1,
+                            (v) => setAddressForm((prev) => ({ ...prev, street1: v })),
+                            { required: true, full: true })}
+                          {renderField('street2', 'Street 2', addressForm.street2,
+                            (v) => setAddressForm((prev) => ({ ...prev, street2: v })),
+                            { full: true })}
+                          <div className="account-field account-field-full">
+                            <label>Notes</label>
+                            <textarea
+                              value={addressForm.notes}
+                              onChange={(e) => setAddressForm((prev) => ({ ...prev, notes: e.target.value }))}
+                              rows={4}
+                            />
+                          </div>
+                        </>
+                      );
+                    })()}
                     <label className="account-checkbox">
                       <input
                         type="checkbox"
@@ -599,6 +686,7 @@ export const AccountPage: React.FC = () => {
                         setShowAddressForm(false);
                         setEditingAddressId(null);
                         setAddressForm(emptyAddressForm());
+                        setAddressErrors({});
                       }}>
                         Cancel
                       </button>

@@ -6,6 +6,20 @@ import { useI18n } from '../i18n';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import './LoginPage.css';
 
+// Parse Zod-style API field issues → field map (returns {} if none).
+const extractFieldErrors = (error: any): Record<string, string> => {
+  const issues = error?.response?.data?.issues;
+  if (!Array.isArray(issues) || issues.length === 0) return {};
+  const out: Record<string, string> = {};
+  issues.forEach((issue: any) => {
+    const path = Array.isArray(issue?.path) ? issue.path[0] : issue?.path;
+    if (path && issue?.message && !out[path]) {
+      out[String(path)] = String(issue.message);
+    }
+  });
+  return out;
+};
+
 export const ForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
@@ -16,17 +30,44 @@ export const ForgotPasswordPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  // Per-field errors so only the offending placeholder gets a red border;
+  // data in the other inputs is NOT cleared on a single-field issue.
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const clearFieldError = (name: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  };
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    setFieldErrors({});
 
+    // Per-field client validation
+    if (!email.trim()) {
+      setFieldErrors({ email: 'Email is required' });
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setFieldErrors({ email: 'Please enter a valid email address' });
+      return;
+    }
+
+    setLoading(true);
     try {
       const response = await api.post('/auth/forgot-password', { email });
       toast.success(response.data?.message || 'Password reset code sent to your email');
       setStep('otp');
     } catch (err: any) {
+      const apiFieldErrors = extractFieldErrors(err);
+      if (Object.keys(apiFieldErrors).length > 0) {
+        setFieldErrors(apiFieldErrors);
+      }
       const errorMsg = err.response?.data?.message || 'Failed to send reset code. Please check your email address.';
       setError(errorMsg);
       toast.error(errorMsg);
@@ -52,14 +93,24 @@ export const ForgotPasswordPage: React.FC = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
 
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
+    // Per-field client validation — only the offending field gets a red border.
+    // Form data (email, otp, newPassword) is NOT cleared.
+    const localErrors: Record<string, string> = {};
+    if (!otp.trim()) localErrors.otp = 'Verification code is required';
+    if (!newPassword) {
+      localErrors.newPassword = 'New password is required';
+    } else if (newPassword.length < 8) {
+      localErrors.newPassword = 'Password must be at least 8 characters';
     }
-
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+    if (!confirmPassword) {
+      localErrors.confirmPassword = 'Please confirm your new password';
+    } else if (newPassword && newPassword !== confirmPassword) {
+      localErrors.confirmPassword = 'Passwords do not match';
+    }
+    if (Object.keys(localErrors).length > 0) {
+      setFieldErrors(localErrors);
       return;
     }
 
@@ -77,7 +128,13 @@ export const ForgotPasswordPage: React.FC = () => {
         navigate('/login');
       }, 2000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset password');
+      const apiFieldErrors = extractFieldErrors(err);
+      if (Object.keys(apiFieldErrors).length > 0) {
+        setFieldErrors(apiFieldErrors);
+      }
+      const errorMsg = err.response?.data?.message || 'Failed to reset password';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -109,17 +166,24 @@ export const ForgotPasswordPage: React.FC = () => {
             )}
 
             {step === 'email' && (
-              <form className="auth-form" onSubmit={handleSendCode}>
+              <form className="auth-form" onSubmit={handleSendCode} noValidate>
                 <div className="form-group">
                   <label htmlFor="forgot-email">{t('auth.email', 'Email')}</label>
                   <input
                     id="forgot-email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (fieldErrors.email) clearFieldError('email');
+                    }}
                     placeholder="Enter your email"
-                    required
+                    className={fieldErrors.email ? 'error' : ''}
+                    aria-invalid={Boolean(fieldErrors.email)}
                   />
+                  {fieldErrors.email && (
+                    <span className="error-message">{fieldErrors.email}</span>
+                  )}
                 </div>
 
                 <button type="submit" className="btn btn-primary btn-large auth-submit-btn" disabled={loading}>
@@ -129,18 +193,25 @@ export const ForgotPasswordPage: React.FC = () => {
             )}
 
             {step === 'otp' && (
-              <form className="auth-form" onSubmit={handleResetPassword}>
+              <form className="auth-form" onSubmit={handleResetPassword} noValidate>
                 <div className="form-group">
                   <label htmlFor="reset-code">Verification Code</label>
                   <input
                     id="reset-code"
                     type="text"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
+                    onChange={(e) => {
+                      setOtp(e.target.value);
+                      if (fieldErrors.otp) clearFieldError('otp');
+                    }}
                     placeholder="Enter 6-digit code"
                     maxLength={6}
-                    required
+                    className={fieldErrors.otp ? 'error' : ''}
+                    aria-invalid={Boolean(fieldErrors.otp)}
                   />
+                  {fieldErrors.otp && (
+                    <span className="error-message">{fieldErrors.otp}</span>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -149,10 +220,17 @@ export const ForgotPasswordPage: React.FC = () => {
                     id="new-password"
                     type="password"
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    onChange={(e) => {
+                      setNewPassword(e.target.value);
+                      if (fieldErrors.newPassword) clearFieldError('newPassword');
+                    }}
                     placeholder="Enter new password (min 8 characters)"
-                    required
+                    className={fieldErrors.newPassword ? 'error' : ''}
+                    aria-invalid={Boolean(fieldErrors.newPassword)}
                   />
+                  {fieldErrors.newPassword && (
+                    <span className="error-message">{fieldErrors.newPassword}</span>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -161,10 +239,17 @@ export const ForgotPasswordPage: React.FC = () => {
                     id="confirm-password"
                     type="password"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      if (fieldErrors.confirmPassword) clearFieldError('confirmPassword');
+                    }}
                     placeholder="Confirm new password"
-                    required
+                    className={fieldErrors.confirmPassword ? 'error' : ''}
+                    aria-invalid={Boolean(fieldErrors.confirmPassword)}
                   />
+                  {fieldErrors.confirmPassword && (
+                    <span className="error-message">{fieldErrors.confirmPassword}</span>
+                  )}
                 </div>
 
                 <button type="submit" className="btn btn-primary btn-large auth-submit-btn" disabled={loading}>

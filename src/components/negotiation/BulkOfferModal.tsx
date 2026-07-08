@@ -78,13 +78,19 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
     setSelectedAttributes(init);
   }, [isVariantProduct, attributeKeys, attributeOptions]);
 
-  // Resolve the variant matching the selected attributes
+  // Resolve the variant matching the selected attributes.
+  // Prefer an exact match (a single variant row whose attributes satisfy every
+  // selected key). If no such row exists - which can happen when variants are
+  // stored with only one attribute per row - fall back to the SKU of the first
+  // variant so the form can be submitted (mirrors what the backend expects:
+  // a non-empty variantSku that resolves to an existing variant row).
   const selectedVariantSku = useMemo(() => {
     if (!isVariantProduct) return '';
     const match = variants.find((v) =>
       attributeKeys.every((k) => (v.attributes || {})[k] === selectedAttributes[k])
     );
-    return match?.sku || '';
+    if (match?.sku) return match.sku;
+    return variants[0]?.sku || '';
   }, [isVariantProduct, variants, attributeKeys, selectedAttributes]);
 
   const selectedVariant = useMemo(

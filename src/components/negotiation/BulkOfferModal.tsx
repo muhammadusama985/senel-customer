@@ -132,9 +132,6 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
     if (isOutOfStock) return toast.error('This product is out of stock');
     if (exceedsStock)
       return toast.error(`Only ${availableStock} units available. Please reduce your quantity.`);
-    if (isVariantProduct && !selectedVariantSku) {
-      return toast.error('Please select all product options');
-    }
     if (qty < 1) return toast.error('Quantity must be at least 1');
     if (unitPrice < 0) return toast.error('Unit price cannot be negative');
 
@@ -205,24 +202,34 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
               <div className="account-field-full" style={{ gridColumn: '1 / -1' }}>
                 <h4>Select product option</h4>
               </div>
-              {attributeKeys.map((key) => (
+              {attributeKeys.map((key) => {
+                const options = attributeOptions[key] || [];
+                const singleOption = options.length === 1;
+                return (
                 <div className="account-field" key={key}>
                   <label>{key}</label>
-                  <select
-                    value={selectedAttributes[key] || ''}
-                    onChange={(e) =>
-                      setSelectedAttributes((prev) => ({ ...prev, [key]: e.target.value }))
-                    }
-                    required
-                  >
-                    {attributeOptions[key]?.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
+                  {singleOption ? (
+                    <div className="single-option-static" style={{ padding: '0.75rem 0.9rem', backgroundColor: 'var(--bg-secondary, transparent)', borderRadius: '0.5rem', color: 'var(--text-primary)' }}>
+                      {options[0]}
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedAttributes[key] || ''}
+                      onChange={(e) =>
+                        setSelectedAttributes((prev) => ({ ...prev, [key]: e.target.value }))
+                      }
+                      required
+                    >
+                      {options.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
-              ))}
+                );
+              })}
               <div className="account-field-full" style={{ gridColumn: '1 / -1' }}>
                 <p className={isOutOfStock ? 'muted' : 'muted'}>
                   Available stock for selected option:{' '}

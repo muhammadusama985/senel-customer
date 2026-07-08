@@ -98,7 +98,10 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
     : Number(product?.stockQty || 0);
 
   // Form state
-  const initialQty = Math.max(defaultQty || product?.moq || 1, 1);
+  // Quantity has NO MOQ minimum — customer may request any positive quantity
+  // regardless of the product's minimum order quantity (MOQ). The only hard
+  // constraint is the available stock, which is enforced below.
+  const initialQty = Math.max(defaultQty || 1, 1);
   const [qty, setQty] = useState<number>(initialQty);
   const [unitPrice, setUnitPrice] = useState<number>(defaultUnitPrice || product?.priceTiers?.[0]?.unitPrice || 0);
   const [notes, setNotes] = useState('');
@@ -119,13 +122,12 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
   const currency = product?.currency || 'EUR';
   const isOutOfStock = availableStock <= 0;
   const exceedsStock = qty > availableStock;
-  const belowMoq = qty < (product?.moq || 1);
+  // `belowMoq` is intentionally NOT used to block submission in the bulk
+  // offer flow — the customer can offer any quantity regardless of MOQ.
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isOutOfStock) return toast.error('This product is out of stock');
-    if (belowMoq)
-      return toast.error(`Quantity must be at least the MOQ (${product?.moq || 1})`);
     if (exceedsStock)
       return toast.error(`Only ${availableStock} units available. Please reduce your quantity.`);
     if (isVariantProduct && !selectedVariantSku) {
@@ -241,7 +243,7 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
             <label>Quantity (max: {availableStock})</label>
             <input
               type="number"
-              min={Math.max(product?.moq || 1, 1)}
+              min={1}
               max={availableStock || undefined}
               value={qty}
               onChange={(e) => setQty(parseInt(e.target.value, 10) || 1)}
@@ -251,11 +253,6 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
             {exceedsStock && (
               <p style={{ color: 'red', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
                 Only {availableStock} units available.
-              </p>
-            )}
-            {belowMoq && (
-              <p style={{ color: 'red', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
-                Minimum order quantity is {product?.moq || 1}.
               </p>
             )}
           </div>
@@ -370,7 +367,7 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={submitting || isOutOfStock || exceedsStock || belowMoq}
+              disabled={submitting || isOutOfStock || exceedsStock}
             >
               {submitting ? 'Sending...' : 'Send Offer'}
             </button>

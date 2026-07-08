@@ -132,6 +132,9 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
     if (isOutOfStock) return toast.error('This product is out of stock');
     if (exceedsStock)
       return toast.error(`Only ${availableStock} units available. Please reduce your quantity.`);
+    if (isVariantProduct && !selectedVariantSku) {
+      return toast.error('Please select a product option (variant) before submitting an offer');
+    }
     if (qty < 1) return toast.error('Quantity must be at least 1');
     if (unitPrice < 0) return toast.error('Unit price cannot be negative');
 

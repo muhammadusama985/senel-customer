@@ -229,7 +229,24 @@ export const ProductDetailPage: React.FC = () => {
     selectedVariant?.sku ||
     selectedOptionVariants[0]?.sku ||
     '';
-  const availableStock = Number(product?.stockQty || 0);
+  // Stock display logic:
+  //  - For non-variant products: use the product-level stockQty.
+  //  - For variant products: the actual inventory lives on each variant, so
+  //    show the sum of every variant's stockQty (this matches what the
+  //    customer can actually order across all options).
+  const availableStock = (() => {
+    if (
+      product?.hasVariants &&
+      Array.isArray(product.variants) &&
+      product.variants.length > 0
+    ) {
+      return product.variants.reduce(
+        (sum: number, v: any) => sum + Number(v?.stockQty || 0),
+        0,
+      );
+    }
+    return Number(product?.stockQty || 0);
+  })();
 
   useEffect(() => {
     setSelectedImage(0);

@@ -90,7 +90,11 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
       attributeKeys.every((k) => (v.attributes || {})[k] === selectedAttributes[k])
     );
     if (match?.sku) return match.sku;
-    return variants[0]?.sku || '';
+    // Defensive fallback: scan for the first variant with a defined, non-empty sku.
+    for (const v of variants) {
+      if (v && v.sku) return v.sku;
+    }
+    return '';
   }, [isVariantProduct, variants, attributeKeys, selectedAttributes]);
 
   const selectedVariant = useMemo(

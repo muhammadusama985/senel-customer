@@ -92,10 +92,30 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
     [variants, selectedVariantSku]
   );
 
-  // Available stock depends on whether a variant is selected
-  const availableStock = isVariantProduct
-    ? Number(selectedVariant?.stockQty || 0)
-    : Number(product?.stockQty || 0);
+  // Available stock:
+  //  - For non-variant products: read the product-level stockQty.
+  //  - For variant products: prefer the exact variant match's stockQty. If no
+  //    variant matches the current combination of selected attributes (which
+  //    happens when the product has 2+ attributes and the variants store only
+  //    a single attribute per row), fall back to summing the stockQty of every
+  //    variant that independently matches each selected attribute. As a final
+  //    safety net, fall back to the total stock across all variants.
+  const availableStock = (() => {
+    if (!isVariantProduct) {
+      return Number(product?.stockQty || 0);
+    }
+    if (selectedVariant && Number(selectedVariant.stockQty || 0) > 0) {
+      return Number(selectedVariant.stockQty || 0);
+    }
+    const summed = attributeKeys.reduce((sum, key) => {
+      const value = selectedAttributes[key];
+      if (!value) return sum;
+      const match = variants.find((v) => (v.attributes || {})[key] === value);
+      return sum + (match ? Number(match.stockQty || 0) : 0);
+    }, 0);
+    if (summed > 0) return summed;
+    return variants.reduce((sum, v) => sum + Number(v.stockQty || 0), 0);
+  })();
 
   // Form state
   // Quantity has NO MOQ minimum — customer may request any positive quantity

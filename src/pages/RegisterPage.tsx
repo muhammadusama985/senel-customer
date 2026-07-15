@@ -17,6 +17,21 @@ const getErrorMessage = (error: any): string => {
 // Map Zod-style API field issues to a per-field error object.
 // Returns an empty object if the API didn't return any field-level issues,
 // so the existing top-level banner + toast can still handle general errors.
+// Returns one of: "weak" | "medium" | "strong" | "" (empty when no password).
+function getPasswordStrength(pwd: string): "weak" | "medium" | "strong" | "" {
+  if (!pwd) return "";
+  let score = 0;
+  if (pwd.length >= 8) score += 1;
+  if (pwd.length >= 12) score += 1;
+  if (/[a-z]/.test(pwd)) score += 1;
+  if (/[A-Z]/.test(pwd)) score += 1;
+  if (/\d/.test(pwd)) score += 1;
+  if (/[^A-Za-z0-9]/.test(pwd)) score += 1;
+  if (score <= 2) return "weak";
+  if (score <= 4) return "medium";
+  return "strong";
+}
+
 const extractFieldErrors = (error: any): Record<string, string> => {
   const issues = error?.response?.data?.issues;
   if (!Array.isArray(issues) || issues.length === 0) {
@@ -353,6 +368,17 @@ export const RegisterPage: React.FC = () => {
                   placeholder="Create a password (min 8 characters)"
                   className={errors.password ? 'error' : ''}
                 />
+                {(() => {
+                  const strength = getPasswordStrength(formData.password);
+                  if (!strength) return null;
+                  const colors = { weak: "#dc2626", medium: "#f59e0b", strong: "#16a34a" };
+                  const labels = { weak: "Weak", medium: "Medium", strong: "Strong" };
+                  return (
+                    <span style={{ fontSize: "0.8rem", color: colors[strength], marginTop: "0.25rem", display: "block" }}>
+                      Password strength: <strong>{labels[strength]}</strong>
+                    </span>
+                  );
+                })()}
                 {errors.password && <span className="error-message">{errors.password}</span>}
               </div>
 

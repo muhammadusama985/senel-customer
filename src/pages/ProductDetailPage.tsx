@@ -598,7 +598,6 @@ export const ProductDetailPage: React.FC = () => {
                 <>
                   <button
                     type="button"
-                    className="btn btn-outline"
                     onClick={() => {
                       if (!user) {
                         navigate('/login', { state: { from: `/products/${product.slug}` } });
@@ -606,18 +605,37 @@ export const ProductDetailPage: React.FC = () => {
                       }
                       setShowBulkOffer(true);
                     }}
+                    style={{
+                      background: 'var(--button-gradient)',
+                      color: '#ffffff',
+                      border: 'none',
+                      boxShadow: '0 10px 24px rgba(91, 46, 255, 0.22)',
+                      padding: '0.55rem 1rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                    }}
                   >
                     Submit Bulk Offer
                   </button>
                   <button
                     type="button"
-                    className="btn btn-outline"
                     onClick={() => {
                       if (!user) {
                         navigate('/login', { state: { from: `/products/${product.slug}` } });
                         return;
                       }
                       setShowCustomProduction(true);
+                    }}
+                    style={{
+                      background: 'var(--button-gradient)',
+                      color: '#ffffff',
+                      border: 'none',
+                      boxShadow: '0 10px 24px rgba(91, 46, 255, 0.22)',
+                      padding: '0.55rem 1rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
                     }}
                   >
                     Custom Production Request

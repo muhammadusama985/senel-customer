@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
+import api from '../../api/client';
 import './VendorInfo.css';
 
 interface VendorInfoProps {
@@ -20,14 +21,10 @@ export const VendorInfo: React.FC<VendorInfoProps> = ({ vendorId }) => {
   const { data: vendor, isLoading } = useQuery({
     queryKey: ['vendor-mini', vendorId],
     queryFn: async () => {
-      // You might need an endpoint to get vendor by ID
-      // For now, we'll use a placeholder
-      return { 
-        id: vendorId, 
-        storeName: 'Vendor', 
-        storeSlug: 'vendor',
-        isVerifiedBadge: false 
-      } as Vendor;
+      // Look up the real vendor by id so we can resolve the actual storeSlug
+      // and link to the vendor's full profile + products page.
+      const response = await api.get<{ vendor: Vendor }>(`/shop/vendors/by-id/${vendorId}`);
+      return response.data.vendor;
     },
     enabled: !!vendorId,
   });

@@ -2,21 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
-import { useVendor } from '../hooks/useVendor';
+import { useVendor, useVendorProducts } from '../hooks/useVendor';
 import { useAuthStore } from '../store/authStore';
 import api from '../api/client';
 import { Breadcrumbs } from '../components/common/Breadcrumbs';
+import { ProductGrid } from '../components/products/ProductGrid';
+import { Pagination } from '../components/common/Pagination';
 import './VendorPage.css';
 
 export const VendorPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
   const [isPreferred, setIsPreferred] = useState(false);
   const [isUpdatingPreferred, setIsUpdatingPreferred] = useState(false);
   const { user } = useAuthStore();
 
   const { data: vendor, isLoading: vendorLoading } = useVendor(slug || '');
+  const { data: productsData, isLoading: productsLoading } = useVendorProducts(slug || '', page);
 
   useEffect(() => {
     if (!user || !vendor?._id) return;
@@ -127,6 +131,33 @@ export const VendorPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <section className="vendor-products">
+          <h2>Products from {vendor.storeName}</h2>
+
+          {productsLoading ? (
+            <div className="products-loader">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="product-skeleton" />
+              ))}
+            </div>
+          ) : productsData?.items && productsData.items.length > 0 ? (
+            <>
+              <ProductGrid products={productsData.items} />
+              {productsData.pages > 1 && (
+                <Pagination
+                  currentPage={productsData.page}
+                  totalPages={productsData.pages}
+                  onPageChange={setPage}
+                />
+              )}
+            </>
+          ) : (
+            <div className="no-products">
+              <p>No products available from this vendor yet.</p>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

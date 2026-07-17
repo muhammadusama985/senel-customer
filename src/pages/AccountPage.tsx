@@ -796,8 +796,8 @@ export const AccountPage: React.FC = () => {
                   <div className="account-list-grid">
                     {recentlyViewed.map((item) => (
                       <article key={`${item.productId}`} className="account-panel">
-                        <strong>{item.product?.title || item.productId}</strong>
-                        <div className="row-actions">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+                          <strong>{item.product?.title || item.productId}</strong>
                           {item.product?.slug ? (
                             <Link className="btn btn-outline" to={`/products/${item.product.slug}`}>{t('account.open', 'Open')}</Link>
                           ) : null}

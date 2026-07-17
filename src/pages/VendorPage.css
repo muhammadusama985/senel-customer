@@ -43,10 +43,15 @@
 
 .vendor-banner {
   height: 260px;
-  border-radius: 0.9rem;
+  border-radius: 0;
   overflow: hidden;
   margin-bottom: -10px;
   position: relative;
+  /* Full-width banner on PC / laptop. The negative margin pulls the
+     element outside the .container's max-width constraint while keeping
+     it centered in the document flow. */
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
 }
 
 .vendor-banner img {
@@ -59,8 +64,10 @@
 .vendor-banner-placeholder {
   height: 260px;
   background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-  border-radius: 0.9rem;
+  border-radius: 0;
   margin-bottom: -10px;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
 }
 
 .vendor-info {

@@ -197,16 +197,40 @@
     padding: 0 1rem;
   }
 
-  .vendor-name {
-    font-size: 1.45rem;
+  /* Make .vendor-details transparent for layout on mobile so its
+     children (name, desc, loc, btn) participate directly in the parent
+     flex column and can be positioned via `order` (so the logo can sit
+     between the name and the description). */
+  .vendor-details {
+    display: contents;
   }
 
   .vendor-name-wrapper {
+    order: 1;
     justify-content: center;
   }
 
+  /* Logo: now sits below the store name and above the description. */
+  .vendor-logo-wrapper {
+    order: 2;
+    margin: 0.5rem auto 0.5rem;
+  }
+
   .vendor-description {
+    order: 3;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  .vendor-location {
+    order: 4;
+  }
+
+  .preferred-btn {
+    order: 5;
+  }
+
+  .vendor-name {
+    font-size: 1.45rem;
   }
 }

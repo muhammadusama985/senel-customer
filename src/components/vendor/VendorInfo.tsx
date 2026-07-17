@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
 import api from '../../api/client';
@@ -49,11 +48,8 @@ export const VendorInfo: React.FC<VendorInfoProps> = ({ vendorId }) => {
 
   return (
     <div className="vendor-info">
-      <h4>Sold by</h4>
-      <Link
-        to={vendor.storeSlug ? `/vendors/${vendor.storeSlug}` : '#'}
-        className="vendor-link"
-      >
+      <h4>Sold by Vendor</h4>
+      <div className="vendor-link">
         {vendor.logoUrl && (
           <img src={vendor.logoUrl} alt={vendor.storeName} className="vendor-logo-small" />
         )}
@@ -61,7 +57,7 @@ export const VendorInfo: React.FC<VendorInfoProps> = ({ vendorId }) => {
         {vendor.isVerifiedBadge && (
           <CheckBadgeIcon className="verified-badge-small" />
         )}
-      </Link>
+      </div>
     </div>
   );
 };

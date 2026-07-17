@@ -52,6 +52,9 @@
      it centered in the document flow. */
   width: 100vw;
   margin-left: calc(-50vw + 50%);
+  /* Fixed white background so transparent-PNG banner uploads don't blend
+     into the dark theme's deep purple bg. */
+  background-color: #ffffff;
 }
 
 .vendor-banner img {
@@ -84,7 +87,9 @@
   border-radius: 50%;
   border: 4px solid var(--bg-primary);
   overflow: hidden;
-  background-color: var(--card-bg);
+  /* Fixed white background so transparent-PNG logo uploads don't blend
+     into the dark theme deep purple card-bg. */
+  background-color: #ffffff;
   box-shadow: var(--shadow-lg);
 }
 
@@ -104,7 +109,8 @@
   font-size: 3rem;
   font-weight: bold;
   color: var(--accent);
-  background-color: var(--bg-tertiary);
+  /* Fixed white so the colored initial stays visible in both themes. */
+  background-color: #ffffff;
 }
 
 .vendor-details {

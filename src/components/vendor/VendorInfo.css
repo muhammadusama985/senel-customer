@@ -26,7 +26,10 @@
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  object-fit: cover;
+  /* contain: show the full supplier logo (no cropping / zooming). */
+  object-fit: contain;
+  /* Fixed white background so transparent-PNG supplier logos don't blend into the dark theme. */
+  background-color: #ffffff;
 }
 
 .vendor-name {

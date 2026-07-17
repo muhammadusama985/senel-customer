@@ -20,10 +20,17 @@ export const VendorInfo: React.FC<VendorInfoProps> = ({ vendorId }) => {
   const { data: vendorData, isLoading } = useQuery({
     queryKey: ['vendor-mini', vendorId],
     queryFn: async () => {
-      // Resolve the real vendor by id so we can use its actual storeSlug
-      // and link to the vendor's full profile + products page.
-      const response = await api.get<{ vendor: Vendor }>(`/shop/vendors/by-id/${vendorId}`);
-      return response.data.vendor;
+      // Resolve the real vendor name from the product's vendorId by looking
+      // it up in the public /shop/vendors listing (the only public vendor
+      // endpoint available on the live backend). The product detail page
+      // receives only vendorId, so we filter the list client-side.
+      const response = await api.get<{ items: Vendor[] }>('/shop/vendors', {
+        params: { limit: 200 },
+      });
+      const items = Array.isArray(response.data.items) ? response.data.items : [];
+      const match = items.find((v) => v.id === vendorId);
+      if (!match) return null;
+      return match;
     },
     enabled: !!vendorId,
     retry: false,
@@ -38,7 +45,7 @@ export const VendorInfo: React.FC<VendorInfoProps> = ({ vendorId }) => {
 
   // Always render the "Sold by" block so the text never disappears from the
   // product detail page. Use the real vendor when available; otherwise fall
-  // back to a placeholder so the link doesn't go to a broken /vendors/vendor.
+  // back to a placeholder.
   const vendor: Vendor = vendorData || {
     id: vendorId,
     storeName: 'Vendor',

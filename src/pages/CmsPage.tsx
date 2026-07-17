@@ -59,6 +59,34 @@ export const CmsPage: React.FC = () => {
 
   const title = page?.title || t(`cms.${pageSlug}`, pageSlug || 'Page');
 
+  // Context-aware empty-state copy based on the page slug. The user wants
+  // the message to reflect the title of the page they clicked (e.g. "No
+  // contact", "No shipping", "No returns") instead of a generic "Page not
+  // found" for every CMS page.
+  const emptyCopy = (() => {
+    const key = (page?.slug || pageSlug || '').toLowerCase();
+    switch (key) {
+      case 'contact':
+        return t('cms.emptyContact', 'No contact information available yet.');
+      case 'shipping':
+        return t('cms.emptyShipping', 'No shipping information available yet.');
+      case 'returns':
+        return t('cms.emptyReturns', 'No returns information available yet.');
+      case 'about':
+        return t('cms.emptyAbout', 'No about information available yet.');
+      case 'faq':
+        return t('cms.emptyFaq', 'No FAQ entries available yet.');
+      case 'help':
+        return t('cms.emptyHelp', 'No help content available yet.');
+      case 'terms':
+        return t('cms.emptyTerms', 'No terms available yet.');
+      case 'privacy':
+        return t('cms.emptyPrivacy', 'No privacy policy available yet.');
+      default:
+        return t('cms.emptyGeneric', 'No data present yet.');
+    }
+  })();
+
   return (
     <div className="cms-page">
       <div className="container">
@@ -75,7 +103,7 @@ export const CmsPage: React.FC = () => {
           ) : error ? (
             <div>
               <h1>{title}</h1>
-              <p className="muted">{error}</p>
+              <p className="muted">{emptyCopy}</p>
             </div>
           ) : (
             <>

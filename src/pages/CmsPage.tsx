@@ -100,7 +100,7 @@ export const CmsPage: React.FC = () => {
         <article className="card cms-content">
           {loading ? (
             <p>{t('cms.loading', 'Loading content...')}</p>
-          ) : error ? (
+          ) : error || !page || !page.content?.trim() ? (
             <div>
               <h1>{title}</h1>
               <p className="muted">{emptyCopy}</p>

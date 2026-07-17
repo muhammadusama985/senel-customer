@@ -5,6 +5,7 @@ import api from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { useI18n } from '../i18n';
 import { extractFieldErrors, extractErrorMessage } from '../utils/formErrors';
+import { NegotiationsView } from '../components/negotiation/NegotiationsView';
 import './AccountPage.css';
 
 const VALID_ACCOUNT_TABS: TabKey[] = ['profile', 'addresses', 'suppliers', 'disputes', 'recent', 'notifications', 'announcements', 'negotiations'];
@@ -486,7 +487,7 @@ export const AccountPage: React.FC = () => {
             <button type="button" className={tab === 'recent' ? 'active' : ''} onClick={() => changeTab('recent')}>{t('account.recent', 'Recently Viewed')}</button>
             <button type="button" className={tab === 'notifications' ? 'active' : ''} onClick={() => changeTab('notifications')}>{t('account.notifications', 'Notifications')}</button>
             <button type="button" className={tab === 'announcements' ? 'active' : ''} onClick={() => changeTab('announcements')}>{t('account.announcements', 'Announcements')}</button>
-            <button type="button" className={tab === 'negotiations' ? 'active' : ''} onClick={() => navigate('/negotiations')}>Negotiations</button>
+            <button type="button" className={tab === 'negotiations' ? 'active' : ''} onClick={() => changeTab('negotiations')}>Negotiations</button>
           </aside>
 
           <section className="card account-content">
@@ -847,6 +848,21 @@ export const AccountPage: React.FC = () => {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {tab === 'negotiations' && (
+              <div className="account-stack">
+                <div className="account-section-head">
+                  <div>
+                    <h3>Negotiations</h3>
+                    <p className="muted">
+                      Manage your bulk offers and custom production requests. Continue active discussions, accept
+                      quotes, or generate a payment link.
+                    </p>
+                  </div>
+                </div>
+                <NegotiationsView />
               </div>
             )}
           </section>

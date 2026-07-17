@@ -60,8 +60,11 @@
 .vendor-banner img {
   width: 100%;
   height: 100%;
-  /* contain: show the full banner image (no cropping / zooming). */
-  object-fit: contain;
+  /* cover: the banner image fills the full screen width and is cropped
+     vertically when needed to preserve its aspect ratio. Responsive:
+     scales fluidly with the viewport (100vw container + height: 260px
+     desktop / 190px mobile via the media query below). */
+  object-fit: cover;
 }
 
 .vendor-banner-placeholder {

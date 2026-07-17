@@ -78,7 +78,10 @@
 .vendor-card-logo {
   width: 110px;
   height: 110px;
-  background-color: var(--bg-tertiary);
+  /* Fixed white background so transparent-PNG vendor logos do not blend
+     into the dark theme deep-purple bg-tertiary. Keeps logos readable
+     in both light and dark themes. */
+  background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -101,7 +104,9 @@
   font-size: 2.5rem;
   font-weight: bold;
   color: var(--accent);
-  background-color: var(--bg-tertiary);
+  /* Match the logo container: always white so the colored initial stays
+     visible in both themes. */
+  background-color: #ffffff;
 }
 
 .vendor-card-info {

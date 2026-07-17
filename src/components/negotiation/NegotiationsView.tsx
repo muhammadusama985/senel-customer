@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import type { BulkOffer, CustomProductionRequest } from '../../types/negotiation';
+import './NegotiationsView.css';
 
 type Tab = 'offers' | 'rfqs';
 
@@ -239,17 +240,17 @@ export const NegotiationsView: React.FC = () => {
   return (
     <>
       <div className="account-stack">
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+        <div className="negotiations-toolbar">
           <button
             type="button"
-            className={`btn ${tab === 'offers' ? 'btn-primary' : 'btn-outline'}`}
+            className={`neg-pill ${tab === 'offers' ? 'active' : ''}`}
             onClick={() => setTab('offers')}
           >
             Bulk Offers ({offers.length || ''})
           </button>
           <button
             type="button"
-            className={`btn ${tab === 'rfqs' ? 'btn-primary' : 'btn-outline'}`}
+            className={`neg-pill ${tab === 'rfqs' ? 'active' : ''}`}
             onClick={() => setTab('rfqs')}
           >
             Custom Production ({rfqs.length || ''})
@@ -257,7 +258,7 @@ export const NegotiationsView: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            style={{ marginLeft: 'auto', padding: '0.5rem', borderRadius: 6 }}
+            className="neg-select"
           >
             <option value="">All statuses</option>
             {tab === 'offers' ? (

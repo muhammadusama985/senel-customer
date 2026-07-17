@@ -78,7 +78,9 @@
 
 .vendor-info {
   display: flex;
-  align-items: flex-end;
+  /* align-items: flex-start keeps the logo at the top-right (next to the
+     store name) instead of at the bottom-right (below the description). */
+  align-items: flex-start;
   gap: 1.25rem;
   padding: 0 1.2rem;
   position: relative;
@@ -94,6 +96,10 @@
      into the dark theme deep purple card-bg. */
   background-color: #ffffff;
   box-shadow: var(--shadow-lg);
+  /* Small top offset so the logo sits centered next to the store name
+     rather than flush to the very top of the row. */
+  margin-top: -10px;
+  flex-shrink: 0;
 }
 
 .vendor-logo {
@@ -118,6 +124,7 @@
 
 .vendor-details {
   flex: 1;
+  min-width: 0;
   padding-top: 0.5rem;
   padding-bottom: 1rem;
 }

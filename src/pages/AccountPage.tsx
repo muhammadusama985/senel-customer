@@ -797,7 +797,11 @@ export const AccountPage: React.FC = () => {
                     {recentlyViewed.map((item) => (
                       <article key={`${item.productId}`} className="account-panel">
                         <strong>{item.product?.title || item.productId}</strong>
-                        {item.product?.slug ? <Link className="btn btn-outline" to={`/products/${item.product.slug}`}>{t('account.open', 'Open')}</Link> : null}
+                        <div className="row-actions">
+                          {item.product?.slug ? (
+                            <Link className="btn btn-outline" to={`/products/${item.product.slug}`}>{t('account.open', 'Open')}</Link>
+                          ) : null}
+                        </div>
                       </article>
                     ))}
                   </div>

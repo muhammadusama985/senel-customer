@@ -78,7 +78,10 @@
 
 .vendor-info {
   display: flex;
-  align-items: flex-end;
+  /* align-items: flex-start so the logo (on the right) sits at the top
+     of the row next to the store name instead of at the bottom below
+     the description block. */
+  align-items: flex-start;
   gap: 1.25rem;
   padding: 0 1.2rem;
   position: relative;
@@ -94,6 +97,10 @@
      into the dark theme deep purple card-bg. */
   background-color: #ffffff;
   box-shadow: var(--shadow-lg);
+  /* Small negative top offset so the logo still slightly overlaps the
+     banner edge (preserves the original visual pattern). */
+  margin-top: -10px;
+  flex-shrink: 0;
 }
 
 .vendor-logo {
@@ -118,6 +125,7 @@
 
 .vendor-details {
   flex: 1;
+  min-width: 0;
   padding-top: 0.5rem;
   padding-bottom: 1rem;
 }

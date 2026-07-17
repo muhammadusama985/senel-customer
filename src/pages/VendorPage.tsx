@@ -103,14 +103,6 @@ export const VendorPage: React.FC = () => {
           )}
 
           <div className="vendor-info">
-            <div className="vendor-logo-wrapper">
-              {vendor.logoUrl ? (
-                <img src={vendor.logoUrl} alt={vendor.storeName} className="vendor-logo" />
-              ) : (
-                <div className="vendor-logo-placeholder">{vendor.storeName.charAt(0)}</div>
-              )}
-            </div>
-
             <div className="vendor-details">
               <div className="vendor-name-wrapper">
                 <h1 className="vendor-name">{vendor.storeName}</h1>
@@ -128,6 +120,14 @@ export const VendorPage: React.FC = () => {
               <button className="btn btn-outline preferred-btn" onClick={togglePreferred} disabled={isUpdatingPreferred}>
                 {isPreferred ? 'Remove Preferred Supplier' : 'Save as Preferred Supplier'}
               </button>
+            </div>
+
+            <div className="vendor-logo-wrapper">
+              {vendor.logoUrl ? (
+                <img src={vendor.logoUrl} alt={vendor.storeName} className="vendor-logo" />
+              ) : (
+                <div className="vendor-logo-placeholder">{vendor.storeName.charAt(0)}</div>
+              )}
             </div>
           </div>
         </div>

@@ -18,44 +18,24 @@ interface TieredPricingProps {
   maxQty?: number;
   currencySymbol?: string;
   /**
-   * Per-attribute-value price adjustments. Structure:
-   *   { "<AttrName>": { "<Value>": adjustment, ... }, ... }
-   *   e.g. { Color: { Green: -10 }, Size: { Small: -20 } }
-   * Legacy: adjustments are summed per selected attribute value.
-   * Used as a fallback only when `variantAdjustments` is empty.
-   */
-  attributeAdjustments?: Record<string, Record<string, number>>;
-  /**
-   * Per-combination (per-variant) flat adjustments. Key is the joined
+   * Per-combination OFFSET from the base combination. Key is the joined
    * selected values of all attributes (e.g. "Red|Medium"). Value is a
-   * single flat adjustment applied uniformly to every tier.
-   * Takes precedence over attributeAdjustments when non-empty.
+   * flat offset added to every tier's unitPrice for this combination.
+   * Missing entry = 0 (= same price as the base combination).
    */
-  variantAdjustments?: Record<string, number>;
+  combinationOffsets?: Record<string, number>;
   /**
-   * Per-combination percentage adjustments. Same key format as
-   * variantAdjustments. Value is a percentage (e.g. -20 = -20%). Applied
-   * multiplicatively on top of each tier's unitPrice, then added to the
-   * flat variant adjustment.
-   */
-  variantPercentAdjustments?: Record<string, number>;
-  /**
-   * Minimum effective unit price (in product currency). Tier prices are
-   * floored at this value so a large negative adjustment can never drive
-   * the price to or below zero. Defaults to 0.
+   * Minimum effective unit price (in product currency). The final
+   * (tier + offset) price is floored at this value. Defaults to 0.
    */
   minEffectiveUnitPrice?: number;
-  /**
-   * Currently selected attribute values, e.g. { Color: 'Green', Size: 'Small' }.
-   * Pass the same structure on add-to-cart so backend pricing matches.
-   */
   selectedAttributes?: Record<string, string>;
 }
 
 /**
- * Build the deterministic per-combination key used by variantAdjustments /
- * variantPercentAdjustments. The attribute titles order must be stable
- * (e.g. sorted alphabetically or in the order the vendor defined them).
+ * Build the deterministic per-combination key used by combinationOffsets.
+ * The attribute titles order must be stable (e.g. sorted alphabetically or
+ * in the order the vendor defined them).
  */
 const buildCombinationKey = (
   selectedAttributes: Record<string, string> | undefined
@@ -70,55 +50,19 @@ const buildCombinationKey = (
   return parts.join('|');
 };
 
-const computeAttributeAdjustment = (
-  attributeAdjustments: Record<string, Record<string, number>> | undefined,
-  selectedAttributes: Record<string, string> | undefined
-): number => {
-  if (!attributeAdjustments || !selectedAttributes) return 0;
-  let total = 0;
-  for (const [attrName, attrValue] of Object.entries(selectedAttributes)) {
-    if (attrValue == null || attrValue === '') continue;
-    const attrMap = attributeAdjustments[attrName];
-    if (!attrMap || typeof attrMap !== 'object') continue;
-    const raw = attrMap[attrValue];
-    const num = Number(raw);
-    if (Number.isFinite(num)) total += num;
-  }
-  return total;
-};
-
 /**
- * Resolve the effective variant adjustment for the currently selected
- * attributes. Prefers the modern per-combination maps; falls back to the
- * legacy per-attribute sum if those are missing.
- *
- * Returns a plain number (may be negative or positive). The percentage
- * adjustment is NOT applied here — that gets baked into the tier price
- * in getEffectiveUnitPriceForTier below.
+ * Resolve the per-combination OFFSET for the currently selected attributes.
+ * Returns 0 if the combination is not in the map (treated as "same as base"),
+ * or if no combination is selected yet (customer hasn't picked any options).
  */
-const resolveVariantAdjustment = (
-  variantAdjustments: Record<string, number> | undefined,
-  attributeAdjustments: Record<string, Record<string, number>> | undefined,
+const resolveCombinationOffset = (
+  combinationOffsets: Record<string, number> | undefined,
   selectedAttributes: Record<string, string> | undefined
 ): number => {
-  if (variantAdjustments && Object.keys(variantAdjustments).length > 0) {
-    const key = buildCombinationKey(selectedAttributes);
-    if (!key) return 0;
-    const num = Number(variantAdjustments[key]);
-    if (Number.isFinite(num)) return num;
-    return 0;
-  }
-  return computeAttributeAdjustment(attributeAdjustments, selectedAttributes);
-};
-
-const resolveVariantPercentAdjustment = (
-  variantPercentAdjustments: Record<string, number> | undefined,
-  selectedAttributes: Record<string, string> | undefined
-): number => {
-  if (!variantPercentAdjustments) return 0;
+  if (!combinationOffsets || Object.keys(combinationOffsets).length === 0) return 0;
   const key = buildCombinationKey(selectedAttributes);
   if (!key) return 0;
-  const num = Number(variantPercentAdjustments[key]);
+  const num = Number(combinationOffsets[key]);
   return Number.isFinite(num) ? num : 0;
 };
 
@@ -131,9 +75,7 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   moq,
   maxQty,
   currencySymbol = 'EUR ',
-  attributeAdjustments,
-  variantAdjustments,
-  variantPercentAdjustments,
+  combinationOffsets,
   minEffectiveUnitPrice = 0,
   selectedAttributes,
 }) => {
@@ -141,23 +83,19 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   const [internalQuantityInput, setInternalQuantityInput] = useState(String(selectedQuantity || moq));
   const quantityInput = inputValue ?? internalQuantityInput;
   const sortedTiers = [...tiers].sort((a, b) => a.minQty - b.minQty);
-  const flatAdjustment = resolveVariantAdjustment(variantAdjustments, attributeAdjustments, selectedAttributes);
-  const percentAdjustment = resolveVariantPercentAdjustment(variantPercentAdjustments, selectedAttributes);
-  const adjustment = flatAdjustment; // legacy variable name kept for the banner copy below
+  const adjustment = resolveCombinationOffset(combinationOffsets, selectedAttributes);
   const floor = Math.max(0, Number(minEffectiveUnitPrice) || 0);
   const activeTier = [...sortedTiers]
     .reverse()
     .find((tier) => selectedQuantity >= tier.minQty) || sortedTiers[0];
   const activeTierMinQty = activeTier?.minQty;
 
-  // Effective unit price for any tier: apply percentage on the base tier price,
-  // then add the flat adjustment, then floor at minEffectiveUnitPrice. This
-  // matches the backend pricing.js math exactly.
+  // Effective unit price for any tier: base tier price + combination
+  // offset, then floor at minEffectiveUnitPrice. Matches pricing.js.
   const getEffectiveUnitPriceForTier = (tier: PriceTier): number => {
     const base = Number(tier.unitPrice);
     if (!Number.isFinite(base)) return 0;
-    const adjusted = base * (1 + percentAdjustment / 100) + flatAdjustment;
-    return Math.max(floor, adjusted);
+    return Math.max(floor, base + adjustment);
   };
 
   const getPriceForQuantity = (qty: number): number => {
@@ -232,23 +170,12 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
           <InformationCircleIcon className="icon-small" />
           <span>
             {adjustment > 0
-              ? t('pricing.adjustmentUp', 'Option adjustment: +{{amount}} (applied to all tiers)', {
+              ? t('pricing.offsetUp', 'Combination offset: +{{amount}} (applied to all tiers)', {
                   amount: adjustment.toFixed(2),
                 })
-              : t('pricing.adjustmentDown', 'Option adjustment: {{amount}} (applied to all tiers)', {
+              : t('pricing.offsetDown', 'Combination offset: {{amount}} (applied to all tiers)', {
                   amount: adjustment.toFixed(2),
                 })}
-          </span>
-        </div>
-      )}
-
-      {percentAdjustment !== 0 && (
-        <div className="adjustment-banner">
-          <InformationCircleIcon className="icon-small" />
-          <span>
-            {t('pricing.percentAdjustment', 'Variant percentage adjustment: {{amount}}% applied to all tiers', {
-              amount: percentAdjustment.toFixed(2),
-            })}
           </span>
         </div>
       )}
@@ -256,10 +183,7 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
       {/* Defensive notice: only shown if a clamp actually fired (upstream
           backend + vendor editor validation should prevent this, but the
           customer should never see a $0 tier price silently). */}
-      {sortedTiers.some((tier) => {
-        const adjusted = Number(tier.unitPrice) * (1 + percentAdjustment / 100) + flatAdjustment;
-        return floor > 0 && adjusted < floor;
-      }) && (
+      {sortedTiers.some((tier) => Number(tier.unitPrice) + adjustment < floor) && (
         <div className="adjustment-banner" style={{ borderColor: 'var(--warning)' }}>
           <InformationCircleIcon className="icon-small" />
           <span>
@@ -283,13 +207,11 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
               const tierSelectable = !hasStockLimit || tier.minQty <= maxQty;
               const effectiveUnitPrice = getEffectiveUnitPriceForTier(tier);
               const tierTotal = effectiveUnitPrice * (isActive ? selectedQuantity : tier.minQty);
-              const hasTierAdjustment = adjustment !== 0 || percentAdjustment !== 0;
+              const hasTierAdjustment = adjustment !== 0;
               const baseUnitPrice = Number(tier.unitPrice);
-              // Was the per-tier price floored at minEffectiveUnitPrice because the
-              // (flat + percent) adjustment would otherwise drive it below zero?
-              const wasClamped =
-                floor > 0 &&
-                baseUnitPrice * (1 + percentAdjustment / 100) + flatAdjustment < floor;
+              // Was the per-tier price floored at minEffectiveUnitPrice because
+              // the (base + offset) sum would otherwise drop below the floor?
+              const wasClamped = floor > 0 && baseUnitPrice + adjustment < floor;
 
               return (
                 <tr

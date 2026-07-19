@@ -141,32 +141,16 @@ export const ProductDetailPage: React.FC = () => {
   }, [product]);
 
   useEffect(() => {
+    // The customer must explicitly select each option. We only reset
+    // selectedAttributes when the product changes (or has no variants).
     if (!product?.hasVariants) {
       setSelectedAttributes({});
+      setLastChangedAttributeKey('');
       return;
     }
-
-    const groupedOptions = Object.entries(
-      (product.variants || []).reduce((acc: Record<string, string[]>, variant: any) => {
-        Object.entries(getReadableAttributesMap(variant.attributes || {})).forEach(([key, value]) => {
-          if (!acc[key]) acc[key] = [];
-          if (!acc[key].includes(value)) acc[key].push(value);
-        });
-        return acc;
-      }, {}),
-    );
-
-    if (!groupedOptions.length) {
-      setSelectedAttributes({});
-      return;
-    }
-
-    const nextSelectedAttributes = Object.fromEntries(
-      groupedOptions.map(([key, values]) => [key, values[0] || '']),
-    );
-    setSelectedAttributes(nextSelectedAttributes);
-    setLastChangedAttributeKey(groupedOptions[0]?.[0] || '');
-  }, [product]);
+    setSelectedAttributes({});
+    setLastChangedAttributeKey('');
+  }, [product?.hasVariants, product?._id]);
 
   useEffect(() => {
     if (!user || !product?._id) return;
@@ -576,9 +560,7 @@ export const ProductDetailPage: React.FC = () => {
               moq={product.moq}
               maxQty={canMeetMinimumOrder ? availableStock : undefined}
               currencySymbol={currencySymbol}
-              attributeAdjustments={(product as any).attributeAdjustments}
-              variantAdjustments={(product as any).variantAdjustments}
-              variantPercentAdjustments={(product as any).variantPercentAdjustments}
+              combinationOffsets={(product as any).combinationOffsets}
               minEffectiveUnitPrice={(product as any).minEffectiveUnitPrice}
               selectedAttributes={product.hasVariants ? selectedAttributes : undefined}
             />

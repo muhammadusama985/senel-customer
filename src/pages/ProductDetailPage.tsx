@@ -577,6 +577,9 @@ export const ProductDetailPage: React.FC = () => {
               maxQty={canMeetMinimumOrder ? availableStock : undefined}
               currencySymbol={currencySymbol}
               attributeAdjustments={(product as any).attributeAdjustments}
+              variantAdjustments={(product as any).variantAdjustments}
+              variantPercentAdjustments={(product as any).variantPercentAdjustments}
+              minEffectiveUnitPrice={(product as any).minEffectiveUnitPrice}
               selectedAttributes={product.hasVariants ? selectedAttributes : undefined}
             />
 

@@ -266,10 +266,40 @@
   height: 1.25rem;
 }
 
+.product-description-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  border-radius: 10px;
+  background-color: var(--card-bg, #fff);
+}
+
+.product-description-heading {
+  margin: 0;
+  color: var(--text-primary, #222);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.product-description-scroller {
+  /* Reserve a fixed block of vertical space. If the description is shorter
+     than the cap it shows in full; if it overflows, the block scrolls
+     inside itself so the page layout below stays put. */
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
 .product-description {
   color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
+  /* Preserve line breaks / multi-paragraph descriptions written by the vendor. */
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .variant-selector-section {

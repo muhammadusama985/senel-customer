@@ -542,7 +542,7 @@ export const ProductDetailPage: React.FC = () => {
               </button>
             </div>
 
-            <p className="product-description">{product.description}</p>
+
 
             {product.hasVariants && (
               <div className="variant-selector-section">
@@ -728,6 +728,17 @@ export const ProductDetailPage: React.FC = () => {
             <VendorInfo vendorId={product.vendorId} />
           </div>
         </div>
+
+        {product.description ? (
+          <section className="product-description-section">
+            <h2 className="product-description-heading">
+              {t('product.descriptionLabel', 'Product Description')}
+            </h2>
+            <div className="product-description-scroller">
+              <p className="product-description">{product.description}</p>
+            </div>
+          </section>
+        ) : null}
 
         <ProductSpecs product={product} />
 

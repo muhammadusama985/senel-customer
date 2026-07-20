@@ -20,6 +20,7 @@ export const CartPage: React.FC = () => {
     removeItem,
     clearCart,
     isLoading,
+    recomputeUnitPrice,
   } = useCartStore();
 
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
@@ -118,6 +119,14 @@ export const CartPage: React.FC = () => {
               const nextDecreaseQty = item.quantity - 1;
               const availableStock = Number(item.availableStock || 0);
               const exceedsLiveStock = availableStock > 0 && item.quantity >= availableStock;
+
+              // Re-derive the live unit price + line total from the stored pricing
+              // data on every render so the cart line ALWAYS reflects the active
+              // tier + combination offset + floor (defensive net for stale
+              // unitPrice values that were stored before the new model).
+              const liveUnitPrice = Number(recomputeUnitPrice(item, item.quantity) || 0);
+              const liveLineTotal = Number((liveUnitPrice * item.quantity).toFixed(2));
+
               return (
                 <div key={key} className="cart-item">
                   <div className="cart-item-image">
@@ -128,7 +137,7 @@ export const CartPage: React.FC = () => {
                     <Link to={`/products/${item.slug || item.productId}`} className="cart-item-title">
                       {item.title}
                     </Link>
-                    <div className="cart-item-price">{formatMoney(item.unitPrice, item.currency)} {t('cart.perUnit', 'per unit')}</div>
+                    <div className="cart-item-price">{formatMoney(liveUnitPrice, item.currency)} {t('cart.perUnit', 'per unit')}</div>
                     <div className="cart-item-price">{t('cart.minimumOrder', 'Minimum order: {{qty}}', { qty: minimumOrder })}</div>
                     {availableStock > 0 ? (
                       <div className="cart-item-price">{t('cart.availableStock', 'Available stock: {{qty}}', { qty: availableStock })}</div>
@@ -156,7 +165,7 @@ export const CartPage: React.FC = () => {
                   </div>
 
                   <div className="cart-item-total">
-                    <div className="total-price">{formatMoney(item.lineTotal, item.currency)}</div>
+                    <div className="total-price">{formatMoney(liveLineTotal, item.currency)}</div>
                     <button
                       onClick={() => handleRemoveItem(key)}
                       className="remove-item-btn"

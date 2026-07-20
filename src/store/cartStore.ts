@@ -62,7 +62,7 @@ interface CartState {
   error: string | null;
   normalizeServerItems: (serverItems: any[]) => CartItem[];
   setCartFromItems: (items: CartItem[]) => void;
-  
+
   fetchCart: () => Promise<void>;
   addItem: (
     productId: string,
@@ -76,6 +76,11 @@ interface CartState {
   syncGuestCartToServer: () => Promise<void>;
   resetLocalCart: () => void;
   clearError: () => void;
+  // Pure helper exposed for the cart page (and any other view) to re-derive
+  // the current tier + combination-offset unit price for a cart line. The cart
+  // item stores priceTiers / combinationOffsets / baseCombination /
+  // minEffectiveUnitPrice so this works identically for guest and logged-in.
+  recomputeUnitPrice: (item: CartItem, newQuantity: number) => number;
 }
 
 export const useCartStore = create<CartState>()(
@@ -112,6 +117,37 @@ export const useCartStore = create<CartState>()(
           moq: Number(raw.moq || 1),
           availableStock: Number(raw.availableStock || 0),
           requiresManualShipping: Boolean(raw.requiresManualShipping),
+          // Preserve the product's pricing config the backend now attaches to
+          // each cart line so the client's recomputeUnitPrice() works on the
+          // logged-in path the same way it does for guests. Without these,
+          // quantity-tier + combination-offset changes silently stop applying
+          // after the server response is normalized.
+          priceTiers: Array.isArray(raw.priceTiers)
+            ? (raw.priceTiers as any[])
+                .map((t) => ({
+                  minQty: Number(t.minQty),
+                  unitPrice: Number(t.unitPrice),
+                }))
+                .filter(
+                  (t: { minQty: number; unitPrice: number }) =>
+                    Number.isFinite(t.minQty) &&
+                    Number.isFinite(t.unitPrice) &&
+                    t.minQty > 0
+                )
+            : undefined,
+          combinationOffsets:
+            raw.combinationOffsets && typeof raw.combinationOffsets === 'object'
+              ? Object.fromEntries(
+                  Object.entries(raw.combinationOffsets as Record<string, unknown>).map(
+                    ([key, value]) => [asCleanString(key), Number(value)]
+                  )
+                )
+              : undefined,
+          baseCombination: asCleanString(raw.baseCombination) || undefined,
+          minEffectiveUnitPrice:
+            raw.minEffectiveUnitPrice != null
+              ? Number(raw.minEffectiveUnitPrice) || 0
+              : undefined,
         }));
       },
 
@@ -220,6 +256,9 @@ export const useCartStore = create<CartState>()(
             combinationOffsets: productData?.combinationOffsets,
             baseCombination: productData?.baseCombination,
             minEffectiveUnitPrice: productData?.minEffectiveUnitPrice,
+            // Preserve negotiated-pricing flags too.
+            customPriceSource: productData?.customPriceSource,
+            customPriceRefId: productData?.customPriceRefId,
           };
           // Pick the tier price for the post-merge quantity.
           const mergedQty = existingItem ? existingItem.quantity + quantity : quantity;
@@ -307,8 +346,33 @@ export const useCartStore = create<CartState>()(
           return;
         }
 
+        // Optimistic local update so the line price + total reflect the new
+        // tier / combination offset immediately (instead of waiting for the
+        // server roundtrip). Works because each item now carries
+        // priceTiers + combinationOffsets + baseCombination + minEffectiveUnitPrice.
+        const prevItems = get().items;
+        const optimisticItems = prevItems.map((item) => {
+          if (item.cartItemId !== cartItemId) return item;
+          const nextUnitPrice = get().recomputeUnitPrice(item, quantity);
+          return {
+            ...item,
+            quantity,
+            unitPrice: nextUnitPrice,
+            lineTotal: Number((nextUnitPrice * quantity).toFixed(2)),
+          };
+        });
+        const optimisticSubtotal = optimisticItems.reduce((sum, item) => sum + item.lineTotal, 0);
+        const optimisticItemCount = optimisticItems.reduce((sum, item) => sum + item.quantity, 0);
+        set({
+          items: optimisticItems,
+          subtotal: optimisticSubtotal,
+          itemCount: optimisticItemCount,
+          isLoading: false,
+          error: null,
+        });
+
         try {
-          const item = get().items.find((i) => i.cartItemId === cartItemId);
+          const item = prevItems.find((i) => i.cartItemId === cartItemId);
           if (item) {
             const response = await api.patch<CartResponse>(`/cart/me/items/${item.cartItemId}`, { qty: quantity });
             const cart = response.data.cart;
@@ -322,9 +386,13 @@ export const useCartStore = create<CartState>()(
             });
           }
         } catch (error: any) {
-          set({ 
+          // Revert the optimistic update if the server rejected the change.
+          set({
+            items: prevItems,
+            subtotal: prevItems.reduce((sum, item) => sum + item.lineTotal, 0),
+            itemCount: prevItems.reduce((sum, item) => sum + item.quantity, 0),
             error: error.response?.data?.message || 'Failed to update quantity',
-            isLoading: false 
+            isLoading: false,
           });
           throw error;
         }
@@ -408,6 +476,16 @@ export const useCartStore = create<CartState>()(
                 qty: item.quantity,
                 variantSku: item.variantSku || '',
                 variantAttributes: item.variantAttributes || {},
+                // Forward the guest-cart pricing config so the server has it
+                // available too (today the backend ignores it and recomputes
+                // from the product doc, but keeping it in the payload makes
+                // this resilient if/when the backend starts honoring it).
+                priceTiers: item.priceTiers,
+                combinationOffsets: item.combinationOffsets,
+                baseCombination: item.baseCombination,
+                minEffectiveUnitPrice: item.minEffectiveUnitPrice,
+                customPriceSource: item.customPriceSource,
+                customPriceRefId: item.customPriceRefId,
               });
             } catch {
               // Keep merge resilient; skip invalid/out-of-stock items.

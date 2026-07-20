@@ -258,14 +258,35 @@ export const CheckoutPage: React.FC = () => {
     if (!canPlaceOrder) return;
     setIsSubmitting(true);
     try {
-      const response = await api.post<{ order: { _id: string } }>('/checkout', {
+      // The backend is the source of truth for the payable amount (it
+      // re-applies per-combination offsets + tier pricing + coupons + tax).
+      // We mirror its numbers into local state so the Stripe payment modal
+      // and any later UI keep showing the exact amount Stripe will charge.
+      const response = await api.post<{
+        order: {
+          _id: string;
+          subtotal?: number;
+          discountTotal?: number;
+          shippingTotal?: number;
+          taxAmount?: number;
+          grandTotal?: number;
+        };
+      }>('/checkout', {
         addressId: selectedAddressId,
         paymentMethod,
         shippingTotal: 0,
       });
-      const orderId = response.data.order?._id || '';
+      const order = response.data.order;
+      const orderId = order?._id || '';
       if (!orderId) {
         throw new Error('Order ID missing in checkout response');
+      }
+
+      if (typeof order.subtotal === 'number') {
+        // Use the server's recomputed subtotal so the displayed total never
+        // disagrees with what Stripe will actually charge.
+        if (order.discountTotal != null) setDiscountTotal(Number(order.discountTotal) || 0);
+        if (order.grandTotal != null) setGrandTotal(Number(order.grandTotal) || 0);
       }
 
       if (paymentMethod === 'online') {

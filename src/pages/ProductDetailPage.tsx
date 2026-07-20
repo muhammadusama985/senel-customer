@@ -213,12 +213,16 @@ export const ProductDetailPage: React.FC = () => {
     selectedVariant?.sku ||
     selectedOptionVariants[0]?.sku ||
     '';
-  // Stock display logic:
-  //  - For non-variant products: use the product-level stockQty.
-  //  - For variant products: the actual inventory lives on each variant, so
-  //    show the sum of every variant's stockQty (this matches what the
-  //    customer can actually order across all options).
-  const availableStock = (() => {
+  // Stock display logic.
+  //  - overallStock: sum of every variant's stock (used as the headline
+  //    figure for the customer). For non-variant products it's just the
+  //    product-level stockQty.
+  //  - selectedVariantStock: stock for the currently selected variant. This
+  //    is what caps the quantity the customer can order for that specific
+  //    option. Falls back to overallStock for non-variant products or when
+  //    the selection is incomplete (in which case ordering is blocked by
+  //    isSelectionComplete anyway).
+  const overallStock = (() => {
     if (
       product?.hasVariants &&
       Array.isArray(product.variants) &&
@@ -231,6 +235,24 @@ export const ProductDetailPage: React.FC = () => {
     }
     return Number(product?.stockQty || 0);
   })();
+
+  const selectedVariantStock = (() => {
+    if (!product?.hasVariants) return overallStock;
+    if (selectedVariant) return Number(selectedVariant.stockQty || 0);
+    if (selectedOptionVariants.length > 0) {
+      // Partial selection (e.g. only Color picked so far): show the union of
+      // options that still match the picked attributes, so the customer gets
+      // a useful preview ("of these 3 sizes, here's how much is available").
+      const total = selectedOptionVariants.reduce(
+        (sum: number, v: any) => sum + Number(v?.stockQty || 0),
+        0,
+      );
+      return total;
+    }
+    return 0;
+  })();
+
+  const availableStock = product?.hasVariants ? selectedVariantStock : overallStock;
 
   useEffect(() => {
     setSelectedImage(0);
@@ -590,8 +612,53 @@ export const ProductDetailPage: React.FC = () => {
                           qty: availableStock,
                           moq: product.moq,
                         })
-                      : t('product.unitsAvailable', '{{qty}} units available', { qty: availableStock })}
+                      : isSelectionComplete
+                        ? t('product.unitsAvailableForOption', '{{qty}} units available for this option', { qty: availableStock })
+                        : t('product.unitsAvailable', '{{qty}} units available', { qty: availableStock })}
                 </div>
+
+                {/* Per-option stock table — lets the customer see exactly which
+                    options are in stock and how many units each has. */}
+                {Array.isArray(product.variants) && product.variants.length > 0 && (
+                  <div className="variant-stock-table">
+                    <div className="variant-stock-table-header">
+                      {attributeOptions.map(([key]) => (
+                        <span key={key}>{key}</span>
+                      ))}
+                      <span>{t('product.skuLabel', 'SKU')}</span>
+                      <span>{t('product.stockLabel', 'Stock')}</span>
+                    </div>
+                    {product.variants.map((variant: any) => {
+                      const stock = Number(variant.stockQty || 0);
+                      const isThisSelected =
+                        selectedVariant?.sku === variant.sku;
+                      return (
+                        <div
+                          key={variant.sku}
+                          className={`variant-stock-row ${isThisSelected ? 'selected' : ''} ${stock <= 0 ? 'out' : ''}`}
+                        >
+                          {attributeOptions.map(([key]) => (
+                            <span key={key}>
+                              {getReadableAttributeValue(variant.attributes?.[key]) || '-'}
+                            </span>
+                          ))}
+                          <span>{variant.sku}</span>
+                          <span>
+                            {stock > 0
+                              ? t('product.unitsAvailable', '{{qty}} units available', { qty: stock })
+                              : t('product.outOfStock', 'Out of stock')}
+                          </span>
+                        </div>
+                      );
+                    })}
+                    <div className="variant-stock-overall">
+                      <strong>
+                        {t('product.overallStock', 'Overall stock')}:
+                      </strong>{' '}
+                      {t('product.unitsAvailable', '{{qty}} units available', { qty: overallStock })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

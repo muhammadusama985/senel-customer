@@ -312,7 +312,18 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
               onChange={(e) => setQty(e.target.value.replace(/[^0-9]/g, ''))}
               required
               disabled={isOutOfStock}
+              style={{
+                borderColor: exceedsStock ? '#dc2626' : undefined,
+                boxShadow: exceedsStock ? '0 0 0 1px #dc2626' : undefined,
+                outlineColor: exceedsStock ? '#dc2626' : undefined,
+              }}
+              aria-invalid={exceedsStock || undefined}
             />
+            {exceedsStock && (
+              <p style={{ color: '#dc2626', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
+                Only {availableStock} units available for the selected option. Please reduce your quantity to {availableStock} or less.
+              </p>
+            )}
           </div>
           <div className="account-field">
             <label>Target Unit Price ({currency})</label>

@@ -169,7 +169,7 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
       return toast.error('Please enter a valid quantity (numbers only, at least 1)');
     }
     if (exceedsStock) {
-      return toast.error(`Only ${availableStock} units available for the selected option. Please reduce your quantity.`);
+      return toast.error(`Only ${availableStock} units available for the selected option. Please reduce your quantity to ${availableStock} or less.`);
     }
     if (!Number.isFinite(parsedUnitPrice) || parsedUnitPrice < 0) {
       return toast.error('Please enter a valid target unit price (numbers only, 0 or more)');
@@ -298,17 +298,17 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
           )}
 
           <div className="account-field">
-            <label>Quantity (max: {availableStock})</label>
+            <label>Quantity</label>
             <input
               type="number"
               inputMode="numeric"
               min={1}
-              max={availableStock || undefined}
               value={qty}
               placeholder="Enter quantity"
               // Keep the input as a string (preserves empty state) and
               // strip non-numeric characters so the field only accepts
-              // digits while typing.
+              // digits while typing. Per-combination stock is enforced
+              // at submit time (parsedQty <= availableStock).
               onChange={(e) => setQty(e.target.value.replace(/[^0-9]/g, ''))}
               required
               disabled={isOutOfStock}

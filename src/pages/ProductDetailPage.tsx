@@ -620,7 +620,10 @@ export const ProductDetailPage: React.FC = () => {
                 {/* Per-option stock table — lets the customer see exactly which
                     options are in stock and how many units each has. */}
                 {Array.isArray(product.variants) && product.variants.length > 0 && (
-                  <div className="variant-stock-table">
+                  <div
+                    className="variant-stock-table"
+                    style={{ ['--variant-stock-cols' as any]: attributeOptions.length }}
+                  >
                     <div className="variant-stock-table-header">
                       {attributeOptions.map(([key]) => (
                         <span key={key}>{key}</span>

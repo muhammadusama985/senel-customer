@@ -102,22 +102,36 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
     [variants, selectedVariantSku]
   );
 
-  // Available stock:
-  // There is only one source of truth for inventory - product.stockQty - which
-  // applies uniformly whether the product has zero, one, or many attributes.
-  // The bulk-offer quantity input reads this same value so it reflects
-  // exactly what the admin/vendor entered when creating the product.
-  const availableStock = Number(product?.stockQty || 0);
+  // Available stock for the currently selected combination / option.
+  //  - For variant products: the selected variant's own stockQty
+  //    (this is what the cart / checkout will validate against and what
+  //    the bulk offer is being made for). NEVER the overall product.stockQty
+  //    sum, which would mislead the customer about how many units are
+  //    available for the specific combination they have picked.
+  //  - For non-variant products: there is no "combination", so we fall back
+  //    to the product-level stockQty which IS the only stock figure.
+  const availableStock = (() => {
+    if (isVariantProduct) {
+      return Number(selectedVariant?.stockQty || 0);
+    }
+    return Number(product?.stockQty || 0);
+  })();
 
   // Form state
-  // Quantity has NO MOQ minimum — customer may request any positive quantity
-  // regardless of the product's minimum order quantity (MOQ). The only hard
-  // constraint is the available stock, which is enforced below.
-  const initialQty = Math.max(defaultQty || 1, 1);
-  const [qty, setQty] = useState<number>(initialQty);
-  const [unitPrice, setUnitPrice] = useState<number>(defaultUnitPrice || product?.priceTiers?.[0]?.unitPrice || 0);
+  // Quantity, unit price and validity are stored as STRINGS so the inputs
+  // can start empty (placeholder-only) and only accept numeric characters
+  // via the inputMode / type="number" attributes. The numeric values are
+  // computed at submit time. The customer can offer any positive quantity
+  // regardless of the product's MOQ; the only hard constraint is the
+  // available stock of the selected combination.
+  const [qty, setQty] = useState<string>(
+    defaultQty && defaultQty > 0 ? String(defaultQty) : '',
+  );
+  const [unitPrice, setUnitPrice] = useState<string>(
+    defaultUnitPrice && defaultUnitPrice > 0 ? String(defaultUnitPrice) : '',
+  );
   const [notes, setNotes] = useState('');
-  const [validDays, setValidDays] = useState<number>(7);
+  const [validDays, setValidDays] = useState<string>('7');
   const [shippingAddress, setShippingAddress] = useState({
     companyName: '',
     contactPerson: '',
@@ -133,30 +147,46 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
 
   const currency = product?.currency || 'EUR';
   const isOutOfStock = availableStock <= 0;
-  const exceedsStock = qty > availableStock;
-  // `belowMoq` is intentionally NOT used to block submission in the bulk
-  // offer flow — the customer can offer any quantity regardless of MOQ.
+  // `exceedsStock` is computed inside submit() so it reflects the latest
+  // numeric value of the qty string at submit time. `belowMoq` is
+  // intentionally NOT used to block submission in the bulk offer flow —
+  // the customer can offer any quantity regardless of MOQ.
+
+  // Parse the string-form fields safely for validation + submit. Empty
+  // strings become NaN here so we can detect "user hasn't typed yet".
+  const parsedQty = parseInt(qty, 10);
+  const parsedUnitPrice = parseFloat(unitPrice);
+  const parsedValidDays = parseInt(validDays, 10);
+  const exceedsStock = Number.isFinite(parsedQty) && parsedQty > availableStock;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isOutOfStock) return toast.error('This product is out of stock');
-    if (exceedsStock)
-      return toast.error(`Only ${availableStock} units available. Please reduce your quantity.`);
     if (isVariantProduct && !selectedVariantSku) {
       return toast.error('Please select a product option (variant) before submitting an offer');
     }
-    if (qty < 1) return toast.error('Quantity must be at least 1');
-    if (unitPrice < 0) return toast.error('Unit price cannot be negative');
+    if (!Number.isFinite(parsedQty) || parsedQty < 1) {
+      return toast.error('Please enter a valid quantity (numbers only, at least 1)');
+    }
+    if (exceedsStock) {
+      return toast.error(`Only ${availableStock} units available for the selected option. Please reduce your quantity.`);
+    }
+    if (!Number.isFinite(parsedUnitPrice) || parsedUnitPrice < 0) {
+      return toast.error('Please enter a valid target unit price (numbers only, 0 or more)');
+    }
+    if (!Number.isFinite(parsedValidDays) || parsedValidDays < 1 || parsedValidDays > 90) {
+      return toast.error('Offer validity must be between 1 and 90 days');
+    }
 
     setSubmitting(true);
     try {
       await api.post('/bulk-offers/buyer', {
         productId: product._id,
-        qty,
-        unitPrice,
+        qty: parsedQty,
+        unitPrice: parsedUnitPrice,
         currency,
         notes,
-        validDays,
+        validDays: parsedValidDays,
         variantSku: isVariantProduct ? selectedVariantSku : '',
         variantAttributes: isVariantProduct ? selectedAttributes : {},
         attachments: attachmentUrl
@@ -252,11 +282,17 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
             </>
           )}
 
-          {/* Stock info (non-variant) */}
+          {/*
+            Non-variant products: the overall product.stockQty IS the only
+            stock figure for the product, so it is shown as the
+            "Available stock for the selected option" (there is only one
+            option). This is NOT the sum across multiple variants.
+          */}
           {!isVariantProduct && (
             <div className="account-field-full" style={{ gridColumn: '1 / -1' }}>
               <p className="muted">
-                Available stock: <strong>{availableStock}</strong> units
+                Available stock for the selected option:{' '}
+                <strong>{availableStock}</strong> units
               </p>
             </div>
           )}
@@ -265,27 +301,29 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
             <label>Quantity (max: {availableStock})</label>
             <input
               type="number"
+              inputMode="numeric"
               min={1}
               max={availableStock || undefined}
               value={qty}
-              onChange={(e) => setQty(parseInt(e.target.value, 10) || 1)}
+              placeholder="Enter quantity"
+              // Keep the input as a string (preserves empty state) and
+              // strip non-numeric characters so the field only accepts
+              // digits while typing.
+              onChange={(e) => setQty(e.target.value.replace(/[^0-9]/g, ''))}
               required
               disabled={isOutOfStock}
             />
-            {exceedsStock && (
-              <p style={{ color: 'red', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
-                Only {availableStock} units available.
-              </p>
-            )}
           </div>
           <div className="account-field">
             <label>Target Unit Price ({currency})</label>
             <input
               type="number"
+              inputMode="decimal"
               min={0}
               step="0.01"
               value={unitPrice}
-              onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
+              placeholder="Enter target price"
+              onChange={(e) => setUnitPrice(e.target.value.replace(/[^0-9.]/g, ''))}
               required
             />
           </div>
@@ -293,10 +331,11 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
             <label>Offer Validity (days)</label>
             <input
               type="number"
+              inputMode="numeric"
               min={1}
               max={90}
               value={validDays}
-              onChange={(e) => setValidDays(parseInt(e.target.value, 10) || 7)}
+              onChange={(e) => setValidDays(e.target.value.replace(/[^0-9]/g, ''))}
               required
             />
           </div>

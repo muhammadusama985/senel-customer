@@ -37,6 +37,12 @@ export interface CartItem {
   // Optional fields used when adding from an accepted bulk offer or RFQ
   customPriceSource?: 'offer' | 'rfq';
   customPriceRefId?: string;
+  // Pricing data needed to recompute unitPrice when the user changes the quantity
+  // in the cart (so the line price always reflects the current tier + offset).
+  priceTiers?: Array<{ minQty: number; unitPrice: number }>;
+  combinationOffsets?: Record<string, number>;
+  baseCombination?: string;
+  minEffectiveUnitPrice?: number;
 }
 
 interface CartResponse {
@@ -145,6 +151,46 @@ export const useCartStore = create<CartState>()(
         }
       },
 
+      /**
+       * Recompute the unitPrice for a cart item at a given quantity, using the
+       * pricing data stored on the item (priceTiers + combinationOffsets +
+       * minEffectiveUnitPrice). Mirrors the math the customer sees on the
+       * product detail page (TieredPricing) and the backend pricing util.
+       */
+      recomputeUnitPrice: (item, newQuantity) => {
+        const tiers = Array.isArray(item.priceTiers) ? item.priceTiers : [];
+        if (!tiers.length) return Number(item.unitPrice) || 0;
+        const sortedTiers = [...tiers].sort((a, b) => a.minQty - b.minQty);
+        const activeTier =
+          [...sortedTiers]
+            .reverse()
+            .find((t) => newQuantity >= Number(t.minQty)) || sortedTiers[0];
+        if (!activeTier) return Number(item.unitPrice) || 0;
+        const floor = Math.max(0, Number(item.minEffectiveUnitPrice) || 0);
+        const base = Number(activeTier.unitPrice);
+        if (!Number.isFinite(base)) return Number(item.unitPrice) || 0;
+
+        const combinationOffsets = item.combinationOffsets;
+        if (
+          item.variantAttributes &&
+          combinationOffsets &&
+          Object.keys(combinationOffsets).length > 0
+        ) {
+          const key = Object.keys(item.variantAttributes)
+            .sort()
+            .map((t) => item.variantAttributes?.[t])
+            .filter((v) => v != null && v !== '')
+            .join('|');
+          if (key) {
+            const num = Number(combinationOffsets[key]);
+            if (Number.isFinite(num) && num !== 0) {
+              return Math.max(floor, base + num);
+            }
+          }
+        }
+        return Math.max(floor, base);
+      },
+
       addItem: async (productId, quantity, variantSku = '', productData) => {
         const token = localStorage.getItem('customerToken');
         if (!token) {
@@ -152,34 +198,49 @@ export const useCartStore = create<CartState>()(
           const existingItem = currentItems.find(
             (item) => item.productId === productId && (item.variantSku || '') === variantSku
           );
-          const unitPrice = productData?.unitPrice || existingItem?.unitPrice || 0;
+          // New line for this add: build the cart item shell (pricing data is
+          // filled in below). We need it to recompute unitPrice on every qty
+          // change after the add.
+          const incomingItem: CartItem = {
+            cartItemId: productId,
+            productId,
+            vendorId: asCleanString(productData?.vendorId),
+            slug: asCleanString(productData?.slug),
+            title: asCleanString(productData?.title) || 'Product',
+            quantity,
+            unitPrice: productData?.unitPrice || existingItem?.unitPrice || 0,
+            lineTotal: 0, // recomputed below
+            imageUrl: asCleanString(productData?.imageUrl),
+            variantSku,
+            variantAttributes: productData?.variantAttributes || {},
+            currency: productData?.currency || 'EUR',
+            moq: productData?.moq,
+            requiresManualShipping: productData?.requiresManualShipping,
+            priceTiers: productData?.priceTiers,
+            combinationOffsets: productData?.combinationOffsets,
+            baseCombination: productData?.baseCombination,
+            minEffectiveUnitPrice: productData?.minEffectiveUnitPrice,
+          };
+          // Pick the tier price for the post-merge quantity.
+          const mergedQty = existingItem ? existingItem.quantity + quantity : quantity;
+          const mergedUnitPrice = get().recomputeUnitPrice(incomingItem, mergedQty);
           const nextItems = existingItem
             ? currentItems.map((item) =>
                 item.productId === productId && (item.variantSku || '') === variantSku
                   ? {
                       ...item,
                       quantity: item.quantity + quantity,
-                  lineTotal: unitPrice * (item.quantity + quantity),
+                      unitPrice: mergedUnitPrice,
+                      lineTotal: mergedUnitPrice * (item.quantity + quantity),
                     }
                   : item
               )
             : [
                 ...currentItems,
                 {
-                  cartItemId: productId,
-                  productId,
-                  vendorId: asCleanString(productData?.vendorId),
-                  slug: asCleanString(productData?.slug),
-                  title: asCleanString(productData?.title) || 'Product',
-                  quantity,
-                  unitPrice,
-                  lineTotal: unitPrice * quantity,
-                  imageUrl: asCleanString(productData?.imageUrl),
-                  variantSku,
-                  variantAttributes: productData?.variantAttributes || {},
-                  currency: productData?.currency || 'EUR',
-                  moq: productData?.moq,
-                  requiresManualShipping: productData?.requiresManualShipping,
+                  ...incomingItem,
+                  unitPrice: mergedUnitPrice,
+                  lineTotal: mergedUnitPrice * quantity,
                 },
               ];
 
@@ -195,6 +256,12 @@ export const useCartStore = create<CartState>()(
             qty: quantity,
             variantSku,
             variantAttributes: productData?.variantAttributes || {},
+            // Pass the full pricing config so the cart can re-tier on qty change
+            // even if the user is offline.
+            priceTiers: productData?.priceTiers,
+            combinationOffsets: productData?.combinationOffsets,
+            baseCombination: productData?.baseCombination,
+            minEffectiveUnitPrice: productData?.minEffectiveUnitPrice,
             // Pass negotiated price when adding from an accepted offer/RFQ
             customUnitPrice: productData?.customPriceSource ? productData.unitPrice : undefined,
             customPriceSource: productData?.customPriceSource,
@@ -221,11 +288,19 @@ export const useCartStore = create<CartState>()(
       updateQuantity: async (cartItemId, quantity) => {
         const token = localStorage.getItem('customerToken');
         if (!token) {
-          const nextItems = get().items.map((item) =>
-            item.cartItemId === cartItemId
-              ? { ...item, quantity, lineTotal: item.unitPrice * quantity }
-              : item
-          );
+          const nextItems = get().items.map((item) => {
+            if (item.cartItemId !== cartItemId) return item;
+            // Re-tier: if the new qty crosses a tier boundary OR the user
+            // picked a new combination (e.g. from a different add), the
+            // unitPrice needs to be recomputed against the stored pricing.
+            const nextUnitPrice = get().recomputeUnitPrice(item, quantity);
+            return {
+              ...item,
+              quantity,
+              unitPrice: nextUnitPrice,
+              lineTotal: nextUnitPrice * quantity,
+            };
+          });
           const subtotal = nextItems.reduce((sum, item) => sum + item.lineTotal, 0);
           const itemCount = nextItems.reduce((sum, item) => sum + item.quantity, 0);
           set({ items: nextItems, subtotal, itemCount, isLoading: false, error: null });

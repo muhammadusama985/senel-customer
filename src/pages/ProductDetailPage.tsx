@@ -319,6 +319,41 @@ export const ProductDetailPage: React.FC = () => {
     setQuantityInputValue(String(nextQuantity));
   };
 
+  /**
+   * Compute the effective unit price for the *current* selected combination
+   * and the given quantity. Same math the customer sees in TieredPricing, so
+   * the cart line price matches the product detail page exactly.
+   */
+  const getCartUnitPrice = (forQuantity: number): number => {
+    if (!product?.priceTiers || product.priceTiers.length === 0) return 0;
+    const sortedTiers = [...product.priceTiers].sort((a, b) => a.minQty - b.minQty);
+    const activeTier =
+      [...sortedTiers].reverse().find((t) => forQuantity >= t.minQty) || sortedTiers[0];
+    if (!activeTier) return 0;
+    const floor = Math.max(0, Number((product as any).minEffectiveUnitPrice) || 0);
+    const base = Number(activeTier.unitPrice);
+    if (!Number.isFinite(base)) return 0;
+
+    // Per-combination offset (new pricing model).
+    const combinationOffsets = (product as any).combinationOffsets as
+      | Record<string, number>
+      | undefined;
+    if (product.hasVariants && combinationOffsets && Object.keys(combinationOffsets).length > 0) {
+      const key = Object.keys(selectedAttributes)
+        .sort()
+        .map((t) => selectedAttributes[t])
+        .filter((v) => v != null && v !== '')
+        .join('|');
+      if (key) {
+        const num = Number(combinationOffsets[key]);
+        if (Number.isFinite(num) && num !== 0) {
+          return Math.max(floor, base + num);
+        }
+      }
+    }
+    return Math.max(floor, base);
+  };
+
   const handleWishlist = async () => {
     // Redirect to login if user is not logged in
     if (!user) {
@@ -396,11 +431,20 @@ export const ProductDetailPage: React.FC = () => {
         vendorId: product.vendorId,
         slug: product.slug,
         title: product.title,
-        unitPrice: product.priceTiers?.[0]?.unitPrice || 0,
+        // Apply the per-combination offset for the CURRENT selection, so the
+        // cart line price matches the price the customer saw on the product
+        // detail page (not the un-offset base tier 1 price).
+        unitPrice: getCartUnitPrice(quantityToValidate),
         imageUrl: images[0],
         variantAttributes: selectedAttributes,
         currency: product.currency,
         moq: product.moq,
+        // Pass the full pricing config so the cart can re-tier on any
+        // subsequent quantity change.
+        priceTiers: product.priceTiers,
+        combinationOffsets: (product as any).combinationOffsets,
+        baseCombination: (product as any).baseCombination,
+        minEffectiveUnitPrice: (product as any).minEffectiveUnitPrice,
       });
       toast.success(t('cart.addedToCart', 'Added {{qty}} units to cart', { qty: quantityToValidate }));
     } catch (error) {

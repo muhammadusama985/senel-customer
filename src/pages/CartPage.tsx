@@ -138,6 +138,13 @@ export const CartPage: React.FC = () => {
                       {item.title}
                     </Link>
                     <div className="cart-item-price">{formatMoney(liveUnitPrice, item.currency)} {t('cart.perUnit', 'per unit')}</div>
+                    {item.customPriceSource === 'offer' || item.customPriceSource === 'rfq' ? (
+                      <div className="cart-item-price muted">
+                        {item.customPriceSource === 'offer'
+                          ? t('cart.negotiatedOfferPrice', 'Negotiated price (bulk offer)')
+                          : t('cart.negotiatedRfqPrice', 'Negotiated price (custom production)')}
+                      </div>
+                    ) : null}
                     <div className="cart-item-price">{t('cart.minimumOrder', 'Minimum order: {{qty}}', { qty: minimumOrder })}</div>
                     {availableStock > 0 ? (
                       <div className="cart-item-price">{t('cart.availableStock', 'Available stock: {{qty}}', { qty: availableStock })}</div>

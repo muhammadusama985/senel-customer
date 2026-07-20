@@ -148,6 +148,14 @@ export const useCartStore = create<CartState>()(
             raw.minEffectiveUnitPrice != null
               ? Number(raw.minEffectiveUnitPrice) || 0
               : undefined,
+          // Preserve the negotiated-pricing marker so the cart knows to keep
+          // displaying the offer/RFQ unit price even after the server sends
+          // the product's priceTiers back on every cart response.
+          customPriceSource:
+            raw.customPriceSource === 'offer' || raw.customPriceSource === 'rfq'
+              ? raw.customPriceSource
+              : undefined,
+          customPriceRefId: asCleanString(raw.customPriceRefId) || undefined,
         }));
       },
 
@@ -194,6 +202,13 @@ export const useCartStore = create<CartState>()(
        * product detail page (TieredPricing) and the backend pricing util.
        */
       recomputeUnitPrice: (item, newQuantity) => {
+        // Negotiated / quoted lines (from an accepted bulk offer or RFQ) carry
+        // a custom unitPrice that must NEVER be re-tiered. The backend already
+        // preserves item.unitPrice across qty updates when customPriceSource
+        // is set; the client just needs to keep displaying that same value.
+        if (item.customPriceSource === 'offer' || item.customPriceSource === 'rfq') {
+          return Number(item.unitPrice) || 0;
+        }
         const tiers = Array.isArray(item.priceTiers) ? item.priceTiers : [];
         if (!tiers.length) return Number(item.unitPrice) || 0;
         const sortedTiers = [...tiers].sort((a, b) => a.minQty - b.minQty);
@@ -484,6 +499,13 @@ export const useCartStore = create<CartState>()(
                 combinationOffsets: item.combinationOffsets,
                 baseCombination: item.baseCombination,
                 minEffectiveUnitPrice: item.minEffectiveUnitPrice,
+                // CRITICAL for negotiated lines (accepted bulk offer / RFQ):
+                // pass the negotiated unitPrice so the server stores the
+                // agreed amount rather than recomputing from tier pricing.
+                customUnitPrice:
+                  item.customPriceSource === 'offer' || item.customPriceSource === 'rfq'
+                    ? item.unitPrice
+                    : undefined,
                 customPriceSource: item.customPriceSource,
                 customPriceRefId: item.customPriceRefId,
               });

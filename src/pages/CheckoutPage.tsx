@@ -141,8 +141,8 @@ export const CheckoutPage: React.FC = () => {
   }, [subtotal, discountTotal]);
 
   const canPlaceOrder = useMemo(
-    () => items.length > 0 && selectedAddressId.length > 0 && !isSubmitting && !stripeIntent,
-    [items.length, selectedAddressId, isSubmitting, stripeIntent]
+    () => items.length > 0 && !isSubmitting && !stripeIntent,
+    [items.length, isSubmitting, stripeIntent]
   );
 
   const stripePromise = useMemo(() => {
@@ -255,6 +255,90 @@ export const CheckoutPage: React.FC = () => {
   };
 
   const placeOrder = async () => {
+    // Guard: no shipping address selected/created yet → show a beautiful
+    // alert and stop before any network call.
+    if (!selectedAddressId) {
+      toast(
+        (t) => (
+          <div
+            onClick={() => toast.dismiss(t.id)}
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '14px',
+              padding: '4px 2px',
+              cursor: 'pointer',
+            }}
+          >
+            <div
+              style={{
+                flexShrink: 0,
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 6px 16px rgba(238, 90, 111, 0.35)',
+              }}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+            </div>
+            <div style={{ flex: 1, minWidth: 0, paddingTop: '2px' }}>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: '15px',
+                  color: '#1a1a1a',
+                  marginBottom: '3px',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                Shipping address required
+              </div>
+              <div
+                style={{
+                  fontSize: '13px',
+                  color: '#5a5a5a',
+                  lineHeight: 1.45,
+                }}
+              >
+                Please select an existing address or create a new one before
+                placing your order.
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          duration: 5000,
+          style: {
+            background: '#ffffff',
+            color: '#1a1a1a',
+            padding: '16px 20px',
+            borderRadius: '14px',
+            boxShadow:
+              '0 12px 40px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.04)',
+            maxWidth: '440px',
+          },
+          icon: null,
+        },
+      );
+      return;
+    }
     if (!canPlaceOrder) return;
     setIsSubmitting(true);
     try {

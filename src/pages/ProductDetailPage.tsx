@@ -237,12 +237,29 @@ export const ProductDetailPage: React.FC = () => {
 
   const selectedVariantStock = (() => {
     if (!product?.hasVariants) return overallStock;
-    if (selectedVariant) return Number(selectedVariant.stockQty || 0);
+    if (selectedVariant) {
+      // "Out of stock" must only be determined by the FULL combination
+      // (e.g. Color + Size), not by a single attribute. If the matched
+      // variant only has one attribute (single-option variant like
+      // "Color: Red" alone), fall back to overallStock so the customer
+      // isn't told "out of stock" before they've picked every option.
+      if (Object.keys(selectedVariant.attributes || {}).length > 1) {
+        return Number(selectedVariant.stockQty || 0);
+      }
+      return overallStock;
+    }
     if (selectedOptionVariants.length > 0) {
-      // Partial selection (e.g. only Color picked so far): show the union of
-      // options that still match the picked attributes, so the customer gets
-      // a useful preview ("of these 3 sizes, here's how much is available").
-      const total = selectedOptionVariants.reduce(
+      // Partial selection (e.g. only Color picked so far): only consider
+      // full combinations (multi-attribute variants) in the preview sum.
+      // Single-attribute variants are ignored so the "out of stock"
+      // message is never triggered by a single option alone.
+      const multiAttrVariants = selectedOptionVariants.filter(
+        (v: any) => Object.keys(v.attributes || {}).length > 1,
+      );
+      if (multiAttrVariants.length === 0) {
+        return overallStock;
+      }
+      const total = multiAttrVariants.reduce(
         (sum: number, v: any) => sum + Number(v?.stockQty || 0),
         0,
       );

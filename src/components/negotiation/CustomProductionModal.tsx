@@ -19,10 +19,10 @@ export const CustomProductionModal: React.FC<Props> = ({
   onClose,
 }) => {
   const navigate = useNavigate();
-  const [qty, setQty] = useState<number>(defaultQty || 1);
+  const [qty, setQty] = useState<number | ''>('');
   const [specifications, setSpecifications] = useState('');
   const [deliveryExpectations, setDeliveryExpectations] = useState('');
-  const [validDays, setValidDays] = useState<number>(14);
+  const [validDays, setValidDays] = useState<number | ''>('');
   const [shippingAddress, setShippingAddress] = useState({
     companyName: '',
     contactPerson: '',
@@ -38,7 +38,7 @@ export const CustomProductionModal: React.FC<Props> = ({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (qty < 1) return toast.error('Quantity must be at least 1');
+    if (qty === '' || qty < 1) return toast.error('Quantity must be at least 1');
     if (!specifications.trim()) return toast.error('Specifications are required');
 
     setSubmitting(true);
@@ -102,7 +102,10 @@ export const CustomProductionModal: React.FC<Props> = ({
               type="number"
               min={1}
               value={qty}
-              onChange={(e) => setQty(parseInt(e.target.value, 10) || 1)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setQty(v === '' ? '' : parseInt(v, 10));
+              }}
               required
             />
           </div>
@@ -113,7 +116,10 @@ export const CustomProductionModal: React.FC<Props> = ({
               min={1}
               max={180}
               value={validDays}
-              onChange={(e) => setValidDays(parseInt(e.target.value, 10) || 14)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setValidDays(v === '' ? '' : parseInt(v, 10));
+              }}
               required
             />
           </div>

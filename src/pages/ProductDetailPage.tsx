@@ -525,6 +525,59 @@ export const ProductDetailPage: React.FC = () => {
                 ))}
               </div>
             )}
+
+            {/* Per-option stock table — moved to the left side, just under the
+                images, so customers can see Color / Size / SKU / Stock at a glance
+                while looking at the product photos. */}
+            {product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0 && (
+              <div
+                className="variant-stock-table"
+                style={{ ['--variant-stock-cols' as any]: attributeOptions.length }}
+              >
+                <div className="variant-stock-table-header">
+                  {attributeOptions.map(([key]) => (
+                    <span key={key}>{key}</span>
+                  ))}
+                  <span>{t('product.skuLabel', 'SKU')}</span>
+                  <span>{t('product.stockLabel', 'Stock')}</span>
+                </div>
+                {/* Only show variants that combine multiple options
+                    (e.g. Color + Size). Single-option variants like
+                    "Color only" or "Size only" are hidden from the
+                    per-option stock table as requested. */}
+                {product.variants
+                  .filter((variant: any) => Object.keys(variant.attributes || {}).length > 1)
+                  .map((variant: any) => {
+                  const stock = Number(variant.stockQty || 0);
+                  const isThisSelected =
+                    selectedVariant?.sku === variant.sku;
+                  return (
+                    <div
+                      key={variant.sku}
+                      className={`variant-stock-row ${isThisSelected ? 'selected' : ''} ${stock <= 0 ? 'out' : ''}`}
+                    >
+                      {attributeOptions.map(([key]) => (
+                        <span key={key}>
+                          {getReadableAttributeValue(variant.attributes?.[key]) || '-'}
+                        </span>
+                      ))}
+                      <span>{variant.sku}</span>
+                      <span>
+                        {stock > 0
+                          ? t('product.unitsAvailable', '{{qty}} units available', { qty: stock })
+                          : t('product.outOfStock', 'Out of stock')}
+                      </span>
+                    </div>
+                  );
+                })}
+                <div className="variant-stock-overall">
+                  <strong>
+                    {t('product.overallStock', 'Overall stock')}:
+                  </strong>{' '}
+                  {t('product.unitsAvailable', '{{qty}} units available', { qty: overallStock })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="product-info">
@@ -632,58 +685,6 @@ export const ProductDetailPage: React.FC = () => {
                         ? t('product.unitsAvailableForOption', '{{qty}} units available for this option', { qty: availableStock })
                         : t('product.unitsAvailable', '{{qty}} units available', { qty: availableStock })}
                 </div>
-
-                {/* Per-option stock table — lets the customer see exactly which
-                    options are in stock and how many units each has. */}
-                {Array.isArray(product.variants) && product.variants.length > 0 && (
-                  <div
-                    className="variant-stock-table"
-                    style={{ ['--variant-stock-cols' as any]: attributeOptions.length }}
-                  >
-                    <div className="variant-stock-table-header">
-                      {attributeOptions.map(([key]) => (
-                        <span key={key}>{key}</span>
-                      ))}
-                      <span>{t('product.skuLabel', 'SKU')}</span>
-                      <span>{t('product.stockLabel', 'Stock')}</span>
-                    </div>
-                    {/* Only show variants that combine multiple options
-                        (e.g. Color + Size). Single-option variants like
-                        "Color only" or "Size only" are hidden from the
-                        per-option stock table as requested. */}
-                    {product.variants
-                      .filter((variant: any) => Object.keys(variant.attributes || {}).length > 1)
-                      .map((variant: any) => {
-                      const stock = Number(variant.stockQty || 0);
-                      const isThisSelected =
-                        selectedVariant?.sku === variant.sku;
-                      return (
-                        <div
-                          key={variant.sku}
-                          className={`variant-stock-row ${isThisSelected ? 'selected' : ''} ${stock <= 0 ? 'out' : ''}`}
-                        >
-                          {attributeOptions.map(([key]) => (
-                            <span key={key}>
-                              {getReadableAttributeValue(variant.attributes?.[key]) || '-'}
-                            </span>
-                          ))}
-                          <span>{variant.sku}</span>
-                          <span>
-                            {stock > 0
-                              ? t('product.unitsAvailable', '{{qty}} units available', { qty: stock })
-                              : t('product.outOfStock', 'Out of stock')}
-                          </span>
-                        </div>
-                      );
-                    })}
-                    <div className="variant-stock-overall">
-                      <strong>
-                        {t('product.overallStock', 'Overall stock')}:
-                      </strong>{' '}
-                      {t('product.unitsAvailable', '{{qty}} units available', { qty: overallStock })}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 

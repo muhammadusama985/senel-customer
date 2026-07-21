@@ -183,7 +183,7 @@ export const ProductDetailPage: React.FC = () => {
     : [];
 
   const selectedVariant = product?.hasVariants
-    ? product.variants?.find((variant: any) =>
+    ? product.variants?.filter((variant: any) => Object.keys(variant.attributes || {}).length === Object.keys(selectedAttributes).length).find((variant: any) =>
         Object.entries(selectedAttributes).every(
           ([key, value]) => getReadableAttributeValue(variant.attributes?.[key]) === value,
         ),
@@ -228,10 +228,9 @@ export const ProductDetailPage: React.FC = () => {
       Array.isArray(product.variants) &&
       product.variants.length > 0
     ) {
-      return product.variants.reduce(
-        (sum: number, v: any) => sum + Number(v?.stockQty || 0),
-        0,
-      );
+      return product.variants
+        .filter((v: any) => Object.keys(v.attributes || {}).length > 1)
+        .reduce((sum: number, v: any) => sum + Number(v?.stockQty || 0), 0);
     }
     return Number(product?.stockQty || 0);
   })();

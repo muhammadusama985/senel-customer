@@ -630,7 +630,13 @@ export const ProductDetailPage: React.FC = () => {
                       <span>{t('product.skuLabel', 'SKU')}</span>
                       <span>{t('product.stockLabel', 'Stock')}</span>
                     </div>
-                    {product.variants.map((variant: any) => {
+                    {/* Only show variants that combine multiple options
+                        (e.g. Color + Size). Single-option variants like
+                        "Color only" or "Size only" are hidden from the
+                        per-option stock table as requested. */}
+                    {product.variants
+                      .filter((variant: any) => Object.keys(variant.attributes || {}).length > 1)
+                      .map((variant: any) => {
                       const stock = Number(variant.stockQty || 0);
                       const isThisSelected =
                         selectedVariant?.sku === variant.sku;

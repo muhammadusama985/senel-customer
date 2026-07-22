@@ -208,6 +208,22 @@ export const ProductDetailPage: React.FC = () => {
         return Array.from(new Set([...prioritizedByLastChanged, ...matchingOtherSelections]));
       })()
     : [];
+  // True when the product has at least one variant that combines multiple
+  // attributes (e.g. Color + Size). When false, the product only has
+  // single-attribute variants -- those single entries ARE the full
+  // combinations and must be displayed / used for stock just like
+  // multi-attr ones would be.
+  const hasMultiAttrVariants = Array.isArray(product?.variants) &&
+    (product!.variants as any[]).some(
+      (v: any) => Object.keys(v?.attributes || {}).length > 1,
+    );
+  // Helper used by the stock table, overallStock, and selectedVariantStock:
+  // keep multi-attribute variants when any exist, otherwise keep every
+  // variant so single-attribute products still display + function.
+  const filterStockVariants = (variants: any[]) =>
+    hasMultiAttrVariants
+      ? variants.filter((v) => Object.keys(v?.attributes || {}).length > 1)
+      : variants;
   const isSelectionComplete = attributeOptions.every(([attributeKey]) => Boolean(selectedAttributes[attributeKey]));
   const selectedVariantSku =
     selectedVariant?.sku ||
@@ -228,9 +244,10 @@ export const ProductDetailPage: React.FC = () => {
       Array.isArray(product.variants) &&
       product.variants.length > 0
     ) {
-      return product.variants
-        .filter((v: any) => Object.keys(v.attributes || {}).length > 1)
-        .reduce((sum: number, v: any) => sum + Number(v?.stockQty || 0), 0);
+      return filterStockVariants(product.variants as any[]).reduce(
+        (sum: number, v: any) => sum + Number(v?.stockQty || 0),
+        0,
+      );
     }
     return Number(product?.stockQty || 0);
   })();
@@ -246,20 +263,30 @@ export const ProductDetailPage: React.FC = () => {
       if (Object.keys(selectedVariant.attributes || {}).length > 1) {
         return Number(selectedVariant.stockQty || 0);
       }
+      // Single-attribute match. If the product has no multi-attribute
+      // variants at all, this single entry IS the full combination, so
+      // use its stock directly (and report OOS when it's 0).
+      if (!hasMultiAttrVariants) {
+        return Number(selectedVariant.stockQty || 0);
+      }
       return overallStock;
     }
     if (selectedOptionVariants.length > 0) {
-      // Partial selection (e.g. only Color picked so far): only consider
-      // full combinations (multi-attribute variants) in the preview sum.
-      // Single-attribute variants are ignored so the "out of stock"
-      // message is never triggered by a single option alone.
-      const multiAttrVariants = selectedOptionVariants.filter(
-        (v: any) => Object.keys(v.attributes || {}).length > 1,
-      );
-      if (multiAttrVariants.length === 0) {
+      // Partial selection (e.g. only Color picked so far):
+      // - If the product has multi-attribute combinations, only those are
+      //   considered in the preview sum (single-attr entries would falsely
+      //   trigger "out of stock" before the customer picks every option).
+      // - If the product has ONLY single-attribute variants, every match is
+      //   a full combination and the partial sum reflects real stock.
+      const relevantVariants = hasMultiAttrVariants
+        ? selectedOptionVariants.filter(
+            (v: any) => Object.keys(v.attributes || {}).length > 1,
+          )
+        : selectedOptionVariants;
+      if (relevantVariants.length === 0) {
         return overallStock;
       }
-      const total = multiAttrVariants.reduce(
+      const total = relevantVariants.reduce(
         (sum: number, v: any) => sum + Number(v?.stockQty || 0),
         0,
       );
@@ -545,8 +572,7 @@ export const ProductDetailPage: React.FC = () => {
                     (e.g. Color + Size). Single-option variants like
                     "Color only" or "Size only" are hidden from the
                     per-option stock table as requested. */}
-                {product.variants
-                  .filter((variant: any) => Object.keys(variant.attributes || {}).length > 1)
+                {filterStockVariants(product.variants as any[])
                   .map((variant: any) => {
                   const stock = Number(variant.stockQty || 0);
                   const isThisSelected =

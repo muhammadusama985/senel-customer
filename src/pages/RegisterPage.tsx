@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { BuildingOfficeIcon, UserIcon, EnvelopeIcon, LockClosedIcon, ExclamationCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { BuildingOfficeIcon, UserIcon, EnvelopeIcon, LockClosedIcon, ExclamationCircleIcon, CheckCircleIcon, SparklesIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { useI18n } from '../i18n';
 import './RegisterPage.css';
@@ -69,6 +69,10 @@ export const RegisterPage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
   const [serverSuccess, setServerSuccess] = useState('');
+  // Controls the full-card beautiful success screen shown after a successful
+  // registration. Replaces the form view so the user can't accidentally
+  // re-submit, and auto-navigates to /login after a short pause.
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -150,14 +154,16 @@ export const RegisterPage: React.FC = () => {
         preferredLanguage: lang,
       });
       
-      // Show success alert
-      setServerSuccess('Registration successful! Redirecting to login...');
-      toast.success('Registration successful! Please login to continue.');
-      
-      // Navigate after a short delay to let the user see the success message
+      // Show the beautiful on-screen success message and a toast as well.
+      setServerSuccess('Registration successful! Welcome aboard.');
+      setShowSuccessScreen(true);
+      toast.success('Registration successful! Welcome aboard.');
+
+      // Navigate after a short delay so the user has time to read the
+      // success card. They can also click "Continue to Login" to go sooner.
       setTimeout(() => {
         navigate('/login', { replace: true });
-      }, 1500);
+      }, 3500);
     } catch (error: any) {
       const errorMsg = getErrorMessage(error);
 
@@ -181,10 +187,64 @@ export const RegisterPage: React.FC = () => {
       <div className="container">
         <div className="register-container">
           <div className="register-card">
-            <div className="register-header">
-              <h2>{t('auth.createAccount', 'Create Account')}</h2>
-              <p>{t('auth.registerSubtitle', 'Join Senel Express as a business buyer')}</p>
-            </div>
+            {showSuccessScreen ? (
+              <div className="register-success-screen" role="status" aria-live="polite">
+                <div className="register-success-icon-wrap">
+                  <div className="register-success-icon-ring" />
+                  <div className="register-success-icon-circle">
+                    <CheckCircleIcon className="register-success-check" />
+                  </div>
+                </div>
+
+                <div className="register-success-eyebrow">
+                  <SparklesIcon className="register-success-spark" />
+                  <span>All set</span>
+                </div>
+
+                <h2 className="register-success-title">
+                  Welcome aboard!
+                </h2>
+
+                <p className="register-success-message">
+                  Your Senel Express buyer account has been created
+                  successfully. A verification email is on its way to
+                  {' '}<strong>{formData.email}</strong>.
+                </p>
+
+                <div className="register-success-steps">
+                  <div className="register-success-step">
+                    <span className="register-success-step-num">1</span>
+                    <span>Check your inbox to verify your email address.</span>
+                  </div>
+                  <div className="register-success-step">
+                    <span className="register-success-step-num">2</span>
+                    <span>Sign in with the credentials you just created.</span>
+                  </div>
+                  <div className="register-success-step">
+                    <span className="register-success-step-num">3</span>
+                    <span>Start browsing the marketplace and place your first order.</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn btn-primary btn-large register-success-btn"
+                  onClick={() => navigate('/login', { replace: true })}
+                >
+                  Continue to Login
+                  <ArrowRightIcon className="register-success-btn-icon" />
+                </button>
+
+                <p className="register-success-foot">
+                  Redirecting automatically in a few seconds...
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="register-header">
+                  <h2>{t('auth.createAccount', 'Create Account')}</h2>
+                  <p>{t('auth.registerSubtitle', 'Join Senel Express as a business buyer')}</p>
+                </div>
 
             {serverSuccess && (
               <div className="register-success-banner">
@@ -415,11 +475,13 @@ export const RegisterPage: React.FC = () => {
                 </button>
             </form>
 
-            <div className="register-footer">
-              <p>
-                Already have an account? <Link to="/login">Sign in</Link>
-              </p>
-            </div>
+                <div className="register-footer">
+                  <p>
+                    Already have an account? <Link to="/login">Sign in</Link>
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

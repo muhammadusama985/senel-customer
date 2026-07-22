@@ -251,3 +251,207 @@
     font-size: 0.85rem;
   }
 }
+
+
+/* ============== Beautiful on-screen registration success screen ============== */
+.register-success-screen {
+  text-align: center;
+  padding: 1.5rem 0.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  animation: register-success-fade-in 0.45s ease-out;
+}
+
+@keyframes register-success-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.register-success-icon-wrap {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+
+.register-success-icon-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(34, 197, 94, 0.28) 0%,
+    rgba(34, 197, 94, 0) 70%
+  );
+  animation: register-success-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes register-success-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.6;
+  }
+}
+
+.register-success-icon-circle {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 10px 24px rgba(22, 163, 74, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.register-success-check {
+  width: 44px;
+  height: 44px;
+  color: #ffffff;
+  stroke-width: 2.4;
+  animation: register-success-check-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+@keyframes register-success-check-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.register-success-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+}
+
+.register-success-spark {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.register-success-title {
+  margin: 0;
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  background: linear-gradient(135deg, #16a34a 0%, #0ea5e9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.register-success-message {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 420px;
+}
+
+.register-success-message strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.register-success-steps {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0.4rem 0 0.5rem;
+  text-align: left;
+}
+
+.register-success-step {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.7rem;
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px solid rgba(34, 197, 94, 0.14);
+  color: var(--text-primary);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.register-success-step-num {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
+}
+
+.register-success-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 220px;
+  margin-top: 0.25rem;
+  background: linear-gradient(135deg, #16a34a 0%, #0ea5e9 100%) !important;
+  border: none !important;
+  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.28) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.register-success-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(22, 163, 74, 0.36) !important;
+}
+
+.register-success-btn-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.register-success-foot {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted, var(--text-secondary));
+  font-style: italic;
+  opacity: 0.85;
+}

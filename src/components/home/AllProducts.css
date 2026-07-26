@@ -1,6 +1,13 @@
 .all-products-section {
-  padding: 2.4rem 0 3rem;
+  padding: 2.2rem 0.75rem 2.6rem;
   background-color: var(--bg-primary);
+}
+
+/* Right-margin breathing room on the products strip on phones */
+.all-products-section > *,
+.all-products-bar-wrapper {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .all-products-bar {
@@ -72,16 +79,17 @@
 
 @media (max-width: 768px) {
   .all-products-section {
-    padding: 1.4rem 0 1.8rem;
+    padding: 1.2rem 0.6rem 1.6rem;
   }
 
   .all-products-bar,
   .all-products-loader {
-    grid-auto-columns: minmax(170px, 200px);
+    grid-auto-columns: minmax(165px, 195px);
+    gap: 0.65rem;
   }
 
   .product-skeleton {
-    min-height: 220px;
+    min-height: 200px;
   }
 }
 
@@ -95,24 +103,37 @@
 
 @media (max-width: 480px) {
   .all-products-section {
-    padding: 1.1rem 0 1.4rem;
+    padding: 0.9rem 0.55rem 1.2rem;
   }
 
   .all-products-bar,
   .all-products-loader {
-    grid-auto-columns: minmax(150px, 175px);
-    gap: 0.65rem;
+    grid-auto-columns: minmax(140px, 165px);
+    gap: 0.55rem;
   }
 
   .product-skeleton {
-    min-height: 200px;
+    min-height: 190px;
   }
 }
 
-@media (max-width: 360px) {
+@media (max-width: 380px) {
   .all-products-bar,
   .all-products-loader {
-    grid-auto-columns: minmax(140px, 160px);
-    gap: 0.55rem;
+    grid-auto-columns: minmax(135px, 155px);
+    gap: 0.5rem;
+  }
+
+  .all-products-section {
+    padding: 0.8rem 0.5rem 1.1rem;
+  }
+}
+
+/* ≤ 320px (very small phones) */
+@media (max-width: 320px) {
+  .all-products-bar,
+  .all-products-loader {
+    grid-auto-columns: minmax(125px, 145px);
+    gap: 0.45rem;
   }
 }

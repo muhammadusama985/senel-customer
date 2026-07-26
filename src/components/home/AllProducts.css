@@ -10,49 +10,47 @@
   padding-right: 0;
 }
 
-.all-products-bar {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(220px, 260px);
+/* Horizontal scroll strip (same design as TrendingProduct) */
+.all-products-bar,
+.all-products-loader {
+  display: flex;
+  flex-wrap: nowrap;
   gap: 1rem;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.15rem 0 0.55rem;
-  scroll-snap-type: x proximity;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-light) transparent;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
   overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0.5rem;
+  padding: 0.25rem 0.25rem 0.6rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
-.all-products-bar::-webkit-scrollbar {
-  height: 7px;
+.all-products-bar::-webkit-scrollbar,
+.all-products-loader::-webkit-scrollbar {
+  height: 5px;
 }
 
-.all-products-bar::-webkit-scrollbar-thumb {
+.all-products-bar::-webkit-scrollbar-thumb,
+.all-products-loader::-webkit-scrollbar-thumb {
+  background: var(--border);
   border-radius: 999px;
-  background: var(--border-light);
 }
 
 .all-products-item {
   scroll-snap-align: start;
   min-width: 0;
   display: flex;
+  flex: 0 0 220px;
+  min-width: 220px;
 }
 
 .all-products-item > * {
   width: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.all-products-loader {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(220px, 260px);
-  gap: 1rem;
-  overflow: hidden;
 }
 
 .product-skeleton {
@@ -77,63 +75,80 @@
   }
 }
 
+/* ≤ 1024px (tablet) — desktop still uses the gridAuto-flow strip
+   but the column range matches the trending section. */
+@media (min-width: 901px) and (max-width: 1200px) {
+  .all-products-bar,
+  .all-products-loader {
+    flex: 0 0 220px;
+    min-width: 220px;
+  }
+}
+
+/* ≤ 768px (large phone) — strip cards keep their desktop width but
+   now scroll horizontally with snap. Section gets side padding for
+   the right-margin breathing room. */
 @media (max-width: 768px) {
   .all-products-section {
-    padding: 1.2rem 0.6rem 1.6rem;
+    padding: 1.3rem 0.75rem;
   }
 
   .all-products-bar,
   .all-products-loader {
-    grid-auto-columns: minmax(165px, 195px);
     gap: 0.65rem;
+    padding: 0.25rem 0.25rem 0.6rem;
+  }
+
+  .all-products-bar::-webkit-scrollbar,
+  .all-products-loader::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .all-products-bar::-webkit-scrollbar-thumb,
+  .all-products-loader::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
+  }
+
+  .all-products-item {
+    flex: 0 0 165px;
+    min-width: 165px;
+    scroll-snap-align: start;
   }
 
   .product-skeleton {
-    min-height: 200px;
+    min-height: 240px;
   }
 }
 
-@media (max-width: 600px) {
-  .all-products-bar,
-  .all-products-loader {
-    grid-auto-columns: minmax(155px, 175px);
-    gap: 0.6rem;
-  }
-}
-
+/* ≤ 480px (typical phone) — even tighter strip cards */
 @media (max-width: 480px) {
   .all-products-section {
-    padding: 0.9rem 0.55rem 1.2rem;
+    padding: 1rem 0.6rem;
   }
 
-  .all-products-bar,
-  .all-products-loader {
-    grid-auto-columns: minmax(140px, 165px);
-    gap: 0.55rem;
+  .all-products-item {
+    flex: 0 0 145px;
+    min-width: 145px;
+  }
+
+  .product-skeleton {
+    min-height: 210px;
+  }
+}
+
+/* ≤ 380px (small phones) */
+@media (max-width: 380px) {
+  .all-products-section {
+    padding: 0.9rem 0.55rem;
+  }
+
+  .all-products-item {
+    flex: 0 0 135px;
+    min-width: 135px;
   }
 
   .product-skeleton {
     min-height: 190px;
-  }
-}
-
-@media (max-width: 380px) {
-  .all-products-bar,
-  .all-products-loader {
-    grid-auto-columns: minmax(135px, 155px);
-    gap: 0.5rem;
-  }
-
-  .all-products-section {
-    padding: 0.8rem 0.5rem 1.1rem;
-  }
-}
-
-/* ≤ 320px (very small phones) */
-@media (max-width: 320px) {
-  .all-products-bar,
-  .all-products-loader {
-    grid-auto-columns: minmax(125px, 145px);
-    gap: 0.45rem;
   }
 }

@@ -779,8 +779,13 @@
     gap: 0.5rem 0.65rem;
   }
 
+  /* Hide the wishlist button label on very narrow phones — keep just the icon */
+  .product-detail-wishlist-btn span {
+    display: none;
+  }
+
   .main-image {
-    max-height: 360px;
+    max-height: 320px;
     border-radius: 0.7rem;
   }
 
@@ -797,6 +802,8 @@
      of forcing the page to scroll sideways. */
   .variant-stock-table {
     overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
   }
   .variant-stock-table-header,
   .variant-stock-row {
@@ -848,6 +855,8 @@
   /* Price tiers table — same horizontal scroll trick */
   .price-tiers-table {
     overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
   }
   .price-tiers-table table {
     min-width: 420px;
@@ -875,10 +884,11 @@
 
   /* CTAs — full width, stacked on narrow screens */
   .add-to-cart-btn {
-    width: 100%;
-    max-width: none;
+    width: 100% !important;
+    max-width: none !important;
     min-height: 3rem;
     font-size: 0.95rem;
+    padding: 0.7rem 1rem;
   }
   .add-to-cart-btn__label {
     white-space: normal;
@@ -888,11 +898,16 @@
     margin: 0.5rem 0 0.4rem;
   }
 
-  /* Bulk Offer + Custom Production buttons — stack when no horizontal room */
-  .product-info > div[style*="display: 'flex'"][style*='flexWrap'] {
+  /* Bulk Offer + Custom Production buttons — stack when no horizontal room.
+     React renders the inline style as
+        style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.75rem;"
+     so the attribute selector must look for `display: flex` (no quotes)
+     and `flex-wrap` (kebab-case in HTML). */
+  .product-info > div[style*="display: flex"][style*="flex-wrap"] {
     flex-direction: column;
+    gap: 0.55rem !important;
   }
-  .product-info > div[style*="display: 'flex'"][style*='flexWrap'] > button {
+  .product-info > div[style*="display: flex"][style*="flex-wrap"] > button {
     width: 100%;
   }
 
@@ -928,7 +943,7 @@
   }
 
   .main-image {
-    max-height: 300px;
+    max-height: 260px;
   }
 
   .thumbnail-btn {

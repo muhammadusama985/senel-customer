@@ -701,7 +701,11 @@
   gap: 1.5rem;
 }
 
-/* Responsive */
+/* ============================================================
+   Responsive — laptop → tablet → large phone → small phone
+   ============================================================ */
+
+/* ≤ 1024px (small laptop / landscape tablet) — tighten the 2-col hero */
 @media (max-width: 1024px) {
   .product-detail-layout {
     gap: 1rem;
@@ -716,18 +720,35 @@
   }
 }
 
-@media (max-width: 768px) {
-  .product-detail-page {
-    padding-top: 1rem;
-  }
-
+/* ≤ 900px (tablet portrait) — single column, tighter header */
+@media (max-width: 900px) {
   .product-detail-layout {
     grid-template-columns: 1fr;
-    gap: 1.35rem;
+    gap: 1.4rem;
   }
 
-  .product-title {
-    font-size: 1.35rem;
+  .product-header {
+    flex-wrap: wrap;
+    row-gap: 0.45rem;
+  }
+
+  .product-header .product-title {
+    flex-basis: 100%;
+    font-size: clamp(1.1rem, 4.5vw, 1.35rem);
+  }
+
+  .product-header .product-meta {
+    flex-basis: 100%;
+    justify-content: space-between;
+  }
+
+  .main-image {
+    max-height: 420px;
+  }
+
+  .thumbnail-btn {
+    width: 60px;
+    height: 60px;
   }
 
   .related-products-grid {
@@ -739,29 +760,317 @@
   }
 }
 
-@media (max-width: 480px) {
-  .product-meta {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
+/* ≤ 640px (large phone) — stack CTAs, compact meta, smaller image */
+@media (max-width: 640px) {
+  .product-detail-page {
+    padding: 0.5rem 0 1.4rem;
   }
 
+  .product-header {
+    margin-bottom: 0.55rem;
+  }
+
+  .product-header .product-title {
+    font-size: clamp(1.05rem, 5vw, 1.25rem);
+  }
+
+  .product-header .product-meta {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.65rem;
+  }
+
+  .main-image {
+    max-height: 360px;
+    border-radius: 0.7rem;
+  }
+
+  .image-thumbnails {
+    gap: 0.4rem;
+  }
+
+  .thumbnail-btn {
+    width: 52px;
+    height: 52px;
+  }
+
+  /* Variant stock table — allow horizontal scroll inside the card instead
+     of forcing the page to scroll sideways. */
+  .variant-stock-table {
+    overflow-x: auto;
+  }
+  .variant-stock-table-header,
+  .variant-stock-row {
+    min-width: 460px;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.78rem;
+  }
+
+  /* Color swatches — keep on one row, slightly smaller chips */
+  .color-swatch-group {
+    gap: 0.45rem;
+  }
+  .color-swatch {
+    min-width: 3.2rem;
+    padding: 0.28rem 0.36rem;
+  }
+  .color-swatch-circle {
+    width: 1.55rem;
+    height: 1.55rem;
+  }
+  .color-swatch-label {
+    font-size: 0.68rem;
+    max-width: 3.2rem;
+  }
+
+  /* Variant selector dropdown */
+  .variant-selector {
+    min-height: 2.55rem;
+    padding: 0.55rem 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  /* Tiered pricing card */
+  .tiered-pricing {
+    padding: 0.85rem 0.8rem 0.95rem;
+  }
+  .pricing-header {
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .pricing-header h3 {
+    font-size: 0.92rem;
+  }
+  .moq-badge {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.55rem;
+  }
+
+  /* Price tiers table — same horizontal scroll trick */
+  .price-tiers-table {
+    overflow-x: auto;
+  }
+  .price-tiers-table table {
+    min-width: 420px;
+    font-size: 0.82rem;
+  }
+  .price-tiers-table th {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.68rem;
+  }
+  .price-tiers-table td {
+    padding: 0.45rem 0.55rem;
+    font-size: 0.82rem;
+  }
+
+  /* Quantity selector — bigger tap target on touch screens */
+  .quantity-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.15rem;
+  }
+  .quantity-input {
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+
+  /* CTAs — full width, stacked on narrow screens */
   .add-to-cart-btn {
     width: 100%;
     max-width: none;
-    min-height: 3.25rem;
+    min-height: 3rem;
+    font-size: 0.95rem;
   }
-
   .add-to-cart-btn__label {
     white-space: normal;
+    text-align: center;
+  }
+  .add-to-cart-section {
+    margin: 0.5rem 0 0.4rem;
+  }
+
+  /* Bulk Offer + Custom Production buttons — stack when no horizontal room */
+  .product-info > div[style*="display: 'flex'"][style*='flexWrap'] {
+    flex-direction: column;
+  }
+  .product-info > div[style*="display: 'flex'"][style*='flexWrap'] > button {
+    width: 100%;
   }
 
   .related-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .reviews-grid {
     grid-template-columns: 1fr;
+  }
+
+  .product-description-section {
+    padding: 0.9rem;
+  }
+  .product-description-heading {
+    font-size: 0.95rem;
+  }
+
+  .review-form-card,
+  .review-list-card {
+    padding: 0.9rem;
+  }
+  .review-textarea {
+    min-height: 120px;
+  }
+}
+
+/* ≤ 480px (typical phone, iPhone SE / Mini) — tighter still */
+@media (max-width: 480px) {
+  .product-detail-page {
+    padding: 0.4rem 0 1rem;
+  }
+
+  .main-image {
+    max-height: 300px;
+  }
+
+  .thumbnail-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .product-header .product-title {
+    font-size: clamp(1rem, 5.5vw, 1.15rem);
+  }
+
+  .product-detail-wishlist-btn {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+  }
+
+  .product-detail-wishlist-btn .icon {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  .tiered-pricing {
+    padding: 0.75rem 0.7rem 0.85rem;
+  }
+
+  .price-tiers-table table {
+    min-width: 380px;
+  }
+
+  .quantity-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1.05rem;
+  }
+  .quantity-input {
+    height: 2.25rem;
+    font-size: 0.92rem;
+  }
+
+  .summary-row.total {
+    font-size: 0.95rem;
+  }
+  .summary-row.total .summary-value {
+    font-size: 1.05rem;
+  }
+
+  .related-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .related-products h2 {
+    font-size: 1.05rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .review-form-card,
+  .review-list-card {
+    padding: 0.75rem;
+  }
+
+  .review-star-btn {
+    width: 2.2rem;
+    height: 2.2rem;
+    font-size: 1rem;
+  }
+
+  .review-input,
+  .review-textarea {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.88rem;
+  }
+
+  .review-textarea {
+    min-height: 110px;
   }
 
   .reviews-header,
   .review-item-top {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+}
+
+/* ≤ 380px (small phones — iPhone SE 1st gen, Galaxy Fold cover, etc.) */
+@media (max-width: 380px) {
+  .main-image {
+    max-height: 240px;
+  }
+
+  .image-thumbnails {
+    justify-content: flex-start;
+  }
+
+  .thumbnail-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .product-header .product-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+  }
+
+  .color-swatch {
+    min-width: 2.9rem;
+  }
+
+  .add-to-cart-btn {
+    min-height: 2.85rem;
+    font-size: 0.9rem;
+    padding: 0.55rem 0.85rem;
+  }
+
+  .quantity-btn {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+  .quantity-input {
+    height: 2.1rem;
+  }
+}
+
+/* ≤ 320px (very small / older phones) — final fallback */
+@media (max-width: 320px) {
+  .main-image {
+    max-height: 200px;
+  }
+
+  .thumbnail-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .product-header .product-title {
+    font-size: 1rem;
+  }
+
+  .color-swatch-circle {
+    width: 1.35rem;
+    height: 1.35rem;
   }
 }

@@ -323,30 +323,213 @@
   font-size: 1.15rem;
 }
 
+/* ============================================================
+   Mobile ladder for the TieredPricing card
+   ============================================================ */
+
+/* ≤ 640px (large phone) */
 @media (max-width: 640px) {
   .tiered-pricing {
-    padding: 1rem;
+    padding: 0.85rem 0.8rem 0.95rem;
   }
 
   .pricing-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.45rem;
+    margin-bottom: 0.5rem;
   }
 
+  .pricing-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .moq-badge {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.55rem;
+  }
+
+  /* Tiers table — scroll horizontally inside the card */
+  .price-tiers-table {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 0.5rem;
+  }
+  .price-tiers-table table {
+    min-width: 420px;
+    font-size: 0.82rem;
+  }
+  .price-tiers-table th {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.68rem;
+  }
+  .price-tiers-table td {
+    padding: 0.45rem 0.55rem;
+    font-size: 0.82rem;
+  }
+
+  /* Quantity selector — proper touch targets */
+  .quantity-selector-section {
+    margin-bottom: 0.5rem;
+  }
+  .quantity-label {
+    font-size: 0.78rem;
+    margin-bottom: 0.3rem;
+  }
   .quantity-controls {
     gap: 0.4rem;
   }
-
   .quantity-btn {
-    width: 2.4rem;
-    height: 2.4rem;
+    width: 2.6rem;
+    height: 2.6rem;
+    font-size: 1.15rem;
+  }
+  .quantity-input {
+    height: 2.6rem;
+    font-size: 1rem;
   }
 
+  /* Price summary — prominent total on mobile */
+  .price-summary {
+    padding-top: 0.5rem;
+    gap: 0.35rem 0.75rem;
+  }
+  .summary-row {
+    font-size: 0.8rem;
+  }
+  .summary-row.total {
+    font-size: 0.95rem;
+    padding-top: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  .summary-row.total .summary-value {
+    font-size: 1.1rem;
+  }
+
+  /* Banner / adjustment / savings — tighter */
+  .adjustment-banner {
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0.45rem;
+    font-size: 0.75rem;
+    gap: 0.4rem;
+  }
+  .adjustment-banner .icon-small {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+  .savings-banner {
+    padding: 0.4rem 0.65rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    gap: 0.4rem;
+  }
+  .savings-banner .icon-small {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .stock-limit-note {
+    font-size: 0.74rem;
+    margin-top: -0.25rem;
+    margin-bottom: 0.45rem;
+  }
+}
+
+/* ≤ 480px (typical phone) */
+@media (max-width: 480px) {
+  .tiered-pricing {
+    padding: 0.75rem 0.7rem 0.85rem;
+  }
+
+  .pricing-header h3 {
+    font-size: 0.85rem;
+  }
+
+  .price-tiers-table table {
+    min-width: 380px;
+    font-size: 0.78rem;
+  }
+  .price-tiers-table th {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.65rem;
+  }
+  .price-tiers-table td {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.78rem;
+  }
+
+  .quantity-btn {
+    width: 2.35rem;
+    height: 2.35rem;
+    font-size: 1.05rem;
+  }
   .quantity-input {
-    height: 2.4rem;
+    height: 2.35rem;
+    font-size: 0.92rem;
   }
 
   .summary-row.total {
+    font-size: 0.9rem;
+  }
+  .summary-row.total .summary-value {
+    font-size: 1.05rem;
+  }
+}
+
+/* ≤ 380px (small phones) */
+@media (max-width: 380px) {
+  .tiered-pricing {
+    padding: 0.65rem 0.6rem 0.75rem;
+  }
+
+  .price-tiers-table table {
+    min-width: 340px;
+    font-size: 0.74rem;
+  }
+
+  .quantity-btn {
+    width: 2.15rem;
+    height: 2.15rem;
+  }
+  .quantity-input {
+    height: 2.15rem;
+  }
+
+  .summary-row.total {
+    font-size: 0.85rem;
+  }
+  .summary-row.total .summary-value {
     font-size: 1rem;
+  }
+}
+
+/* ≤ 320px (very small phones) */
+@media (max-width: 320px) {
+  .tiered-pricing {
+    padding: 0.55rem 0.55rem 0.65rem;
+  }
+
+  .price-tiers-table table {
+    min-width: 300px;
+    font-size: 0.7rem;
+  }
+  .price-tiers-table th {
+    padding: 0.3rem 0.4rem;
+    font-size: 0.6rem;
+  }
+  .price-tiers-table td {
+    padding: 0.35rem 0.4rem;
+    font-size: 0.7rem;
+  }
+
+  .quantity-btn {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.95rem;
+  }
+  .quantity-input {
+    height: 2rem;
+    font-size: 0.85rem;
   }
 }

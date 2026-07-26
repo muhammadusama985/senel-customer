@@ -294,6 +294,9 @@
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+  /* Don't let it stretch the header on narrow phones — shrink to content. */
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .product-detail-wishlist-btn:hover {
@@ -375,6 +378,15 @@
   border-radius: 0.6rem;
   color: var(--text-primary);
   font-size: 0.9rem;
+  /* Make the native dropdown options readable on mobile browsers */
+  /* (these pseudo-selectors style the opened <option> list, which most
+     desktop browsers ignore but iOS Safari + Android Chrome honour). */
+}
+.variant-selector option {
+  font-size: 0.95rem;
+  padding: 0.25rem 0.4rem;
+  background-color: var(--card-bg, #fff);
+  color: var(--text-primary);
 }
 
 /* Color swatch picker — only used when the attribute title is "Color" */
@@ -807,7 +819,7 @@
   }
   .variant-stock-table-header,
   .variant-stock-row {
-    min-width: 460px;
+    min-width: 420px;
     padding: 0.4rem 0.7rem;
     font-size: 0.78rem;
   }
@@ -958,6 +970,11 @@
   .product-detail-wishlist-btn {
     padding: 0.3rem 0.7rem;
     font-size: 0.75rem;
+  }
+
+  /* Restore label on slightly wider phones */
+  .product-detail-wishlist-btn span {
+    display: inline;
   }
 
   .product-detail-wishlist-btn .icon {

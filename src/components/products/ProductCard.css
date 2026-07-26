@@ -229,12 +229,12 @@
 .add-to-cart-btn {
   width: 100%;
   margin-top: auto;
-  min-height: 2.2rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.78rem;
+  min-height: 1.85rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  border-radius: 0.65rem;
-  box-shadow: 0 8px 18px rgba(31, 95, 139, 0.14);
+  border-radius: 0.55rem;
+  box-shadow: 0 6px 14px rgba(31, 95, 139, 0.12);
 }
 
 .add-to-cart-btn.loading {
@@ -300,11 +300,11 @@
   }
 
   .add-to-cart-btn {
-    min-height: 2rem;
-    padding: 0.4rem 0.6rem;
-    font-size: 0.72rem;
-    border-radius: 0.55rem;
-    box-shadow: 0 6px 14px rgba(31, 95, 139, 0.12);
+    min-height: 1.75rem;
+    padding: 0.32rem 0.55rem;
+    font-size: 0.66rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 5px 12px rgba(31, 95, 139, 0.1);
   }
 }
 
@@ -332,7 +332,7 @@
   }
 
   .original-price {
-    font-size: 0.72rem;
+    font-size: 0.66rem;
   }
 
   .product-rating {
@@ -349,9 +349,9 @@
   }
 
   .add-to-cart-btn {
-    min-height: 1.85rem;
-    padding: 0.35rem 0.55rem;
-    font-size: 0.68rem;
+    min-height: 1.6rem;
+    padding: 0.28rem 0.45rem;
+    font-size: 0.62rem;
   }
 }
 
@@ -370,8 +370,8 @@
   }
 
   .add-to-cart-btn {
-    min-height: 1.75rem;
-    padding: 0.3rem 0.45rem;
-    font-size: 0.65rem;
+    min-height: 1.5rem;
+    padding: 0.24rem 0.4rem;
+    font-size: 0.58rem;
   }
 }

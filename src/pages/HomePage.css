@@ -131,6 +131,16 @@
   box-shadow: 0 0 0 2px var(--accent-light);
 }
 
+/* ≤ 1024px (tablet) — give the whole page horizontal breathing room
+   so content never sits flush against the viewport edge. */
+@media (max-width: 1024px) {
+  .home-page > section {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* ≤ 768px (large phone) — keep the breathing room, tighten newsletter */
 @media (max-width: 768px) {
   .home-page > section {
     animation: none;
@@ -139,11 +149,57 @@
   }
 
   .newsletter-section {
-    padding: 3rem 0;
+    padding: 2rem 0.75rem;
+  }
+
+  .newsletter-content {
+    max-width: 100%;
   }
 
   .newsletter-form {
     flex-direction: column;
+    gap: 0.6rem;
+    max-width: 100%;
+  }
+
+  .newsletter-input {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.92rem;
+  }
+}
+
+/* ≤ 480px (typical phone) — tighter still */
+@media (max-width: 480px) {
+  .home-page > section {
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+  }
+
+  .newsletter-section {
+    padding: 1.4rem 0.6rem;
+  }
+
+  .newsletter-content h2 {
+    font-size: 1.2rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .newsletter-content p {
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .newsletter-input {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* ≤ 380px (small phones) */
+@media (max-width: 380px) {
+  .home-page > section {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 }
 

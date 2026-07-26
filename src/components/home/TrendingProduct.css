@@ -1,12 +1,12 @@
 .trending-section {
-  padding: 2.8rem 0;
+  padding: 2.4rem 0;
   background-color: var(--bg-secondary);
 }
 
 .products-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0.9rem;
   align-items: stretch;
 }
 
@@ -39,7 +39,7 @@
 }
 
 .product-skeleton {
-  min-height: 320px;
+  min-height: 280px;
   border-radius: 1rem;
   background: linear-gradient(
     90deg,
@@ -51,34 +51,89 @@
   animation: loading 1.4s linear infinite;
 }
 
+/* ≤ 1024px (tablet) */
 @media (max-width: 1024px) {
   .products-grid,
   .products-loader {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
   }
 }
 
+/* ≤ 768px (large phone) — convert to horizontal scroll strip
+   (same UX as the image gallery / related products). */
 @media (max-width: 768px) {
   .trending-section {
-    padding: 1.5rem 0;
+    padding: 1.3rem 0.75rem;
   }
 
   .products-grid,
   .products-loader {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.65rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0.5rem;
+    padding: 0.25rem 0.25rem 0.6rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .products-grid::-webkit-scrollbar,
+  .products-loader::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .products-grid::-webkit-scrollbar-thumb,
+  .products-loader::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
+  }
+
+  /* Each card gets a fixed width and snap alignment so swiping
+     feels native instead of a generic grid dump. */
+  .products-grid > *,
+  .products-loader > * {
+    flex: 0 0 165px;
+    min-width: 165px;
+    scroll-snap-align: start;
+  }
+
+  .product-skeleton {
+    min-height: 240px;
   }
 }
 
+/* ≤ 480px (typical phone) — even tighter strip cards */
 @media (max-width: 480px) {
   .trending-section {
-    padding: 1.1rem 0;
+    padding: 1rem 0.6rem;
   }
 
-  .products-grid,
-  .products-loader {
-    grid-template-columns: 1fr;
-    gap: 0.65rem;
+  .products-grid > *,
+  .products-loader > * {
+    flex: 0 0 145px;
+    min-width: 145px;
+  }
+
+  .product-skeleton {
+    min-height: 210px;
+  }
+}
+
+/* ≤ 380px (small phones) */
+@media (max-width: 380px) {
+  .products-grid > *,
+  .products-loader > * {
+    flex: 0 0 135px;
+    min-width: 135px;
+  }
+
+  .product-skeleton {
+    min-height: 190px;
   }
 }
 

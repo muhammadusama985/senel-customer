@@ -269,29 +269,109 @@
   }
 }
 
+/* ≤ 768px (large phone) */
 @media (max-width: 768px) {
+  .product-image-container {
+    aspect-ratio: 4 / 3;
+    max-height: 200px;
+  }
+
   .product-info {
-    padding: 0.9rem;
+    padding: 0.65rem 0.7rem 0.7rem;
+    gap: 0.1rem;
   }
 
   .current-price {
-    font-size: 1.08rem;
+    font-size: 0.92rem;
   }
 
   .wishlist-btn {
-    top: 0.75rem;
-    right: 0.75rem;
-    width: 2.2rem;
-    height: 2.2rem;
+    top: 0.55rem;
+    right: 0.55rem;
+    width: 1.85rem;
+    height: 1.85rem;
   }
-}
 
-@media (max-width: 480px) {
-  .product-title {
-    font-size: 0.95rem;
+  .product-badge {
+    left: 0.55rem;
+    bottom: 0.55rem;
+    padding: 0.22rem 0.45rem;
+    font-size: 0.62rem;
   }
 
   .add-to-cart-btn {
-    min-height: 2.5rem;
+    min-height: 2rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.72rem;
+    border-radius: 0.55rem;
+    box-shadow: 0 6px 14px rgba(31, 95, 139, 0.12);
+  }
+}
+
+/* ≤ 480px (typical phone) */
+@media (max-width: 480px) {
+  .product-image-container {
+    aspect-ratio: 4 / 3;
+    max-height: 170px;
+  }
+
+  .product-title {
+    font-size: 0.82rem;
+    line-height: 1.3;
+    margin: 0 0 0.3rem;
+    min-height: calc(1.3em * 2);
+  }
+
+  .product-price-section {
+    gap: 0.2rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .current-price {
+    font-size: 0.85rem;
+  }
+
+  .original-price {
+    font-size: 0.72rem;
+  }
+
+  .product-rating {
+    gap: 0.3rem;
+  }
+
+  .star {
+    font-size: 0.75rem;
+  }
+
+  .rating-count,
+  .no-rating {
+    font-size: 0.68rem;
+  }
+
+  .add-to-cart-btn {
+    min-height: 1.85rem;
+    padding: 0.35rem 0.55rem;
+    font-size: 0.68rem;
+  }
+}
+
+/* ≤ 380px (small phones) */
+@media (max-width: 380px) {
+  .product-image-container {
+    max-height: 150px;
+  }
+
+  .product-title {
+    font-size: 0.78rem;
+  }
+
+  .current-price {
+    font-size: 0.82rem;
+  }
+
+  .add-to-cart-btn {
+    min-height: 1.75rem;
+    padding: 0.3rem 0.45rem;
+    font-size: 0.65rem;
   }
 }

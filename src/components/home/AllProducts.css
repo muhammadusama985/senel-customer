@@ -49,7 +49,7 @@
 }
 
 .product-skeleton {
-  min-height: 320px;
+  min-height: 260px;
   border-radius: 1rem;
   background: linear-gradient(
     90deg,
@@ -88,7 +88,8 @@
 @media (max-width: 600px) {
   .all-products-bar,
   .all-products-loader {
-    grid-auto-columns: minmax(185px, 205px);
+    grid-auto-columns: minmax(155px, 175px);
+    gap: 0.6rem;
   }
 }
 

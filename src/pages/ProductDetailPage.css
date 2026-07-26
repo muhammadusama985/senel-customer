@@ -3,6 +3,14 @@
   min-height: 100vh;
 }
 
+/* Horizontal breathing room so mobile items never sit flush against
+   the edge. Applied via padding on the page so it also protects the
+   gallery, tables, and CTA cluster. */
+.product-detail-page > .container {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
 /* Loading State */
 .product-detail-loading {
   padding: 4rem 0;
@@ -372,19 +380,27 @@
 .variant-selector {
   width: 100%;
   min-height: 2.3rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
   background-color: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 0.6rem;
   color: var(--text-primary);
   font-size: 0.9rem;
-  /* Make the native dropdown options readable on mobile browsers */
-  /* (these pseudo-selectors style the opened <option> list, which most
-     desktop browsers ignore but iOS Safari + Android Chrome honour). */
+  /* Strip the native dropdown chrome so we get a consistent look across
+     iOS Safari, Android Chrome, and desktop. The caret below replaces it. */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1.5L6 6.5L11 1.5' stroke='%236b7280' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px 8px;
+  cursor: pointer;
 }
+/* Popped-up <option> list styling — honoured by iOS Safari + Android Chrome */
 .variant-selector option {
   font-size: 0.95rem;
-  padding: 0.25rem 0.4rem;
+  padding: 0.35rem 0.5rem;
   background-color: var(--card-bg, #fff);
   color: var(--text-primary);
 }
@@ -707,10 +723,56 @@
   margin-bottom: 1.2rem;
 }
 
+/* Horizontal scroll strip (same feel as the image gallery):
+   each card is ~200px wide, the row scrolls horizontally with snap. */
 .related-products-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.85rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0.5rem;
+  padding: 0.25rem 0.25rem 0.75rem;
+  /* Hide the scrollbar visually but keep it functional */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.related-products-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.related-products-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.related-products-grid::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+/* Each card in the strip gets a fixed width and snap alignment. */
+.related-products-grid > * {
+  flex: 0 0 200px;
+  min-width: 200px;
+  scroll-snap-align: start;
+}
+
+/* On wider screens, restore the grid layout (desktop & tablet) */
+@media (min-width: 901px) {
+  .related-products-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    overflow: visible;
+    gap: 1.5rem;
+    padding: 0;
+  }
+  .related-products-grid > * {
+    flex: none;
+    min-width: 0;
+  }
 }
 
 /* ============================================================
@@ -727,9 +789,7 @@
     max-height: 320px;
   }
 
-  .related-products-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+
 }
 
 /* ≤ 900px (tablet portrait) — single column, tighter header */
@@ -763,10 +823,7 @@
     height: 60px;
   }
 
-  .related-products-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
+  /* Related products keep grid on tablet — only phones get the strip */
   .reviews-grid {
     grid-template-columns: 1fr;
   }
@@ -887,11 +944,11 @@
   .quantity-btn {
     width: 2.5rem;
     height: 2.5rem;
-    font-size: 1.15rem;
+    font-size: 1rem;
   }
   .quantity-input {
     height: 2.5rem;
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 
   /* CTAs — full width, stacked on narrow screens */
@@ -923,10 +980,7 @@
     width: 100%;
   }
 
-  .related-products-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
+
 
   .reviews-grid {
     grid-template-columns: 1fr;
@@ -1007,15 +1061,9 @@
     font-size: 1.05rem;
   }
 
-  .related-products-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
 
-  .related-products h2 {
-    font-size: 1.05rem;
-    margin-bottom: 0.8rem;
-  }
+
+
 
   .review-form-card,
   .review-list-card {

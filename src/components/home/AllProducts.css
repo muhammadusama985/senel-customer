@@ -1,5 +1,5 @@
 .all-products-section {
-  padding: 2.2rem 0.75rem 2.6rem;
+  padding: 2.6rem 0.75rem 3rem;
   background-color: var(--bg-primary);
 }
 
@@ -43,8 +43,8 @@
   scroll-snap-align: start;
   min-width: 0;
   display: flex;
-  flex: 0 0 220px;
-  min-width: 220px;
+  flex: 0 0 250px;
+  min-width: 250px;
 }
 
 .all-products-item > * {
@@ -54,7 +54,7 @@
 }
 
 .product-skeleton {
-  min-height: 260px;
+  min-height: 300px;
   border-radius: 1rem;
   background: linear-gradient(
     90deg,

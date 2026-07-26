@@ -6,7 +6,7 @@
 .products-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.9rem;
+  gap: 1.1rem;
   align-items: stretch;
 }
 
@@ -35,11 +35,11 @@
 .products-loader {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.1rem;
 }
 
 .product-skeleton {
-  min-height: 280px;
+  min-height: 300px;
   border-radius: 1rem;
   background: linear-gradient(
     90deg,

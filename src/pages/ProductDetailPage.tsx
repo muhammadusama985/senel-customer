@@ -301,6 +301,26 @@ export const ProductDetailPage: React.FC = () => {
     setSelectedImage(0);
   }, [selectedVariantSku, product?._id]);
 
+  // Scroll to the top of the page whenever the user navigates to a
+  // different product (or opens the page from a list). Without this the
+  // browser keeps the previous scroll position, so a customer clicking
+  // a product card halfway down the catalogue lands mid-page on the
+  // detail screen instead of at the title / gallery.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      if (document.documentElement) {
+        document.documentElement.scrollTop = 0;
+      }
+      if (document.body) {
+        document.body.scrollTop = 0;
+      }
+    } catch {
+      // Best-effort - never let scrolling break the page render.
+    }
+  }, [product?._id, product?.slug]);
+
   if (isLoading) {
     return (
       <div className="product-detail-loading">

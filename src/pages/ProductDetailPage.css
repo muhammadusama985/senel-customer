@@ -111,6 +111,39 @@
   margin-bottom: 2rem;
 }
 
+/* Hero header — title + rating + wishlist sit above the gallery/info grid */
+.product-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 0.6rem 1.2rem;
+  margin: 0.15rem 0 0.7rem;
+}
+
+.product-header .product-title {
+  font-size: clamp(1.45rem, 2.6vw, 1.9rem);
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.product-header .product-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: -0.15rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border);
+}
+
 /* Layout */
 .product-detail-layout {
   display: grid;

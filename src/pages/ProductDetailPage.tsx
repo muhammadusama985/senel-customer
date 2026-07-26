@@ -530,6 +530,38 @@ export const ProductDetailPage: React.FC = () => {
           ]}
         />
 
+        <div className="product-header">
+          <h1 className="product-title">{product.title}</h1>
+
+          <div className="product-meta">
+            {product.avgRating ? (
+              <div className="rating">
+                <div className="stars">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} className={`star ${i < Math.floor(product.avgRating!) ? 'filled' : ''}`}>
+                      &#9733;
+                    </span>
+                  ))}
+                </div>
+                <span className="rating-count">
+                  {product.avgRating.toFixed(1)} ({product.reviewCount} reviews)
+                </span>
+              </div>
+            ) : (
+              <span className="no-rating">{t('product.noReviews', 'No reviews yet')}</span>
+            )}
+
+            <button
+              className={`product-detail-wishlist-btn ${isWishlisted ? 'active' : ''}`}
+              onClick={handleWishlist}
+              aria-label={isWishlisted ? t('product.removeWishlist', 'Remove from wishlist') : t('product.addWishlist', 'Add to wishlist')}
+            >
+              {isWishlisted ? <HeartSolidIcon className="icon" /> : <HeartIcon className="icon" />}
+              <span>{isWishlisted ? t('product.saved', 'Saved') : t('product.saveWishlist', 'Save to Favorites')}</span>
+            </button>
+          </div>
+        </div>
+
         <div className="product-detail-layout">
           <div className="product-gallery">
             <div className="main-image">
@@ -607,37 +639,6 @@ export const ProductDetailPage: React.FC = () => {
           </div>
 
           <div className="product-info">
-            <h1 className="product-title">{product.title}</h1>
-
-            <div className="product-meta">
-              {product.avgRating ? (
-                <div className="rating">
-                  <div className="stars">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className={`star ${i < Math.floor(product.avgRating!) ? 'filled' : ''}`}>
-                        &#9733;
-                      </span>
-                    ))}
-                  </div>
-                  <span className="rating-count">
-                    {product.avgRating.toFixed(1)} ({product.reviewCount} reviews)
-                  </span>
-                </div>
-              ) : (
-                <span className="no-rating">{t('product.noReviews', 'No reviews yet')}</span>
-              )}
-
-              <button
-                className={`product-detail-wishlist-btn ${isWishlisted ? 'active' : ''}`}
-                onClick={handleWishlist}
-                aria-label={isWishlisted ? t('product.removeWishlist', 'Remove from wishlist') : t('product.addWishlist', 'Add to wishlist')}
-              >
-                {isWishlisted ? <HeartSolidIcon className="icon" /> : <HeartIcon className="icon" />}
-                <span>{isWishlisted ? t('product.saved', 'Saved') : t('product.saveWishlist', 'Save to Favorites')}</span>
-              </button>
-            </div>
-
-
 
             {product.hasVariants && (
               <div className="variant-selector-section">

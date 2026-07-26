@@ -43,8 +43,8 @@
   scroll-snap-align: start;
   min-width: 0;
   display: flex;
-  flex: 0 0 250px;
-  min-width: 250px;
+  flex: 0 0 260px;
+  min-width: 260px;
 }
 
 .all-products-item > * {
@@ -80,8 +80,8 @@
 @media (min-width: 901px) and (max-width: 1200px) {
   .all-products-bar,
   .all-products-loader {
-    flex: 0 0 220px;
-    min-width: 220px;
+    flex: 0 0 230px;
+    min-width: 230px;
   }
 }
 

@@ -60,19 +60,25 @@
 
 @media (max-width: 768px) {
   .trending-section {
-    padding: 2.2rem 0;
+    padding: 1.5rem 0;
   }
 
   .products-grid,
   .products-loader {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
+  .trending-section {
+    padding: 1.1rem 0;
+  }
+
   .products-grid,
   .products-loader {
     grid-template-columns: 1fr;
+    gap: 0.65rem;
   }
 }
 

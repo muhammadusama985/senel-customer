@@ -168,24 +168,28 @@
 .savings-banner {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  margin-bottom: 0.55rem;
-  padding: 0.45rem 0.7rem;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  /* Stronger, fully-opaque tint so the alert is visible on the light
+     theme card-bg. The two-stop gradient keeps the same visual feel. */
   background: linear-gradient(
     90deg,
-    rgba(16, 185, 129, 0.16) 0%,
-    rgba(16, 185, 129, 0.06) 100%
+    rgba(16, 185, 129, 0.22) 0%,
+    rgba(16, 185, 129, 0.10) 100%
   );
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(16, 185, 129, 0.45);
   border-radius: 0.55rem;
-  color: #d1fae5;
+  /* Dark, saturated green that reads on both light and dark backgrounds
+     (replaces the dark-mode-only #d1fae5 which vanished on white). */
+  color: var(--success, #047857);
   font-size: 0.8rem;
   font-weight: 600;
   line-height: 1.35;
 }
 
 .savings-banner .icon-small {
-  color: #34d399;
+  color: var(--success, #059669);
   flex-shrink: 0;
 }
 

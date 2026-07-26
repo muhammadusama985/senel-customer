@@ -1,5 +1,5 @@
 .vendor-page {
-  padding: 1.5rem 0 2.2rem;
+  padding: 2rem 0 3rem;
   min-height: 100vh;
 }
 
@@ -11,7 +11,7 @@
 }
 
 .skeleton-banner {
-  height: 300px;
+  height: 320px;
   background: linear-gradient(
     90deg,
     var(--card-bg) 25%,
@@ -24,7 +24,7 @@
 }
 
 .skeleton-info {
-  height: 200px;
+  height: 240px;
   background: linear-gradient(
     90deg,
     var(--card-bg) 25%,
@@ -42,7 +42,7 @@
 }
 
 .vendor-banner {
-  height: 260px;
+  height: 320px;
   border-radius: 0;
   overflow: hidden;
   margin-bottom: -10px;
@@ -68,7 +68,7 @@
 }
 
 .vendor-banner-placeholder {
-  height: 260px;
+  height: 320px;
   background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
   border-radius: 0;
   margin-bottom: -10px;
@@ -82,16 +82,16 @@
      of the row next to the store name instead of at the bottom below
      the description block. */
   align-items: flex-start;
-  gap: 1.25rem;
-  padding: 0 1.2rem;
+  gap: 1.75rem;
+  padding: 0 1.25rem 0.5rem;
   position: relative;
 }
 
 .vendor-logo-wrapper {
-  width: 108px;
-  height: 108px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
-  border: 4px solid var(--bg-primary);
+  border: 5px solid var(--bg-primary);
   overflow: hidden;
   /* Fixed white background so transparent-PNG logo uploads don't blend
      into the dark theme deep purple card-bg. */
@@ -116,7 +116,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3rem;
+  font-size: 3.6rem;
   font-weight: bold;
   color: var(--accent);
   /* Fixed white so the colored initial stays visible in both themes. */
@@ -133,34 +133,38 @@
 .vendor-name-wrapper {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: 0.65rem;
+  margin-bottom: 0.65rem;
 }
 
 .vendor-name {
-  font-size: 1.7rem;
+  font-size: 2.1rem;
   margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .verified-badge-large {
-  width: 2rem;
-  height: 2rem;
+  width: 2.4rem;
+  height: 2.4rem;
   color: var(--success);
 }
 
 .vendor-description {
   color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-  max-width: 600px;
+  margin-bottom: 0.65rem;
+  max-width: 700px;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .vendor-location {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.95rem;
 }
 
 .preferred-btn {
-  margin-top: 0.75rem;
+  margin-top: 1rem;
 }
 
 /* Vendor Products */

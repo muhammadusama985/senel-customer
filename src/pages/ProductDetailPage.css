@@ -111,37 +111,42 @@
   margin-bottom: 2rem;
 }
 
-/* Hero header — title + rating + wishlist sit above the gallery/info grid */
+/* Hero header — title + rating + wishlist sit on a single tight row above the gallery */
 .product-header {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  gap: 0.6rem 1.2rem;
-  margin: 0.15rem 0 0.7rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.45rem;
 }
 
 .product-header .product-title {
-  font-size: clamp(1.45rem, 2.6vw, 1.9rem);
-  font-weight: 800;
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  font-weight: 700;
   margin: 0;
-  line-height: 1.2;
-  letter-spacing: -0.015em;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
   background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+  min-width: 0;
+  flex: 1;
+  /* Truncate gracefully if the title is very long instead of wrapping. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .product-header .product-meta {
-  grid-column: 1 / -1;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 0.75rem;
-  margin-top: -0.15rem;
-  padding-top: 0.45rem;
-  border-top: 1px solid var(--border);
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  flex-shrink: 0;
 }
 
 /* Layout */
@@ -255,8 +260,10 @@
 
 .stars {
   display: flex;
-  gap: 0.125rem;
+  gap: 0.1rem;
   color: var(--warning);
+  font-size: 0.9rem;
+  line-height: 1;
 }
 
 .star.filled {
@@ -265,12 +272,13 @@
 
 .rating-count {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
 
 .no-rating {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
 }
 
 .product-detail-wishlist-btn {

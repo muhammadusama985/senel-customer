@@ -174,33 +174,16 @@
   font-size: 1.05rem;
 }
 
-/* Desktop / tablet: match trending/allproducts sizing.
-   Cards are a bit bigger so the catalogue strip looks substantial. */
-.vendor-products .product-grid,
-.vendor-products .products-loader {
-  flex: 0 0 250px;
-  min-width: 250px;
-}
-
-/* ---------------------------------------------------------------
-   Vendor products on mobile: convert the shared ProductGrid (which
-   by default stacks one card per row on tiny screens) into a
-   horizontal swipe strip -- IDENTICAL design to TrendingProduct.css
-   + AllProducts.css so all three product strips look identical on
-   every phone width.
-
-   All selectors are scoped under .vendor-products so the shared
-   ProductGrid component is untouched and every other page that
-   uses it keeps its own (grid) layout.
-   --------------------------------------------------------------- */
-
-/* ≤ 768px (large phone / small tablet) -- convert to horizontal swipe strip
-   (same UX as the gallery / trending products / all products). */
+/* All viewport sizes (normal + mobile): same horizontal scroll strip
+   as AllProducts -- flex strip everywhere, no CSS Grid columns.
+   Card width 250px on desktop, stepping down on phones. */
 .vendor-products .product-grid,
 .vendor-products .products-loader {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0.65rem;
+  flex: 0 0 250px;
+  min-width: 250px;
+  gap: 1.1rem;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
@@ -223,15 +206,55 @@
   border-radius: 999px;
 }
 
-.vendor-products .product-grid > *,
-.vendor-products .products-loader > * {
-  flex: 0 0 165px;
-  min-width: 165px;
-  scroll-snap-align: start;
+/* ---------------------------------------------------------------
+   Mobile ladder -- identical to AllProducts / Trending.
+   Base rule above handles normal screens (250px cards).
+   The breakpoints below only override card width + gap.
+   --------------------------------------------------------------- */
+
+/* ≤ 768px (large phone / small tablet) */
+@media (max-width: 768px) {
+  .vendor-products .product-grid,
+  .vendor-products .products-loader {
+    gap: 0.65rem;
+  }
+
+  .vendor-products .product-grid > *,
+  .vendor-products .products-loader > * {
+    flex: 0 0 165px;
+    min-width: 165px;
+    scroll-snap-align: start;
+  }
+
+  .vendor-products .product-skeleton {
+    min-height: 240px;
+  }
 }
 
-.vendor-products .product-skeleton {
-  min-height: 240px;
+/* ≤ 480px (typical phone) */
+@media (max-width: 480px) {
+  .vendor-products .product-grid > *,
+  .vendor-products .products-loader > * {
+    flex: 0 0 145px;
+    min-width: 145px;
+  }
+
+  .vendor-products .product-skeleton {
+    min-height: 210px;
+  }
+}
+
+/* ≤ 380px (small phones) */
+@media (max-width: 380px) {
+  .vendor-products .product-grid > *,
+  .vendor-products .products-loader > * {
+    flex: 0 0 135px;
+    min-width: 135px;
+  }
+
+  .vendor-products .product-skeleton {
+    min-height: 190px;
+  }
 }
 
 /* ≤ 480px (typical phone) */
@@ -259,7 +282,7 @@
 }
 
 .vendor-products .product-skeleton {
-  min-height: 190px;
+  min-height: 300px;
 }
 
 .no-products {

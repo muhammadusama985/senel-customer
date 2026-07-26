@@ -165,11 +165,91 @@
 
 /* Vendor Products */
 .vendor-products {
-  margin-top: 2.2rem;
+  margin-top: 1.8rem;
+  padding: 0 0.75rem;
 }
 
 .vendor-products h2 {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+
+/* ---------------------------------------------------------------
+   Vendor products on mobile: convert the shared ProductGrid (which
+   by default stacks one card per row on tiny screens) into a
+   horizontal swipe strip — same UX as the gallery / trending
+   products / related products. Cards stay compact so the full
+   strip fits comfortably on a phone.
+
+   All selectors are scoped under .vendor-products so the shared
+   ProductGrid component is untouched and every other page that
+   uses it keeps its own layout.
+   --------------------------------------------------------------- */
+
+/* ≤ 768px (large phone / small tablet) */
+.vendor-products .product-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.65rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0.5rem;
+  padding: 0.3rem 0.25rem 0.7rem;
+  margin-bottom: 1.2rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.vendor-products .product-grid::-webkit-scrollbar {
+  height: 5px;
+}
+
+.vendor-products .product-grid::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.vendor-products .product-grid > * {
+  flex: 0 0 170px;
+  min-width: 170px;
+  scroll-snap-align: start;
+}
+
+/* ≤ 480px (typical phone) */
+.vendor-products .product-grid {
+  gap: 0.55rem;
+  padding: 0.25rem 0.2rem 0.6rem;
+}
+
+.vendor-products .product-grid > * {
+  flex: 0 0 145px;
+  min-width: 145px;
+}
+
+.vendor-products .products-loader {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.55rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.2rem 0.6rem;
+}
+
+.vendor-products .products-loader > * {
+  flex: 0 0 145px;
+  min-width: 145px;
+}
+
+/* ≤ 380px (small phones) */
+.vendor-products .product-grid > *,
+.vendor-products .products-loader > * {
+  flex: 0 0 135px;
+  min-width: 135px;
+}
+
+.vendor-products .product-skeleton {
+  min-height: 200px;
 }
 
 .no-products {

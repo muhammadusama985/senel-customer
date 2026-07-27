@@ -476,8 +476,10 @@
   padding: 0.3rem 0.4rem;
   min-width: 3.4rem;
   border-radius: 0.6rem;
-  /* No border on the chip itself — the active circle highlight comes from
-     a ring around the color circle (see .color-swatch.active .color-swatch-circle). */
+  /* Reset the <button> default border — otherwise the browser draws a
+     dark 2px outset frame around every chip. The chip is borderless; the
+     active circle highlight comes from a ring around the color circle. */
+  border: none;
   background-color: transparent;
   cursor: pointer;
   /* The chip itself is flat — the surrounding row provides the soft
@@ -495,7 +497,9 @@
 
 .color-swatch:focus-visible {
   outline: none;
-  border-color: var(--primary, #5b2eff);
+  /* Focus ring: same purple accent as the selected circle, drawn via a
+     box-shadow so it works even though the chip itself is borderless. */
+  box-shadow: 0 0 0 2px var(--primary, #5b2eff);
 }
 
 /* Active: no square border, no background tint, no per-chip shadow.

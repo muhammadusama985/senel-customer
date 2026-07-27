@@ -453,7 +453,7 @@
 .color-swatch-group {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
   margin-top: 0.1rem;
   /* Borderless container with a soft light background that works in
      both light and dark themes. --bg-secondary is white-ish (light
@@ -511,9 +511,11 @@
 }
 
 /* Circular highlight around the color circle when selected. A clean
-   outline forms a perfect ring around the existing round swatch. */
+   outline forms a perfect ring around the existing round swatch.
+   Colour is a darker purple than the global accent so the selection
+   reads clearly against any background. */
 .color-swatch.active .color-swatch-circle {
-  outline: 2px solid var(--primary, #5b2eff);
+  outline: 3px solid #4a1ee6;
   outline-offset: 3px;
 }
 
@@ -1027,9 +1029,10 @@
     font-size: 0.78rem;
   }
 
-  /* Color swatches — keep on one row, slightly smaller chips */
+  /* Color swatches — keep on one row, slightly smaller chips,
+     tight gap matching the desktop value. */
   .color-swatch-group {
-    gap: 0.45rem;
+    gap: 0.4rem;
   }
   .color-swatch {
     min-width: 3.2rem;

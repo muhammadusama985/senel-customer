@@ -529,6 +529,8 @@
   transition: border-color 0.15s ease, transform 0.15s ease;
   font: inherit;
   color: var(--text-primary);
+  /* Anchor for the floating tooltip above the circle. */
+  position: relative;
 }
 
 .color-swatch:hover {
@@ -555,35 +557,88 @@
 }
 
 .color-swatch-label {
-  font-size: 0.72rem;
-  line-height: 1.1;
-  text-align: center;
-  color: var(--text-primary);
-  max-width: 3.6rem;
-  word-break: break-word;
-  /* Hidden by default — the colour name only appears when the user
-     hovers over a chip, or for the currently selected chip. Keeps the
-     picker visually clean (just a row of circles). */
+  /* Reset the old inline-below styles — the label is now a floating
+     tooltip pinned ABOVE the circle, so it must NOT participate in the
+     swatch's flex flow. */
+  position: absolute;
+  bottom: calc(100% + 0.55rem);
+  left: 50%;
+  /* Hidden by default; floats in from below with a subtle scale-up. */
+  transform: translateX(-50%) translateY(6px) scale(0.94);
+  transform-origin: 50% 100%;
   opacity: 0;
-  max-height: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: none;
+  max-height: none;
   margin: 0;
-  overflow: hidden;
-  transition: opacity 0.15s ease, max-height 0.15s ease;
+  overflow: visible;
+  word-break: normal;
+  /* Pill tooltip styling. */
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  padding: 0.34rem 0.7rem;
+  border-radius: 999px;
+  background-color: var(--card-bg);
+  /* Subtle ring + lifted shadow give the tooltip a "floating" feel.
+     The ring is implemented via box-shadow so it doesn't fight with
+     the down-pointing arrow below. */
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.18),
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(31, 95, 139, 0.18);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  z-index: 10;
+  transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Hover: pop the colour name in just for this chip. */
+/* Down-pointing arrow tucked under the tooltip. The arrow uses the
+   same background as the tooltip body so the outline ring on the
+   tooltip aligns naturally with the arrow tip. */
+.color-swatch-label::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--card-bg);
+  filter: drop-shadow(0 1px 0 rgba(31, 95, 139, 0.18));
+}
+
+/* Hover: tooltip slides up + fades in, anchored above the chip. */
 .color-swatch:hover .color-swatch-label {
   opacity: 1;
-  max-height: 1.4rem;
-  margin-top: 0.15rem;
+  transform: translateX(-50%) translateY(0) scale(1);
 }
 
-/* The currently selected colour is the only one that should always
-   show its name (so the customer can confirm what they picked). */
+/* The currently selected colour always shows its name (so the
+   customer can confirm what they picked) with a subtle accent ring
+   to match the chip's selected border. */
 .color-swatch.active .color-swatch-label {
   opacity: 1;
-  max-height: 1.4rem;
-  margin-top: 0.15rem;
+  transform: translateX(-50%) translateY(0) scale(1);
+  box-shadow:
+    0 10px 24px rgba(91, 46, 255, 0.22),
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(91, 46, 255, 0.5);
+  color: var(--primary, #5b2eff);
+}
+
+/* The arrow under an active tooltip matches the accent ring. */
+.color-swatch.active .color-swatch-label::after {
+  filter: drop-shadow(0 1px 0 rgba(91, 46, 255, 0.5));
+}
+
+/* Give the swatch group a touch of breathing room at the top so the
+   tooltip never gets clipped by anything above. */
+.color-swatch-group {
+  margin-top: 0.1rem;
+  padding-top: 0.1rem;
 }
 
 .variant-stock {
@@ -1018,8 +1073,9 @@
     height: 1.55rem;
   }
   .color-swatch-label {
-    font-size: 0.68rem;
-    max-width: 3.2rem;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+    bottom: calc(100% + 0.4rem);
   }
 
   /* Variant selector dropdown */

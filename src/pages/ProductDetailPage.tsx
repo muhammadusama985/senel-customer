@@ -114,23 +114,36 @@ export const ProductDetailPage: React.FC = () => {
   const mainImageRef = useRef<HTMLDivElement | null>(null);
   const [zoomOrigin, setZoomOrigin] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
   const [isZooming, setIsZooming] = useState(false);
+  // Lens position (pixel coords inside .main-image) so the small ring
+  // indicator can follow the cursor in real time.
+  const [lensPos, setLensPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const handleMainImageMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    const px = event.clientX - rect.left; // pixel coords inside the container
+    const py = event.clientY - rect.top;
+    const xPct = ((event.clientX - rect.left) / rect.width) * 100;
+    const yPct = ((event.clientY - rect.top) / rect.height) * 100;
     // Clamp to a sane range so the origin never falls outside the image.
-    setZoomOrigin({
-      x: Math.max(0, Math.min(100, x)),
-      y: Math.max(0, Math.min(100, y)),
-    });
+    const x = Math.max(0, Math.min(100, xPct));
+    const y = Math.max(0, Math.min(100, yPct));
+    setZoomOrigin({ x, y });
+    // Update the cursor-driven CSS variables so the lens ring and the
+    // radial-gradient vignette both follow the cursor in real time.
+    const target = event.currentTarget;
+    target.style.setProperty('--lens-x', `${x}%`);
+    target.style.setProperty('--lens-y', `${y}%`);
+    setLensPos({ x: px, y: py });
   };
 
   const handleMainImageMouseEnter = () => setIsZooming(true);
-  const handleMainImageMouseLeave = () => {
+  const handleMainImageMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
     setIsZooming(false);
     setZoomOrigin({ x: 50, y: 50 });
+    setLensPos({ x: 0, y: 0 });
+    event.currentTarget.style.setProperty('--lens-x', '50%');
+    event.currentTarget.style.setProperty('--lens-y', '50%');
   };
 
   const [quantity, setQuantity] = useState(0);
@@ -621,6 +634,11 @@ export const ProductDetailPage: React.FC = () => {
                 className="main-image-img"
                 style={{ transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%` }}
                 draggable={false}
+              />
+              <span
+                className="main-image-lens"
+                aria-hidden="true"
+                style={{ left: `${lensPos.x}px`, top: `${lensPos.y}px` }}
               />
             </div>
             {images.length > 1 && (

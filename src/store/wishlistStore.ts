@@ -24,7 +24,7 @@ export const useWishlistStore = create<WishlistState>()(
         set({ isLoading: true });
         try {
           const response = await api.get('/wishlist/me');
-          const ids = Array.from(
+          const ids: string[] = Array.from(
             new Set((response.data.items || []).map((i: any) => String(i.productId)))
           );
           set({ 

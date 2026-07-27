@@ -453,7 +453,7 @@
 .color-swatch-group {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.25rem;
   margin-top: 0.1rem;
   /* Borderless container with a soft light background that works in
      both light and dark themes. --bg-secondary is white-ish (light
@@ -1007,12 +1007,34 @@
   }
 
   .image-thumbnails {
-    gap: 0.4rem;
+    /* Single-row, horizontally scrollable thumbnail strip on phones. */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0.25rem;
+    padding-bottom: 0.35rem;
+    /* Subtle native scrollbar so the user can see there is more. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
+
+  .image-thumbnails::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .image-thumbnails::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
+  }
+
+
 
   .thumbnail-btn {
     width: 52px;
     height: 52px;
+    scroll-snap-align: start;
   }
 
   /* Variant stock table — allow horizontal scroll inside the card instead
@@ -1032,7 +1054,7 @@
   /* Color swatches — keep on one row, slightly smaller chips,
      tight gap matching the desktop value. */
   .color-swatch-group {
-    gap: 0.4rem;
+    gap: 0.25rem;
   }
   .color-swatch {
     min-width: 3.2rem;
@@ -1250,10 +1272,8 @@
     max-height: 240px;
   }
 
-  .image-thumbnails {
-    justify-content: flex-start;
-  }
-
+  /* ≤ 380px: only tighten the thumbnail size. The strip itself stays a
+     horizontally scrollable row (set in the ≤ 640px block above). */
   .thumbnail-btn {
     width: 44px;
     height: 44px;

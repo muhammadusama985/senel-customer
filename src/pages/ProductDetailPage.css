@@ -190,7 +190,8 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  cursor: zoom-in;
+  /* No zoom-in cursor: the cursor-point zoom is invisible to the user,
+     only the image scale-up gives the zoom hint. */
 }
 
 .main-image-img {
@@ -226,7 +227,6 @@
    doesn't lose their place while inspecting detail. */
 .main-image.zooming .main-image-img {
   transform: scale(1.85);
-  cursor: zoom-out;
   /* Deeper shadow + soft inner glow when zoomed in: reads as "this
      image is now floating closer to you". */
   box-shadow:
@@ -236,70 +236,13 @@
   filter: brightness(1.02);
 }
 
-/* Lens indicator (small ring that follows the cursor while zoomed).
-   It sits absolutely inside .main-image and is moved via inline
-   left/top in JS. Hidden until .zooming is active. */
-.main-image-lens {
-  position: absolute;
-  width: 3.25rem;
-  height: 3.25rem;
-  border-radius: 999px;
-  /* Translucent white ring with a soft drop shadow so it stays
-     visible on both light and dark photos. */
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.25),
-    0 4px 14px rgba(0, 0, 0, 0.35);
-  pointer-events: none;
-  /* Centered on the cursor position (which JS sets as top-left). */
-  transform: translate(-50%, -50%) scale(0.6);
-  opacity: 0;
-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 3;
-  mix-blend-mode: difference; /* keeps the ring visible on any color */
-}
-
-.main-image.zooming .main-image-lens {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-
-/* Subtle fade overlay behind the zoomed image so the gallery feels
-   more focused. Implemented as a radial gradient that brightens at
-   the cursor and darkens around the edges. */
-.main-image::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  background: radial-gradient(
-    circle at var(--lens-x, 50%) var(--lens-y, 50%),
-    rgba(255, 255, 255, 0) 0%,
-    rgba(8, 3, 33, 0.18) 70%,
-    rgba(8, 3, 33, 0.32) 100%
-  );
-  z-index: 2;
-}
-
-.main-image.zooming::after {
-  opacity: 1;
-}
-
 /* Touch devices: there's no hover, so keep the image at 1x and let
    the user pinch-zoom with the OS-level gesture instead. */
 @media (hover: none) {
   .main-image.zooming .main-image-img {
     transform: scale(1);
-    cursor: default;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
     filter: none;
-  }
-  .main-image.zooming .main-image-lens,
-  .main-image.zooming::after {
-    display: none;
   }
 }
 
@@ -523,10 +466,14 @@
   padding: 0.3rem 0.4rem;
   min-width: 3.4rem;
   border-radius: 0.6rem;
-  border: 2px solid transparent;
+  /* No border on the chip itself — the active circle highlight comes from
+     a ring around the color circle (see .color-swatch.active .color-swatch-circle). */
   background-color: transparent;
   cursor: pointer;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  /* Subtle "shade" (box-shadow) so each chip lifts a little off the page,
+     matching the soft elevation used elsewhere on the detail page. */
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.18s ease, transform 0.15s ease;
   font: inherit;
   color: var(--text-primary);
   /* Anchor for the floating tooltip above the circle. */
@@ -542,9 +489,18 @@
   border-color: var(--primary, #5b2eff);
 }
 
+/* Active: no square border, no background tint. The selection is
+   communicated by (a) a slightly stronger shadow on the chip and
+   (b) a circular purple ring around the color circle (below). */
 .color-swatch.active {
-  border-color: var(--primary, #5b2eff);
-  background-color: rgba(91, 46, 255, 0.08);
+  box-shadow: 0 5px 14px rgba(91, 46, 255, 0.28);
+}
+
+/* Circular highlight around the color circle when selected. A clean
+   outline forms a perfect ring around the existing round swatch. */
+.color-swatch.active .color-swatch-circle {
+  outline: 2px solid var(--primary, #5b2eff);
+  outline-offset: 3px;
 }
 
 .color-swatch-circle {
@@ -616,20 +572,18 @@
   transform: translateX(-50%) translateY(0) scale(1);
 }
 
-/* The currently selected colour always shows its name (so the
-   customer can confirm what they picked) with a subtle accent ring
-   to match the chip's selected border. */
-.color-swatch.active .color-swatch-label {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0) scale(1);
-  box-shadow:
-    0 10px 24px rgba(91, 46, 255, 0.22),
-    0 2px 6px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(91, 46, 255, 0.5);
-  color: var(--primary, #5b2eff);
+/* Once a colour is selected, its name MUST stay hidden. Defined after
+   the hover rule below so it wins when both states apply. */
+.color-swatch.active .color-swatch-label,
+.color-swatch.active:hover .color-swatch-label {
+  opacity: 0;
+  transform: translateX(-50%) translateY(6px) scale(0.94);
+  /* Keep the transition snappy so hiding feels intentional. */
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-/* The arrow under an active tooltip matches the accent ring. */
+/* Arrow under an active tooltip: still styled, but irrelevant while
+   the tooltip is hidden. */
 .color-swatch.active .color-swatch-label::after {
   filter: drop-shadow(0 1px 0 rgba(91, 46, 255, 0.5));
 }

@@ -180,36 +180,30 @@
   letter-spacing: -0.01em;
 }
 
-/* All viewport sizes (normal + mobile): same horizontal scroll strip
-   as AllProducts -- flex strip everywhere, no CSS Grid columns.
-   Card width 250px on desktop, stepping down on phones. */
+/* DESKTOP (default): proper CSS grid -- 4 cards per row on a laptop,
+   matching TrendingProduct + AllProducts on the home page. */
 .vendor-products .product-grid,
 .vendor-products .products-loader {
-  display: flex;
-  flex-wrap: nowrap;
-  flex: 0 0 290px;
-  min-width: 290px;
-  gap: 1.2rem;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x mandatory;
-  scroll-padding: 0.5rem;
-  padding: 0.25rem 0.25rem 0.6rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
   margin-bottom: 1rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  padding: 0;
 }
 
-.vendor-products .product-grid::-webkit-scrollbar,
-.vendor-products .products-loader::-webkit-scrollbar {
-  height: 5px;
+.vendor-products .product-grid > *,
+.vendor-products .products-loader > * {
+  min-width: 0;
+  scroll-snap-align: start;
 }
 
-.vendor-products .product-grid::-webkit-scrollbar-thumb,
-.vendor-products .products-loader::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 999px;
+/* TABLET (3 columns) */
+@media (max-width: 1024px) {
+  .vendor-products .product-grid,
+  .vendor-products .products-loader {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.1rem;
+  }
 }
 
 /* ---------------------------------------------------------------
@@ -263,33 +257,25 @@
   }
 }
 
-/* ≤ 480px (typical phone) */
-.vendor-products .product-grid,
-.vendor-products .products-loader {
-  gap: 0.65rem;
-  padding: 0.25rem 0.25rem 0.6rem;
+/* ≤ 480px (typical phone) — tighter gap + padding.
+   The flex/min-width and skeleton min-height rules for ≤480px
+   are already defined in the proper @media block above. */
+@media (max-width: 480px) {
+  .vendor-products .product-grid,
+  .vendor-products .products-loader {
+    gap: 0.65rem;
+    padding: 0.25rem 0.25rem 0.6rem;
+  }
 }
 
-.vendor-products .product-grid > *,
-.vendor-products .products-loader > * {
-  flex: 0 0 145px;
-  min-width: 145px;
-}
-
-.vendor-products .product-skeleton {
-  min-height: 210px;
-}
-
-/* ≤ 380px (small phones) */
-.vendor-products .product-grid > *,
-.vendor-products .products-loader > * {
-  flex: 0 0 135px;
-  min-width: 135px;
-}
-
-.vendor-products .product-skeleton {
-  min-height: 340px;
-  border-radius: 0.85rem;
+/* ≤ 380px (small phones) — skeleton gets a taller min-height
+   and a rounded edge. The flex/min-width rules for ≤380px are
+   already defined in the proper @media block above. */
+@media (max-width: 380px) {
+  .vendor-products .product-skeleton {
+    min-height: 340px;
+    border-radius: 0.85rem;
+  }
 }
 
 .no-products {

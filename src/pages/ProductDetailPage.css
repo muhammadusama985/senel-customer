@@ -22,6 +22,13 @@
   gap: 3rem;
 }
 
+@media (max-width: 640px) {
+  .loading-skeleton {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
 .skeleton-gallery {
   height: 500px;
   background: linear-gradient(
@@ -147,6 +154,17 @@
   text-overflow: ellipsis;
 }
 
+/* On phones the title gets its own row anyway — allow it to wrap to a
+   2nd line instead of being truncated mid-word. */
+@media (max-width: 640px) {
+  .product-header .product-title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.2;
+  }
+}
+
 .product-header .product-meta {
   display: flex;
   align-items: center;
@@ -171,6 +189,12 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .product-gallery {
+    gap: 0.75rem;
+  }
 }
 
 .main-image {
@@ -292,8 +316,14 @@
   gap: 0.6rem;
 }
 
+@media (max-width: 640px) {
+  .product-info {
+    gap: 0.5rem;
+  }
+}
+
 .product-title {
-  font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+  font-size: clamp(1.05rem, 2.2vw, 1.45rem);
   margin: 0;
   line-height: 1.25;
 }
@@ -308,6 +338,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .stars {
@@ -316,6 +347,15 @@
   color: var(--warning);
   font-size: 0.9rem;
   line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .stars {
+    font-size: 0.82rem;
+  }
+  .rating-count {
+    font-size: 0.72rem;
+  }
 }
 
 .star.filled {
@@ -385,6 +425,12 @@
   font-weight: 600;
 }
 
+@media (max-width: 380px) {
+  .product-description-heading {
+    font-size: 0.92rem;
+  }
+}
+
 .product-description-scroller {
   /* Reserve a fixed block of vertical space. If the description is shorter
      than the cap it shows in full; if it overflows, the block scrolls
@@ -392,6 +438,18 @@
   max-height: 220px;
   overflow-y: auto;
   padding-right: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .product-description-scroller {
+    max-height: 160px;
+  }
+}
+
+@media (max-width: 380px) {
+  .product-description-scroller {
+    max-height: 130px;
+  }
 }
 
 .product-description {
@@ -667,6 +725,14 @@
   border-top: 1px solid var(--border, rgba(0, 0, 0, 0.06));
   background-color: var(--muted-bg, rgba(0, 0, 0, 0.03));
   color: var(--text-primary, #222);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 480px) {
+  .variant-stock-overall {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.72rem;
+  }
 }
 
 .add-to-cart-section {
@@ -719,8 +785,24 @@
   margin-bottom: 1.2rem;
 }
 
+@media (max-width: 640px) {
+  .reviews-header {
+    gap: 0.6rem;
+    margin-bottom: 0.9rem;
+  }
+}
+
 .reviews-header h2 {
   margin: 0 0 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .reviews-header h2 {
+    font-size: 1.2rem;
+  }
+  .reviews-subtitle {
+    font-size: 0.82rem;
+  }
 }
 
 .reviews-subtitle {
@@ -869,6 +951,13 @@
 
 .related-products h2 {
   margin-bottom: 1.2rem;
+}
+
+@media (max-width: 640px) {
+  .related-products h2 {
+    margin-bottom: 0.85rem;
+    font-size: 1.2rem;
+  }
 }
 
 /* Horizontal scroll strip (same feel as the image gallery):
@@ -1046,7 +1135,7 @@
   }
   .variant-stock-table-header,
   .variant-stock-row {
-    min-width: 420px;
+    min-width: 360px;
     padding: 0.4rem 0.7rem;
     font-size: 0.78rem;
   }
@@ -1100,7 +1189,7 @@
     -webkit-overflow-scrolling: touch;
   }
   .price-tiers-table table {
-    min-width: 420px;
+    min-width: 360px;
     font-size: 0.82rem;
   }
   .price-tiers-table th {
@@ -1130,6 +1219,10 @@
     min-height: 3rem;
     font-size: 0.95rem;
     padding: 0.7rem 1rem;
+  }
+  .add-to-cart-btn__icon {
+    width: 1.15rem;
+    height: 1.15rem;
   }
   .add-to-cart-btn__label {
     white-space: normal;

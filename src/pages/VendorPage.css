@@ -212,11 +212,36 @@
    The breakpoints below only override card width + gap.
    --------------------------------------------------------------- */
 
-/* ≤ 768px (large phone / small tablet) */
+/* ≤ 768px (large phone / small tablet) — horizontal
+   scroll carousel of product cards (same pattern used by
+   TrendingProduct / AllProducts on the home page). */
 @media (max-width: 768px) {
   .vendor-products .product-grid,
   .vendor-products .products-loader {
+    display: flex;
+    flex-wrap: nowrap;
     gap: 0.65rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0.5rem;
+    padding: 0.25rem 0.25rem 0.6rem;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .vendor-products .product-grid::-webkit-scrollbar,
+  .vendor-products .products-loader::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .vendor-products .product-grid::-webkit-scrollbar-thumb,
+  .vendor-products .products-loader::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
   }
 
   .vendor-products .product-grid > *,
@@ -224,6 +249,7 @@
     flex: 0 0 165px;
     min-width: 165px;
     scroll-snap-align: start;
+    flex-shrink: 0;
   }
 
   .vendor-products .product-skeleton {

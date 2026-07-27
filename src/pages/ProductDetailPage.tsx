@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProduct, useRelatedProducts } from '../hooks/useProducts';
 import { useCartStore } from '../store/cartStore';
@@ -109,6 +109,30 @@ export const ProductDetailPage: React.FC = () => {
   const { lang, t } = useI18n();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  // Zoom-on-hover: track cursor position over the main image so we can
+  // set transform-origin to the exact spot the user is pointing at.
+  const mainImageRef = useRef<HTMLDivElement | null>(null);
+  const [zoomOrigin, setZoomOrigin] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
+  const [isZooming, setIsZooming] = useState(false);
+
+  const handleMainImageMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    // Clamp to a sane range so the origin never falls outside the image.
+    setZoomOrigin({
+      x: Math.max(0, Math.min(100, x)),
+      y: Math.max(0, Math.min(100, y)),
+    });
+  };
+
+  const handleMainImageMouseEnter = () => setIsZooming(true);
+  const handleMainImageMouseLeave = () => {
+    setIsZooming(false);
+    setZoomOrigin({ x: 50, y: 50 });
+  };
+
   const [quantity, setQuantity] = useState(0);
   const [quantityInputValue, setQuantityInputValue] = useState('');
   const [selectedImage, setSelectedImage] = useState(0);
@@ -584,11 +608,19 @@ export const ProductDetailPage: React.FC = () => {
 
         <div className="product-detail-layout">
           <div className="product-gallery">
-            <div className="main-image">
+            <div
+              className={`main-image${isZooming ? ' zooming' : ''}`}
+              ref={mainImageRef}
+              onMouseEnter={handleMainImageMouseEnter}
+              onMouseMove={handleMainImageMouseMove}
+              onMouseLeave={handleMainImageMouseLeave}
+            >
               <img
                 src={images[selectedImage]}
                 alt={product.title}
                 className="main-image-img"
+                style={{ transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%` }}
+                draggable={false}
               />
             </div>
             {images.length > 1 && (

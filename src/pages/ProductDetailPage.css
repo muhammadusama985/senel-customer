@@ -11,6 +11,30 @@
   padding-right: 0.75rem;
 }
 
+/* Generous horizontal padding on phones so the gallery, tables and CTA
+   cluster sit clearly INSIDE the screen (never visually flush against
+   the right edge). */
+@media (max-width: 640px) {
+  .product-detail-page > .container {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-detail-page > .container {
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .product-detail-page > .container {
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+  }
+}
+
 /* Loading State */
 .product-detail-loading {
   padding: 4rem 0;
@@ -1093,6 +1117,9 @@
   .main-image {
     max-height: 320px;
     border-radius: 0.7rem;
+    /* Symmetric inner padding so the image can never touch the edges,
+       even if a child tries to escape its box. */
+    padding: 4px;
   }
 
   .image-thumbnails {
@@ -1126,17 +1153,29 @@
     scroll-snap-align: start;
   }
 
-  /* Variant stock table — allow horizontal scroll inside the card instead
-     of forcing the page to scroll sideways. */
+  /* Variant stock (SKU) table — allow horizontal scroll inside the card
+     instead of forcing the page to scroll sideways. The card itself
+     keeps a small inner padding so the rows never visually touch the
+     right edge of the table card. */
   .variant-stock-table {
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    padding: 2px;
+  }
+  .variant-stock-table::-webkit-scrollbar {
+    height: 4px;
+  }
+  .variant-stock-table::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
   }
   .variant-stock-table-header,
   .variant-stock-row {
-    min-width: 360px;
-    padding: 0.4rem 0.7rem;
+    min-width: 340px;
+    padding: 0.4rem 0.6rem;
     font-size: 0.78rem;
   }
 
@@ -1166,9 +1205,30 @@
     font-size: 0.95rem;
   }
 
-  /* Tiered pricing card */
+  /* Tiered pricing card — ensure the card sits inside the container with
+     a clean right margin. Tighten padding slightly on phones. */
   .tiered-pricing {
-    padding: 0.85rem 0.8rem 0.95rem;
+    padding: 0.85rem 0.85rem 0.95rem;
+  }
+
+  /* Price tiers table — horizontal scroll inside the card so it never
+     forces the page itself to scroll sideways. */
+  .price-tiers-table {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    margin-left: -0.05rem;
+    margin-right: -0.05rem;
+    padding: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .price-tiers-table::-webkit-scrollbar {
+    height: 4px;
+  }
+  .price-tiers-table::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
   }
   .pricing-header {
     flex-wrap: wrap;
@@ -1212,13 +1272,15 @@
     font-size: 0.95rem;
   }
 
-  /* CTAs — full width, stacked on narrow screens */
+  /* CTAs — full width, stacked on narrow screens. Sized down on phones so
+     the button never visually pushes against the right margin. */
   .add-to-cart-btn {
     width: 100% !important;
     max-width: none !important;
-    min-height: 3rem;
-    font-size: 0.95rem;
-    padding: 0.7rem 1rem;
+    min-height: 2.85rem;
+    font-size: 0.92rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 0.75rem;
   }
   .add-to-cart-btn__icon {
     width: 1.15rem;
@@ -1236,13 +1298,18 @@
      React renders the inline style as
         style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.75rem;"
      so the attribute selector must look for `display: flex` (no quotes)
-     and `flex-wrap` (kebab-case in HTML). */
+     and `flex-wrap` (kebab-case in HTML). On phones we tighten padding
+     and font so they look like compact buttons, not oversized CTAs. */
   .product-info > div[style*="display: flex"][style*="flex-wrap"] {
     flex-direction: column;
-    gap: 0.55rem !important;
+    gap: 0.5rem !important;
+    margin-top: 0.5rem !important;
   }
   .product-info > div[style*="display: flex"][style*="flex-wrap"] > button {
     width: 100%;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.88rem;
+    border-radius: 0.7rem;
   }
 
 
@@ -1415,5 +1482,16 @@
   .color-swatch-circle {
     width: 1.35rem;
     height: 1.35rem;
+  }
+
+  /* SKU table on the smallest phones — shrink further. */
+  .variant-stock-table-header,
+  .variant-stock-row {
+    min-width: 300px;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.72rem;
+  }
+  .variant-stock-table {
+    padding: 1px;
   }
 }

@@ -646,7 +646,7 @@
 .color-swatch-group {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: 0.1rem;
   margin-top: 0.1rem;
   /* Borderless container with a soft light background that works in
      both light and dark themes. --bg-secondary is white-ish (light
@@ -1293,7 +1293,7 @@
   /* Color swatches — keep on one row, slightly smaller chips,
      tight gap matching the desktop value. */
   .color-swatch-group {
-    gap: 0.25rem;
+    gap: 0.1rem;
   }
   .color-swatch {
     min-width: 3.2rem;

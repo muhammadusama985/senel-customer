@@ -587,6 +587,20 @@
   }
 }
 
+.product-description p {
+  margin: 0 0 0.75rem;
+}
+
+.product-description p:last-child {
+  margin-bottom: 0;
+}
+
+.product-description ul,
+.product-description ol {
+  margin: 0.35rem 0 0.75rem;
+  padding-left: 1.5rem;
+}
+
 .product-description {
   color: var(--text-secondary);
   line-height: 1.6;

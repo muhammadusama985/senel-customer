@@ -28,6 +28,30 @@ interface ProductReview {
   createdAt?: string;
 }
 
+const sanitizeProductDescription = (html: string): string => {
+  const allowedTags = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'P', 'BR', 'UL', 'OL', 'LI', 'DIV']);
+  const parsed = new DOMParser().parseFromString(html || '', 'text/html');
+  const clean = (node: Node): void => {
+    Array.from(node.childNodes).forEach((child) => {
+      if (child.nodeType !== Node.ELEMENT_NODE) return;
+      const element = child as HTMLElement;
+      if (!allowedTags.has(element.tagName)) {
+        clean(element);
+        const parent = element.parentNode;
+        if (parent) {
+          while (element.firstChild) parent.insertBefore(element.firstChild, element);
+          parent.removeChild(element);
+        }
+        return;
+      }
+      Array.from(element.attributes).forEach((attribute) => element.removeAttribute(attribute.name));
+      clean(element);
+    });
+  };
+  clean(parsed.body);
+  return parsed.body.innerHTML;
+};
+
 const getReadableAttributeValue = (value: unknown) => {
   const text = String(value || '').trim();
   return text;
@@ -845,7 +869,10 @@ export const ProductDetailPage: React.FC = () => {
               {t('product.descriptionLabel', 'Product Description')}
             </h2>
             <div className="product-description-scroller">
-              <p className="product-description">{product.description}</p>
+              <div
+              className="product-description"
+              dangerouslySetInnerHTML={{ __html: sanitizeProductDescription(product.description) }}
+            />
             </div>
           </section>
         ) : null}

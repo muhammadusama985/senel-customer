@@ -794,7 +794,16 @@ export const ProductDetailPage: React.FC = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-              {product.vendorId && !(product as any).isPlatformProduct && (product as any).source !== 'admin_platform' && (
+              {(
+                // Show for vendor products AND admin/platform products.
+                // The backend now supports bulk offers and custom production
+                // for admin/platform products (managedBy === "admin") the
+                // same way as for vendor products (managedBy === "vendor").
+                Boolean(product.vendorId) ||
+                (product as any).isPlatformProduct === true ||
+                (product as any).source === 'admin_platform' ||
+                (product as any).source === 'admin_vendor'
+              ) && (
                 <>
                   <button
                     type="button"

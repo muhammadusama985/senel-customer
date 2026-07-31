@@ -751,18 +751,18 @@ export const ProductDetailPage: React.FC = () => {
                     </div>
                   );
                 })}
-                <div className={`variant-stock ${isOutOfStock ? 'out' : ''}`}>
-                  {availableStock <= 0
-                    ? t('product.outOfStock', 'Out of stock')
-                    : !canMeetMinimumOrder
-                      ? t('product.onlyUnitsAvailable', 'Only {{qty}} units available. Minimum order is {{moq}}.', {
-                          qty: availableStock,
-                          moq: product.moq,
-                        })
-                      : isSelectionComplete
-                        ? t('product.unitsAvailableForOption', '{{qty}} units available for this option', { qty: availableStock })
-                        : t('product.unitsAvailable', '{{qty}} units available', { qty: availableStock })}
-                </div>
+                {isSelectionComplete && (
+                  <div className={`variant-stock ${isOutOfStock ? 'out' : ''}`}>
+                    {availableStock <= 0
+                      ? t('product.outOfStock', 'Out of stock')
+                      : !canMeetMinimumOrder
+                        ? t('product.onlyUnitsAvailable', 'Only {{qty}} units available. Minimum order is {{moq}}.', {
+                            qty: availableStock,
+                            moq: product.moq,
+                          })
+                        : t('product.unitsAvailableForOption', '{{qty}} units available for this option', { qty: availableStock })}
+                  </div>
+                )}
               </div>
             )}
 

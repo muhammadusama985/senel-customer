@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import api from '../../api/client';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { resolveMediaUrl } from '../utils/media';
+import { resolveMediaUrl } from '../../utils/media';
 
 interface Props {
   productId: string;

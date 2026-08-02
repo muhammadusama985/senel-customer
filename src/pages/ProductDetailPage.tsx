@@ -24,22 +24,47 @@ import './ProductDetailPage.css';
  * Render a product description that may contain markdown-style image
  * references (e.g. `![alt](https://example.com/image.png)`). Splits the
  * text into segments so each image becomes a real <img> element and the
- * surrounding text keeps its original whitespace and line breaks.
+ * surrounding text keeps its original whitespace and line breaks. Consecutive
+ * images are wrapped in a flex row so they sit side-by-side rather than
+ * stretching the page.
  */
 const renderDescriptionWithImages = (text: string): React.ReactNode[] => {
   const nodes: React.ReactNode[] = [];
+  if (!text) return nodes;
   const regex = /!\[([^\]]*)\]\(([^)]+)\)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
+  let imgBuffer: React.ReactNode[] = [];
+
+  const flushImages = () => {
+    if (!imgBuffer.length) return;
+    if (imgBuffer.length === 1) {
+      nodes.push(imgBuffer[0]);
+    } else {
+      nodes.push(
+        React.createElement(
+          'div',
+          {
+            key: `desc-row-${key++}`,
+            className: 'product-description-image-row',
+          },
+          ...imgBuffer,
+        ),
+      );
+    }
+    imgBuffer = [];
+  };
+
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
+      flushImages();
       nodes.push(text.substring(lastIndex, match.index));
     }
     const alt = match[1] || 'product image';
     const url = resolveMediaUrl(match[2]);
     if (url) {
-      nodes.push(
+      imgBuffer.push(
         React.createElement('img', {
           key: `desc-img-${key++}`,
           src: url,
@@ -51,6 +76,7 @@ const renderDescriptionWithImages = (text: string): React.ReactNode[] => {
     }
     lastIndex = regex.lastIndex;
   }
+  flushImages();
   if (lastIndex < text.length) {
     nodes.push(text.substring(lastIndex));
   }

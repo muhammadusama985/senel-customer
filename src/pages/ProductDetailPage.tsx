@@ -17,7 +17,45 @@ import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { ShoppingBagIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { useI18n } from '../i18n';
+import { resolveMediaUrl } from '../utils/media';
 import './ProductDetailPage.css';
+
+/**
+ * Render a product description that may contain markdown-style image
+ * references (e.g. `![alt](https://example.com/image.png)`). Splits the
+ * text into segments so each image becomes a real <img> element and the
+ * surrounding text keeps its original whitespace and line breaks.
+ */
+const renderDescriptionWithImages = (text: string): React.ReactNode[] => {
+  const nodes: React.ReactNode[] = [];
+  const regex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.substring(lastIndex, match.index));
+    }
+    const alt = match[1] || 'product image';
+    const url = resolveMediaUrl(match[2]);
+    if (url) {
+      nodes.push(
+        React.createElement('img', {
+          key: `desc-img-${key++}`,
+          src: url,
+          alt,
+          className: 'product-description-image',
+          loading: 'lazy',
+        }),
+      );
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    nodes.push(text.substring(lastIndex));
+  }
+  return nodes;
+};
 
 interface ProductReview {
   _id: string;
@@ -845,7 +883,9 @@ export const ProductDetailPage: React.FC = () => {
               {t('product.descriptionLabel', 'Product Description')}
             </h2>
             <div className="product-description-scroller">
-              <p className="product-description">{product.description}</p>
+              <div className="product-description">
+                {renderDescriptionWithImages(product.description)}
+              </div>
             </div>
           </section>
         ) : null}

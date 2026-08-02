@@ -596,6 +596,19 @@
   word-break: break-word;
 }
 
+/* Images embedded inside the product description via the vendor/admin
+   "Insert Image" tool. Kept responsive and bordered to match the card. */
+.product-description-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0.6rem 0;
+  border-radius: 8px;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  background-color: var(--card-bg, #fff);
+  object-fit: contain;
+}
+
 .variant-selector-section {
   display: flex;
   flex-direction: column;

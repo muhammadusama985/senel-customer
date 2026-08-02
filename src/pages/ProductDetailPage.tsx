@@ -21,66 +21,39 @@ import { resolveMediaUrl } from '../utils/media';
 import './ProductDetailPage.css';
 
 /**
- * Render a product description that may contain markdown-style image
- * references (e.g. `![alt](https://example.com/image.png)`). Splits the
- * text into segments so each image becomes a real <img> element and the
- * surrounding text keeps its original whitespace and line breaks. Consecutive
- * images are wrapped in a flex row so they sit side-by-side rather than
- * stretching the page.
+ * Render a product description that may contain EITHER:
+ *   - legacy markdown image references `![alt](url)` (old products), OR
+ *   - real WYSIWYG HTML produced by the admin/vendor rich text editor
+ *     (new products: <strong>, <em>, <u>, <ul>, <ol>, <li>, <img>, etc.).
+ *
+ * We convert any leftover markdown image references into <img> tags so
+ * the same renderer handles both formats, then render the whole thing
+ * as HTML via dangerouslySetInnerHTML. Browsers paint bold / italic /
+ * underline / bullets / numbered lists natively, so what the vendor / admin
+ * types in the WYSIWYG editor is exactly what the customer sees.
  */
-const renderDescriptionWithImages = (text: string): React.ReactNode[] => {
-  const nodes: React.ReactNode[] = [];
-  if (!text) return nodes;
-  const regex = /!\[([^\]]*)\]\(([^)]+)\)/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-  let key = 0;
-  let imgBuffer: React.ReactNode[] = [];
-
-  const flushImages = () => {
-    if (!imgBuffer.length) return;
-    if (imgBuffer.length === 1) {
-      nodes.push(imgBuffer[0]);
-    } else {
-      nodes.push(
-        React.createElement(
-          'div',
-          {
-            key: `desc-row-${key++}`,
-            className: 'product-description-image-row',
-          },
-          ...imgBuffer,
-        ),
-      );
-    }
-    imgBuffer = [];
-  };
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      flushImages();
-      nodes.push(text.substring(lastIndex, match.index));
-    }
-    const alt = match[1] || 'product image';
-    const url = resolveMediaUrl(match[2]);
-    if (url) {
-      imgBuffer.push(
-        React.createElement('img', {
-          key: `desc-img-${key++}`,
-          src: url,
-          alt,
-          className: 'product-description-image',
-          loading: 'lazy',
-        }),
-      );
-    }
-    lastIndex = regex.lastIndex;
+const renderDescriptionWithImages = (text: string): React.ReactNode => {
+  if (!text) return null;
+  let html = text;
+  // Convert leftover markdown image references (if any) into <img> tags.
+  html = html.replace(
+    /!\[([^\]]*)\]\(([^)]+)\)/g,
+    (_match, alt: string, url: string) => {
+      const resolved = resolveMediaUrl(url);
+      if (!resolved) return '';
+      const safeAlt = String(alt || '').replace(/"/g, '&quot;');
+      return `<img src="${resolved}" alt="${safeAlt}" class="product-description-image" loading="lazy" />`;
+    },
+  );
+  // If the description has no HTML tags, treat it as plain text and
+  // preserve the user's line breaks via <br>.
+  if (!/<[a-z][\s\S]*>/i.test(html)) {
+    html = html.replace(/\n/g, '<br>');
   }
-  flushImages();
-  if (lastIndex < text.length) {
-    nodes.push(text.substring(lastIndex));
-  }
-  return nodes;
+  return React.createElement('div', {
+    className: 'product-description',
+    dangerouslySetInnerHTML: { __html: html },
+  });
 };
 
 interface ProductReview {

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import type { BulkOffer, CustomProductionRequest } from '../../types/negotiation';
+import { resolveMediaUrl } from '../../utils/media';
 import './NegotiationsView.css';
 
 type Tab = 'offers' | 'rfqs';
@@ -292,17 +293,48 @@ export const NegotiationsView: React.FC = () => {
             <p className="muted">No bulk offers yet. Submit one from any product page.</p>
           ) : (
             <div className="account-list-grid">
-              {offers.map((o) => (
+              {offers.map((o) => {
+                const _productImage = resolveMediaUrl(o.productSnapshot?.imageUrl);
+                return (
                 <article key={o._id} className="account-panel">
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <strong>{o.productSnapshot?.title || 'Product'}</strong>
-                    <span className="status-pill">{o.status}</span>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                    {_productImage ? (
+                      <img
+                        src={_productImage}
+                        alt={o.productSnapshot?.title || 'Product'}
+                        style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)', flexShrink: 0 }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: 56,
+                          height: 56,
+                          borderRadius: 8,
+                          border: '1px solid var(--border)',
+                          background: 'var(--bg-secondary)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'var(--text-muted)',
+                          fontSize: '0.7rem',
+                          flexShrink: 0,
+                        }}
+                      >
+                        No image
+                      </div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <strong>{o.productSnapshot?.title || 'Product'}</strong>
+                        <span className="status-pill">{o.status}</span>
+                      </div>
+                      <p className="muted">
+                        {o.vendorSnapshot?.storeName || 'Vendor'} • {o.currentQty} units @{' '}
+                        {o.currentUnitPrice} {o.currency}
+                      </p>
+                      <p className="muted">Valid until {safeDate(o.validUntil)}</p>
+                    </div>
                   </div>
-                  <p className="muted">
-                    {o.vendorSnapshot?.storeName || 'Vendor'} • {o.currentQty} units @{' '}
-                    {o.currentUnitPrice} {o.currency}
-                  </p>
-                  <p className="muted">Valid until {safeDate(o.validUntil)}</p>
                   <div className="row-actions">
                     <button
                       type="button"
@@ -322,29 +354,61 @@ export const NegotiationsView: React.FC = () => {
                     )}
                   </div>
                 </article>
-              ))}
+                );
+              })}
             </div>
           )
         ) : rfqs.length === 0 ? (
           <p className="muted">No custom production requests yet.</p>
         ) : (
           <div className="account-list-grid">
-            {rfqs.map((r) => (
+            {rfqs.map((r) => {
+                const _productImage = resolveMediaUrl(r.productSnapshot?.imageUrl);
+                return (
               <article key={r._id} className="account-panel">
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <strong>{r.productSnapshot?.title || 'Product'}</strong>
-                  <span className="status-pill">{r.status}</span>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                  {_productImage ? (
+                    <img
+                      src={_productImage}
+                      alt={r.productSnapshot?.title || 'Product'}
+                      style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)', flexShrink: 0 }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 8,
+                        border: '1px solid var(--border)',
+                        background: 'var(--bg-secondary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--text-muted)',
+                        fontSize: '0.7rem',
+                        flexShrink: 0,
+                      }}
+                    >
+                      No image
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <strong>{r.productSnapshot?.title || 'Product'}</strong>
+                      <span className="status-pill">{r.status}</span>
+                    </div>
+                    <p className="muted">
+                      {r.vendorSnapshot?.storeName || 'Vendor'} • {r.qty} units
+                    </p>
+                    {r.quotation && (
+                      <p className="muted">
+                        Quoted: {r.quotation.unitPrice} {r.quotation.currency}/unit (total{' '}
+                        {r.quotation.totalPrice})
+                      </p>
+                    )}
+                    <p className="muted">Valid until {safeDate(r.validUntil)}</p>
+                  </div>
                 </div>
-                <p className="muted">
-                  {r.vendorSnapshot?.storeName || 'Vendor'} • {r.qty} units
-                </p>
-                {r.quotation && (
-                  <p className="muted">
-                    Quoted: {r.quotation.unitPrice} {r.quotation.currency}/unit (total{' '}
-                    {r.quotation.totalPrice})
-                  </p>
-                )}
-                <p className="muted">Valid until {safeDate(r.validUntil)}</p>
                 <div className="row-actions">
                   <button
                     type="button"
@@ -364,7 +428,8 @@ export const NegotiationsView: React.FC = () => {
                   )}
                 </div>
               </article>
-            ))}
+                );
+              })}
           </div>
         )}
       </div>
@@ -425,6 +490,19 @@ const NegotiationDetailModal: React.FC<{
             Close
           </button>
         </div>
+        {(() => {
+          const _productImage = resolveMediaUrl(offer.productSnapshot?.imageUrl);
+          if (!_productImage) return null;
+          return (
+            <div style={{ marginBottom: '0.75rem' }}>
+              <img
+                src={_productImage}
+                alt={offer.productSnapshot?.title || 'Product'}
+                style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)' }}
+              />
+            </div>
+          );
+        })()}
         <p>
           <strong>Vendor:</strong> {offer.vendorSnapshot?.storeName} •{' '}
           <strong>Status:</strong> {offer.status}
@@ -574,6 +652,19 @@ const RFQDetailModal: React.FC<{
             Close
           </button>
         </div>
+        {(() => {
+          const _productImage = resolveMediaUrl(rfq.productSnapshot?.imageUrl);
+          if (!_productImage) return null;
+          return (
+            <div style={{ marginBottom: '0.75rem' }}>
+              <img
+                src={_productImage}
+                alt={rfq.productSnapshot?.title || 'Product'}
+                style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)' }}
+              />
+            </div>
+          );
+        })()}
         <p>
           <strong>Vendor:</strong> {rfq.vendorSnapshot?.storeName} •{' '}
           <strong>Status:</strong> {rfq.status}
@@ -582,6 +673,40 @@ const RFQDetailModal: React.FC<{
           <strong>Quantity:</strong> {rfq.qty} •{' '}
           <strong>Valid until:</strong> {safeDate(rfq.validUntil)}
         </p>
+
+        {rfq.attachments && rfq.attachments.length > 0 && (
+          <div style={{ marginBottom: '0.75rem' }}>
+            <p style={{ margin: '0 0 0.5rem 0' }}><strong>Attachments</strong></p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '0.5rem' }}>
+              {rfq.attachments.map((a, idx) => {
+                const _url = resolveMediaUrl(a.url);
+                if (!_url) return null;
+                const _isImage = (a.mimeType ? a.mimeType.startsWith('image/') : true) && /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(_url);
+                return (
+                  <a
+                    key={idx}
+                    href={_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: 'block', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', background: 'var(--bg-secondary)' }}
+                  >
+                    {_isImage ? (
+                      <img
+                        src={_url}
+                        alt={a.filename || a.url}
+                        style={{ width: '100%', height: 110, objectFit: 'cover', display: 'block' }}
+                      />
+                    ) : (
+                      <div style={{ padding: '0.6rem', fontSize: '0.8rem', wordBreak: 'break-all' }}>
+                        {a.filename || a.url}
+                      </div>
+                    )}
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {rfq.quotation && (
           <div className="account-panel">

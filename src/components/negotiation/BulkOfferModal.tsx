@@ -3,6 +3,7 @@ import api from '../../api/client';
 import toast from 'react-hot-toast';
 import { useI18n } from '../../i18n';
 import { useNavigate } from 'react-router-dom';
+import { resolveMediaUrl } from '../utils/media';
 
 interface VariantAttr {
   [key: string]: string;
@@ -363,7 +364,31 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
             <label>Attachment (image/PDF, optional)</label>
             <input type="file" onChange={handleFile} disabled={uploading} />
             {attachmentUrl ? (
-              <p className="muted">Attached: {attachmentUrl.split('/').pop()}</p>
+              (() => {
+                const _url = resolveMediaUrl(attachmentUrl);
+                if (!_url) return null;
+                const _isImage = /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(_url);
+                return (
+                  <a
+                    href={_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: 'inline-block', marginTop: '0.5rem', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', background: 'var(--bg-secondary)' }}
+                  >
+                    {_isImage ? (
+                      <img
+                        src={_url}
+                        alt={attachmentUrl.split('/').pop()}
+                        style={{ width: 120, height: 120, objectFit: 'cover', display: 'block' }}
+                      />
+                    ) : (
+                      <span className="muted" style={{ padding: '0.5rem 0.75rem', display: 'inline-block' }}>
+                        Attached: {attachmentUrl.split('/').pop()}
+                      </span>
+                    )}
+                  </a>
+                );
+              })()
             ) : null}
           </div>
 

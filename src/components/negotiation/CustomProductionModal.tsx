@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import api from '../../api/client';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { resolveMediaUrl } from '../utils/media';
 
 interface Props {
   productId: string;
@@ -146,11 +147,34 @@ export const CustomProductionModal: React.FC<Props> = ({
             <label>Attachments (images, drawings, files)</label>
             <input type="file" onChange={handleFile} disabled={uploading} />
             {attachmentUrls.length > 0 && (
-              <ul style={{ paddingLeft: '1rem', marginTop: '0.5rem' }}>
-                {attachmentUrls.map((u) => (
-                  <li key={u} className="muted">{u.split('/').pop()}</li>
-                ))}
-              </ul>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '0.5rem', marginTop: '0.5rem' }}>
+                {attachmentUrls.map((u) => {
+                  const _url = resolveMediaUrl(u);
+                  if (!_url) return null;
+                  const _isImage = /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(_url);
+                  return (
+                    <a
+                      key={u}
+                      href={_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ display: 'block', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', background: 'var(--bg-secondary)' }}
+                    >
+                      {_isImage ? (
+                        <img
+                          src={_url}
+                          alt={u.split('/').pop()}
+                          style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }}
+                        />
+                      ) : (
+                        <div style={{ padding: '0.5rem', fontSize: '0.8rem', wordBreak: 'break-all' }}>
+                          {u.split('/').pop()}
+                        </div>
+                      )}
+                    </a>
+                  );
+                })}
+              </div>
             )}
           </div>
 

@@ -48,6 +48,29 @@ export const Header: React.FC = () => {
     }
   }, [user, fetchCart]);
 
+  // Unread personal-notification count for the bell-icon badge. Uses the
+  // existing /notifications/me endpoint with unreadOnly=true + limit=1 so we
+  // only read the `total` counter (no backend change required). Polled every
+  // 30s so the badge updates as soon as a new notification arrives.
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    if (!user) { setUnreadCount(0); return; }
+    let alive = true;
+    const fetchUnread = async () => {
+      try {
+        const response = await api.get('/notifications/me', {
+          params: { unreadOnly: 'true', limit: 1 },
+        });
+        if (alive) setUnreadCount(Number(response.data?.total || 0));
+      } catch {
+        /* swallow -- silent badge failure */
+      }
+    };
+    void fetchUnread();
+    const id = window.setInterval(fetchUnread, 30000);
+    return () => { alive = false; window.clearInterval(id); };
+  }, [user]);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 24);
@@ -292,6 +315,11 @@ export const Header: React.FC = () => {
                 aria-label="Notifications"
               >
                 <BellIcon className="icon" />
+                {unreadCount > 0 ? (
+                  <span className="cart-badge" aria-label={`${unreadCount} unread`}>
+                    <span className="badge-text">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                  </span>
+                ) : null}
               </Link>
 
               <Link to="/cart" className="action-icon cart-icon" aria-label="Cart">

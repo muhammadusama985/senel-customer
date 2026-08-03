@@ -74,6 +74,8 @@ interface NotificationItem {
   body?: string;
   isRead?: boolean;
   createdAt?: string;
+  type?: string;
+  data?: Record<string, any>;
 }
 
 interface AnnouncementItem {
@@ -120,6 +122,24 @@ const safeDate = (value?: string) => {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '-';
   return d.toLocaleString();
+};
+
+// Map a customer-side notification to the matching section so clicking
+// it jumps straight there. Falls back to the notifications tab.
+const linkForCustomer = (item: NotificationItem): string => {
+  const t = String(item?.type || '').toLowerCase();
+  const d: any = item?.data || {};
+  if (t === 'order' && d.orderId) return `/orders`;
+  if (t === 'payout' && d.payoutId) return `/account?tab=orders`;
+  if (t === 'rfq' && d.rfqId) return `/account?tab=negotiations`;
+  if (t === 'rfq') return `/account?tab=negotiations`;
+  if (t === 'offer' && d.offerId) return `/account?tab=negotiations`;
+  if (t === 'offer') return `/account?tab=negotiations`;
+  if (t === 'announcement') return `/account?tab=announcements`;
+  if (t === 'dispute' && d.disputeId) return `/account?tab=disputes`;
+  if (t === 'dispute') return `/account?tab=disputes`;
+  if (t === 'support' && d.ticketId) return `/account?tab=disputes`;
+  return `/account?tab=notifications`;
 };
 
 export const AccountPage: React.FC = () => {
@@ -820,11 +840,28 @@ export const AccountPage: React.FC = () => {
                 {notifications.length === 0 ? <p className="muted">{t('account.noNotifications', 'No notifications.')}</p> : (
                   <div className="account-list-grid">
                     {notifications.map((notification) => (
-                      <article key={notification._id} className="account-panel">
+                      <article
+                        key={notification._id}
+                        className="account-panel"
+                        role="button"
+                        tabIndex={0}
+                        style={{ cursor: 'pointer' }}
+                        onClick={async () => {
+                          await markNotificationRead(notification._id);
+                          navigate(linkForCustomer(notification));
+                        }}
+                        onKeyDown={async (e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            await markNotificationRead(notification._id);
+                            navigate(linkForCustomer(notification));
+                          }
+                        }}
+                      >
                         <strong>{notification.title}</strong>
                         <p className="muted">{notification.body || ''}</p>
                         <p className="muted">{safeDate(notification.createdAt)}</p>
-                        {!notification.isRead ? <button type="button" className="btn btn-outline" onClick={() => markNotificationRead(notification._id)}>{t('account.markRead', 'Mark Read')}</button> : null}
+                        {!notification.isRead ? <button type="button" className="btn btn-outline" onClick={(e) => { e.stopPropagation(); markNotificationRead(notification._id); }}>{t('account.markRead', 'Mark Read')}</button> : null}
                       </article>
                     ))}
                   </div>

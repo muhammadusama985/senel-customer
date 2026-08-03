@@ -20,6 +20,25 @@ import { useI18n } from '../i18n';
 import { resolveMediaUrl } from '../utils/media';
 import './ProductDetailPage.css';
 
+// Pick the per-language descriptionImagesML array for the language the
+// customer is currently viewing (falls back to EN when the field is
+// missing for the current language, which happens for products that
+// were created before this field existed).
+function getDescriptionImagesForLang(product: any, lang: string): string[] {
+  const dim = product?.descriptionImagesML;
+  if (dim && Array.isArray(dim[lang])) return dim[lang];
+  if (dim && Array.isArray(dim.en)) return dim.en;
+  // Legacy fallback: scan the description HTML for any embedded <img>.
+  if (typeof product?.description === 'string') {
+    const urls: string[] = [];
+    const re = /<img[^>]+src=["\']([^"\']+)["\'][^>]*>/g;
+    let m;
+    while ((m = re.exec(product.description)) !== null) urls.push(m[1]);
+    return urls;
+  }
+  return [];
+}
+
 /**
  * Render a product description that may contain EITHER:
  *   - legacy markdown image references `![alt](url)` (old products), OR
@@ -876,7 +895,7 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {product.description ? (
+        {(product.description || getDescriptionImagesForLang(product, lang).length > 0) ? (
           <section className="product-description-section">
             <h2 className="product-description-heading">
               {t('product.descriptionLabel', 'Product Description')}
@@ -885,6 +904,19 @@ export const ProductDetailPage: React.FC = () => {
               <div className="product-description">
                 {renderDescriptionWithImages(product.description)}
               </div>
+              {getDescriptionImagesForLang(product, lang).length > 0 && (
+                <div className="product-description-image-row">
+                  {getDescriptionImagesForLang(product, lang).map((url: string, idx: number) => (
+                    <img
+                      key={`desc-img-${idx}`}
+                      src={resolveMediaUrl(url) || url}
+                      alt=""
+                      className="product-description-image"
+                      loading="lazy"
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         ) : null}

@@ -74,6 +74,7 @@ interface NotificationItem {
   body?: string;
   isRead?: boolean;
   createdAt?: string;
+  link?: string;
 }
 
 interface AnnouncementItem {
@@ -820,11 +821,28 @@ export const AccountPage: React.FC = () => {
                 {notifications.length === 0 ? <p className="muted">{t('account.noNotifications', 'No notifications.')}</p> : (
                   <div className="account-list-grid">
                     {notifications.map((notification) => (
-                      <article key={notification._id} className="account-panel">
+                      <article
+                        key={notification._id}
+                        className="account-panel"
+                        role="button"
+                        tabIndex={0}
+                        style={{ cursor: 'pointer' }}
+                        onClick={async () => {
+                          await markNotificationRead(notification._id);
+                          if (notification.link) navigate(notification.link);
+                        }}
+                        onKeyDown={async (e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            await markNotificationRead(notification._id);
+                            if (notification.link) navigate(notification.link);
+                          }
+                        }}
+                      >
                         <strong>{notification.title}</strong>
                         <p className="muted">{notification.body || ''}</p>
                         <p className="muted">{safeDate(notification.createdAt)}</p>
-                        {!notification.isRead ? <button type="button" className="btn btn-outline" onClick={() => markNotificationRead(notification._id)}>{t('account.markRead', 'Mark Read')}</button> : null}
+                        {!notification.isRead ? <button type="button" className="btn btn-outline" onClick={(e) => { e.stopPropagation(); markNotificationRead(notification._id); }}>{t('account.markRead', 'Mark Read')}</button> : null}
                       </article>
                     ))}
                   </div>

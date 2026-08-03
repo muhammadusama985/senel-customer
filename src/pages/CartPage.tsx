@@ -127,6 +127,13 @@ export const CartPage: React.FC = () => {
               const liveUnitPrice = Number(recomputeUnitPrice(item, item.quantity) || 0);
               const liveLineTotal = Number((liveUnitPrice * item.quantity).toFixed(2));
 
+              // Items that originated from a bulk-offer counter or a
+              // custom-production RFQ have a fixed quantity (the
+              // negotiated amount); the customer must not be able to
+              // tweak +/- on them.
+              const isNegotiated =
+                item.customPriceSource === 'offer' || item.customPriceSource === 'rfq';
+
               return (
                 <div key={key} className="cart-item">
                   <div className="cart-item-image">
@@ -138,7 +145,7 @@ export const CartPage: React.FC = () => {
                       {item.title}
                     </Link>
                     <div className="cart-item-price">{formatMoney(liveUnitPrice, item.currency)} {t('cart.perUnit', 'per unit')}</div>
-                    {item.customPriceSource === 'offer' || item.customPriceSource === 'rfq' ? (
+                    {isNegotiated ? (
                       <div className="cart-item-price muted">
                         {item.customPriceSource === 'offer'
                           ? t('cart.negotiatedOfferPrice', 'Negotiated price (bulk offer)')
@@ -154,7 +161,7 @@ export const CartPage: React.FC = () => {
                   <div className="cart-item-quantity">
                     <button
                       onClick={() => handleUpdateQuantity(key, nextDecreaseQty)}
-                      disabled={nextDecreaseQty < minimumOrder || updatingItems.has(key)}
+                      disabled={isNegotiated || nextDecreaseQty < minimumOrder || updatingItems.has(key)}
                       className="quantity-btn"
                     >
                       <MinusIcon className="icon-small" />
@@ -164,7 +171,7 @@ export const CartPage: React.FC = () => {
 
                     <button
                       onClick={() => handleUpdateQuantity(key, item.quantity + 1)}
-                      disabled={updatingItems.has(key) || exceedsLiveStock}
+                      disabled={isNegotiated || updatingItems.has(key) || exceedsLiveStock}
                       className="quantity-btn"
                     >
                       <PlusIcon className="icon-small" />

@@ -124,24 +124,6 @@ const safeDate = (value?: string) => {
   return d.toLocaleString();
 };
 
-// Map a customer-side notification to the matching section so clicking
-// it jumps straight there. Falls back to the notifications tab.
-const linkForCustomer = (item: NotificationItem): string => {
-  const t = String(item?.type || '').toLowerCase();
-  const d: any = item?.data || {};
-  if (t === 'order' && d.orderId) return `/orders`;
-  if (t === 'payout' && d.payoutId) return `/account?tab=orders`;
-  if (t === 'rfq' && d.rfqId) return `/account?tab=negotiations`;
-  if (t === 'rfq') return `/account?tab=negotiations`;
-  if (t === 'offer' && d.offerId) return `/account?tab=negotiations`;
-  if (t === 'offer') return `/account?tab=negotiations`;
-  if (t === 'announcement') return `/account?tab=announcements`;
-  if (t === 'dispute' && d.disputeId) return `/account?tab=disputes`;
-  if (t === 'dispute') return `/account?tab=disputes`;
-  if (t === 'support' && d.ticketId) return `/account?tab=disputes`;
-  return `/account?tab=notifications`;
-};
-
 export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -848,13 +830,11 @@ export const AccountPage: React.FC = () => {
                         style={{ cursor: 'pointer' }}
                         onClick={async () => {
                           await markNotificationRead(notification._id);
-                          navigate(linkForCustomer(notification));
                         }}
                         onKeyDown={async (e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             await markNotificationRead(notification._id);
-                            navigate(linkForCustomer(notification));
                           }
                         }}
                       >

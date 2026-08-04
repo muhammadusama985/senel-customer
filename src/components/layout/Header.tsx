@@ -14,6 +14,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { setAppLanguage, useI18n } from '../../i18n';
 import api from '../../api/client';
+import { hasNotificationAlertBeenSeen, markNotificationAlertSeen } from '../../utils/notificationAlertStore';
 import './Header.css';
 
 interface SearchSuggestion {
@@ -70,6 +71,56 @@ export const Header: React.FC = () => {
     const id = window.setInterval(fetchUnread, 30000);
     return () => { alive = false; window.clearInterval(id); };
   }, [user]);
+
+  // Global notification popup: whenever the user is signed in (on ANY page),
+  // poll the latest unread notifications and surface any brand-new ones as
+  // a toast-style alert in the top-right corner. Polled every 10s so the popup
+  // surfaces promptly after a new notification arrives.
+  const [alertItem, setAlertItem] = useState<any | null>(null);
+  const alertAutoCloseRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!user) {
+      setAlertItem(null);
+      return;
+    }
+    let alive = true;
+    const fetchLatest = async () => {
+      try {
+        const response = await api.get('/notifications/me', {
+          params: { unreadOnly: 'true', limit: 5 },
+        });
+        const items: any[] = Array.isArray(response.data?.items)
+          ? response.data.items
+          : [];
+        if (!alive) return;
+        // Surface the first notification that has not been alerted yet.
+        // IDs are tracked in a shared session-storage store so the
+        // notifications-page popup and this global popup never duplicate.
+        const brandNew = items.find(
+          (n) => n && n._id && !hasNotificationAlertBeenSeen(n._id)
+        );
+        if (brandNew) {
+          markNotificationAlertSeen(brandNew._id);
+          setAlertItem(brandNew);
+        }
+      } catch {
+        /* swallow -- silent popup failure */
+      }
+    };
+    void fetchLatest();
+    const id = window.setInterval(fetchLatest, 10000);
+    return () => { alive = false; window.clearInterval(id); };
+  }, [user]);
+
+  // Auto-dismiss the popup after 5 seconds.
+  useEffect(() => {
+    if (!alertItem) return;
+    if (alertAutoCloseRef.current) window.clearTimeout(alertAutoCloseRef.current);
+    alertAutoCloseRef.current = window.setTimeout(() => setAlertItem(null), 5000);
+    return () => {
+      if (alertAutoCloseRef.current) window.clearTimeout(alertAutoCloseRef.current);
+    };
+  }, [alertItem]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -194,6 +245,59 @@ export const Header: React.FC = () => {
 
   return (
     <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
+      {/* Global notification popup alert (top-right, auto-dismisses after 5s).
+          Rendered here so it appears regardless of which page the user is on. */}
+      {alertItem ? (
+        <div
+          role="alertdialog"
+          aria-live="assertive"
+          style={{
+            position: 'fixed',
+            top: 80,
+            right: 20,
+            zIndex: 1300,
+            maxWidth: 360,
+            background: '#ffffff',
+            border: '1px solid #e5e7eb',
+            borderLeft: '4px solid #ef4444',
+            borderRadius: 12,
+            padding: '0.85rem 1rem',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
+            color: '#111827',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.35rem',
+          }}
+        >
+          <strong style={{ fontSize: '0.95rem' }}>{alertItem.title}</strong>
+          {alertItem.body ? (
+            <span style={{ fontSize: '0.85rem', color: '#6b7280', lineHeight: 1.4 }}>
+              {alertItem.body}
+            </span>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setAlertItem(null)}
+            aria-label="Dismiss"
+            style={{
+              position: 'absolute',
+              top: 6,
+              right: 6,
+              width: 22,
+              height: 22,
+              borderRadius: 11,
+              border: 'none',
+              background: 'transparent',
+              color: '#6b7280',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
       <div className="container">
         <div className="header-content">
           <Link to="/" className="logo-wrapper" aria-label="Senel Express home">

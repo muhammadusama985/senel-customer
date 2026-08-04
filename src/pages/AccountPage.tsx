@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/client';
@@ -162,6 +162,9 @@ export const AccountPage: React.FC = () => {
   const [disputeMessages, setDisputeMessages] = useState<DisputeMessage[]>([]);
   const [disputeReply, setDisputeReply] = useState('');
   const [disputeBusy, setDisputeBusy] = useState(false);
+
+  // Notification popup is rendered globally by the Header so it appears
+  // regardless of which tab the user is on.
 
   useEffect(() => {
     if (!user) {

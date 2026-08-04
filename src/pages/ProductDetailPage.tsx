@@ -54,16 +54,10 @@ function getDescriptionImagesForLang(product: any, lang: string): string[] {
 const renderDescriptionWithImages = (text: string): React.ReactNode => {
   if (!text) return null;
   let html = text;
-  // Convert leftover markdown image references (if any) into <img> tags.
-  html = html.replace(
-    /!\[([^\]]*)\]\(([^)]+)\)/g,
-    (_match, alt: string, url: string) => {
-      const resolved = resolveMediaUrl(url);
-      if (!resolved) return '';
-      const safeAlt = String(alt || '').replace(/"/g, '&quot;');
-      return `<img src="${resolved}" alt="${safeAlt}" class="product-description-image" loading="lazy" />`;
-    },
-  );
+  // Note: images are NOT rendered inline inside the description anymore --
+  // they are shown in a dedicated gallery section placed just above the
+  // product specifications. This keeps the description text clean and
+  // gives the gallery proper horizontal-scrolling room.
   // If the description has no HTML tags, treat it as plain text and
   // preserve the user's line breaks via <br>.
   if (!/<[a-z][\s\S]*>/i.test(html)) {
@@ -904,23 +898,26 @@ export const ProductDetailPage: React.FC = () => {
               <div className="product-description">
                 {renderDescriptionWithImages(product.description)}
               </div>
-              {getDescriptionImagesForLang(product, lang).length > 0 && (
-                <div className="product-description-image-row">
-                  {getDescriptionImagesForLang(product, lang).map((url: string, idx: number) => (
-                    <img
-                      key={`desc-img-${idx}`}
-                      src={resolveMediaUrl(url) || url}
-                      alt=""
-                      className="product-description-image"
-                      loading="lazy"
-                    />
-                  ))}
-                </div>
-              )}
             </div>
           </section>
         ) : null}
 
+        {getDescriptionImagesForLang(product, lang).length > 0 && (
+          <section className="description-gallery-section">
+            <h2 className="description-gallery-heading">Gallery</h2>
+            <div className="description-gallery">
+              {getDescriptionImagesForLang(product, lang).map((url: string, idx: number) => (
+                <img
+                  key={`gallery-img-${idx}`}
+                  src={resolveMediaUrl(url) || url}
+                  alt=""
+                  className="description-gallery-image"
+                  loading="lazy"
+                />
+              ))}
+            </div>
+          </section>
+        )}
         <ProductSpecs product={product} />
 
         <section className="product-reviews-section">

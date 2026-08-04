@@ -151,7 +151,7 @@ export const CustomProductionModal: React.FC<Props> = ({
                 {attachmentUrls.map((u) => {
                   const _url = resolveMediaUrl(u);
                   if (!_url) return null;
-                  const _isImage = /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(_url);
+                  const _isImage = /\.(png|jpe?g|gif|webp|bmp|svg|tiff?|heic|heif|avif|apng|jxl|ico)(\?|#|$)/i.test(_url);
                   return (
                     <a
                       key={u}

@@ -496,7 +496,7 @@ const NegotiationDetailModal: React.FC<{
                   {m.attachments.map((a, idx) => {
                     const _url = resolveMediaUrl(a.url);
                     if (!_url) return null;
-                    const _isImage = (a.mimeType ? a.mimeType.startsWith('image/') : true) && /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(_url);
+                    const _isImage = (a.mimeType ? a.mimeType.startsWith('image/') : true) && /\.(png|jpe?g|gif|webp|bmp|svg|tiff?|heic|heif|avif|apng|jxl|ico)(\?|#|$)/i.test(_url);
                     return (
                       <a
                         key={idx}
@@ -575,7 +575,7 @@ const NegotiationDetailModal: React.FC<{
                     {attachmentUrls.map((u) => {
                       const _url = resolveMediaUrl(u);
                       if (!_url) return null;
-                      const _isImage = /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(_url);
+                      const _isImage = /\.(png|jpe?g|gif|webp|bmp|svg|tiff?|heic|heif|avif|apng|jxl|ico)(\?|#|$)/i.test(_url);
                       return (
                         <div
                           key={u}
@@ -699,7 +699,7 @@ const RFQDetailModal: React.FC<{
               {rfq.attachments.map((a, idx) => {
                 const _url = resolveMediaUrl(a.url);
                 if (!_url) return null;
-                const _isImage = (a.mimeType ? a.mimeType.startsWith('image/') : true) && /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(_url);
+                const _isImage = (a.mimeType ? a.mimeType.startsWith('image/') : true) && /\.(png|jpe?g|gif|webp|bmp|svg|tiff?|heic|heif|avif|apng|jxl|ico)(\?|#|$)/i.test(_url);
                 return (
                   <a
                     key={idx}
@@ -771,7 +771,7 @@ const RFQDetailModal: React.FC<{
                   {m.attachments.map((a, idx) => {
                     const _url = resolveMediaUrl(a.url);
                     if (!_url) return null;
-                    const _isImage = (a.mimeType ? a.mimeType.startsWith('image/') : true) && /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(_url);
+                    const _isImage = (a.mimeType ? a.mimeType.startsWith('image/') : true) && /\.(png|jpe?g|gif|webp|bmp|svg|tiff?|heic|heif|avif|apng|jxl|ico)(\?|#|$)/i.test(_url);
                     return (
                       <a
                         key={idx}

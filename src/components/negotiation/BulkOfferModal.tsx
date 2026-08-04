@@ -367,7 +367,7 @@ export const BulkOfferModal: React.FC<Props> = ({ product, defaultQty, defaultUn
               (() => {
                 const _url = resolveMediaUrl(attachmentUrl);
                 if (!_url) return null;
-                const _isImage = /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(_url);
+                const _isImage = /\.(png|jpe?g|gif|webp|bmp|svg|tiff?|heic|heif|avif|apng|jxl|ico)(\?|#|$)/i.test(_url);
                 return (
                   <a
                     href={_url}

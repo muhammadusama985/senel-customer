@@ -66,3 +66,16 @@
   background: var(--bg-secondary);
   color: var(--text-primary);
 }
+/* When the Offer History / Conversation list grows beyond ~4 entries, keep
+   the modal compact by capping its height and scrolling internally instead
+   of stretching the modal past the viewport. The cap is sized so the first
+   ~4 message cards fit without any scrollbar; beyond that, the list
+   scrolls. */
+.negotiation-history-list {
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.4rem;
+  scrollbar-width: thin;
+  /* Reserve a little padding so the scrollbar doesn't crowd the cards. */
+  scrollbar-gutter: stable;
+}

@@ -478,7 +478,7 @@ const NegotiationDetailModal: React.FC<{
         )}
 
         <h4 style={{ marginTop: '1rem' }}>Offer History</h4>
-        <div className="account-stack">
+        <div className="account-stack negotiation-history-list">
           {offer.messages.map((m, idx) => (
             <div key={idx} className="account-panel">
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -757,7 +757,7 @@ const RFQDetailModal: React.FC<{
         )}
 
         <h4 style={{ marginTop: '1rem' }}>Conversation</h4>
-        <div className="account-stack">
+        <div className="account-stack negotiation-history-list">
           {rfq.messages.map((m, idx) => (
             <div key={idx} className="account-panel">
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>

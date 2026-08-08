@@ -366,12 +366,12 @@ export const CheckoutPage: React.FC = () => {
         throw new Error('Order ID missing in checkout response');
       }
 
-      if (typeof order.subtotal === 'number') {
-        // Use the server's recomputed subtotal so the displayed total never
-        // disagrees with what Stripe will actually charge.
-        if (order.discountTotal != null) setDiscountTotal(Number(order.discountTotal) || 0);
-        if (order.grandTotal != null) setGrandTotal(Number(order.grandTotal) || 0);
-      }
+      // NOTE: deliberately not overwriting grandTotal / discountTotal from
+      // the server response here. The number the customer just confirmed
+      // (the one in the checkout summary at the moment of clicking Place
+      // Order) stays on screen -- no surprise price jump before Stripe.
+      // The order is still created with whatever grandTotal the backend
+      // computed and that is what gets charged and later shown in My Orders.
 
       if (paymentMethod === 'online') {
         const intentResponse = await api.post<StripeIntentResponse>('/payments/stripe/create-intent', { orderId });

@@ -65,6 +65,14 @@ export const NegotiationsView: React.FC = () => {
 
   const openOffer = async (offer: BulkOffer) => {
     try {
+      // The Bulk Offer modal overlays at the TOP of the viewport. If the
+      // user clicked "Open" while scrolled deep into the list, their
+      // viewport was at the bottom and the overlay was out of view -- so
+      // bring the page back to the top first so the modal is actually
+      // visible when it appears.
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      }
       const r = await api.get<{ offer: BulkOffer }>(`/bulk-offers/buyer/${offer._id}`);
       setSelectedOffer(r.data.offer);
     } catch (err: any) {
@@ -74,6 +82,12 @@ export const NegotiationsView: React.FC = () => {
 
   const openRfq = async (rfq: CustomProductionRequest) => {
     try {
+      // Same reasoning as openOffer above: the Custom Production modal
+      // also overlays at the top, so scroll the page to the top before
+      // opening so the user can actually see it.
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      }
       const r = await api.get<{ rfq: CustomProductionRequest }>(`/custom-production/buyer/${rfq._id}`);
       setSelectedRfq(r.data.rfq);
     } catch (err: any) {

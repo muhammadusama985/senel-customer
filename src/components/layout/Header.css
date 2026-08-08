@@ -302,6 +302,15 @@
   transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, transform 0.22s ease, box-shadow 0.22s ease;
 }
 
+/* The bell-icon badge (.cart-badge) is position: absolute. Without a
+   positioned ancestor it would float to the page corner. Make sure the
+   notification icon establishes a positioning context so the badge sits
+   on top-right of the bell -- mirroring how the cart icon uses the
+   .cart-wrapper wrapper. */
+.notification-icon {
+  position: relative;
+}
+
 .action-icon:hover {
   color: var(--text-primary);
   border-color: var(--border);

@@ -247,6 +247,14 @@
   z-index: 1100;
 }
 
+/* Negotiations (Bulk Offer / Custom Production) modals: align to the TOP of
+   the viewport so they overlay at the top rather than appearing in the
+   middle (which felt "scrolled down" when opened from a long list). */
+.order-modal-backdrop--top {
+  align-items: flex-start;
+  padding-top: 2rem;
+}
+
 .order-modal {
   width: min(760px, 100%);
   max-height: 90vh;

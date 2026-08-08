@@ -442,7 +442,7 @@ const NegotiationDetailModal: React.FC<{
     offer.lastActionBy === 'seller';
 
   return (
-    <div className="order-modal-backdrop" onClick={onClose}>
+    <div className="order-modal-backdrop order-modal-backdrop--top" onClick={onClose}>
       <div className="order-modal card refund-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720 }}>
         <div className="order-modal-head">
           <h3>Bulk Offer - {offer.productSnapshot?.title}</h3>
@@ -675,7 +675,7 @@ const RFQDetailModal: React.FC<{
 }> = ({ rfq, onClose, onAccept, onReject, onCancel, onAddToCart, busy }) => {
   const terminalStates = ['rejected', 'expired', 'cancelled', 'completed'];
   return (
-    <div className="order-modal-backdrop" onClick={onClose}>
+    <div className="order-modal-backdrop order-modal-backdrop--top" onClick={onClose}>
       <div className="order-modal card refund-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720 }}>
         <div className="order-modal-head">
           <h3>Custom Production - {rfq.productSnapshot?.title}</h3>

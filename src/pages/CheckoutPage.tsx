@@ -105,6 +105,7 @@ export const CheckoutPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'bank_transfer'>('online');
   const [couponCode, setCouponCode] = useState('');
   const [discountTotal, setDiscountTotal] = useState(0);
+  const [taxAmount, setTaxAmount] = useState(0);
   const [grandTotal, setGrandTotal] = useState(subtotal);
   const [stripeIntent, setStripeIntent] = useState<StripeIntentResponse | null>(null);
   const [pendingOrderId, setPendingOrderId] = useState('');
@@ -366,6 +367,14 @@ export const CheckoutPage: React.FC = () => {
         throw new Error('Order ID missing in checkout response');
       }
 
+      // Capture the tax the backend computed on the order so the checkout
+      // summary can surface it as its own line. (grandTotal / discountTotal
+      // mirroring is intentionally skipped -- see the comment below -- so
+      // the customer's confirmed total doesn't jump on click.)
+      if (order.taxAmount != null) {
+        setTaxAmount(Number(order.taxAmount) || 0);
+      }
+
       // NOTE: deliberately not overwriting grandTotal / discountTotal from
       // the server response here. The number the customer just confirmed
       // (the one in the checkout summary at the moment of clicking Place
@@ -516,6 +525,9 @@ export const CheckoutPage: React.FC = () => {
             <div className="summary-item"><span>{t('checkout.items', 'Items')}</span><span>{items.length}</span></div>
             <div className="summary-item"><span>{t('checkout.subtotal', 'Subtotal')}</span><span>{formatMoney(subtotal, items[0]?.currency)}</span></div>
             <div className="summary-item"><span>{t('checkout.discount', 'Discount')}</span><span>- {formatMoney(discountTotal, items[0]?.currency)}</span></div>
+            {taxAmount > 0 && (
+              <div className="summary-item"><span>{t('checkout.taxLabel', 'Tax')}</span><span>{formatMoney(taxAmount, items[0]?.currency)}</span></div>
+            )}
             <div className="summary-item total"><span>{t('checkout.total', 'Total')}</span><span>{formatMoney(grandTotal, items[0]?.currency)}</span></div>
 
             <button

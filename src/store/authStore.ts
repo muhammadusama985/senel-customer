@@ -31,6 +31,19 @@ export const useAuthStore = create<AuthState>()(
           const response = await api.post('/auth/login', credentials);
           const { accessToken, user } = response.data;
           
+          // Customer-only guard: the customer app must only accept customer
+          // accounts. If a vendor / admin tries to log in here, refuse to
+          // store the session and surface a clear error.
+          if (!user || user.role !== 'customer') {
+            const wrongRoleError: any = new Error(
+              'This account is not a customer account. Please use the vendor or admin login.'
+            );
+            wrongRoleError.code = 'WRONG_ROLE';
+            wrongRoleError.userRole = user?.role;
+            set({ user: null, token: null, isLoading: false, error: wrongRoleError.message });
+            throw wrongRoleError;
+          }
+          
           // Store both token and user in localStorage
           localStorage.setItem('customerToken', accessToken);
           localStorage.setItem('customerUser', JSON.stringify(user));
@@ -105,6 +118,14 @@ export const useAuthStore = create<AuthState>()(
         if (savedUser) {
           try {
             const user = JSON.parse(savedUser);
+            // If the persisted user isn't a customer (e.g. an older vendor
+            // session before this guard existed), wipe it and bail out.
+            if (!user || user.role !== 'customer') {
+              localStorage.removeItem('customerToken');
+              localStorage.removeItem('customerUser');
+              set({ user: null, token: null, isLoading: false });
+              return;
+            }
             set({ user, token, isLoading: false });
           } catch {
             localStorage.removeItem('customerUser');
@@ -120,6 +141,14 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await api.get('/auth/me');
           const user = response.data.user;
+          
+          // Customer-only guard on the refreshed session too.
+          if (!user || user.role !== 'customer') {
+            localStorage.removeItem('customerToken');
+            localStorage.removeItem('customerUser');
+            set({ user: null, token: null, isLoading: false });
+            return;
+          }
           
           // Update saved user data
           localStorage.setItem('customerUser', JSON.stringify(user));

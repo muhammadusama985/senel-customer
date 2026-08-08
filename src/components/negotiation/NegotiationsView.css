@@ -72,10 +72,39 @@
    ~4 message cards fit without any scrollbar; beyond that, the list
    scrolls. */
 .negotiation-history-list {
-  max-height: 420px;
+  /* Override the `display: grid` from .account-stack so items respect the
+     max-height cap. Grid items can overflow their container otherwise. */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  /* Capped height: ~4 small message cards fit without scrolling. Anything
+     beyond that scrolls inside this container (NOT the surrounding modal). */
+  max-height: 320px;
   overflow-y: auto;
-  padding-right: 0.4rem;
+  overflow-x: hidden;
+  /* Visible scrollbar gutter so the user can see & grab the scrollbar. */
+  padding-right: 0.5rem;
   scrollbar-width: thin;
-  /* Reserve a little padding so the scrollbar doesn't crowd the cards. */
+  scrollbar-color: var(--border, rgba(0,0,0,0.3)) transparent;
   scrollbar-gutter: stable;
+}
+
+.negotiation-history-list > .account-panel {
+  flex: 0 0 auto;
+}
+
+/* Webkit / Blink scrollbar styling so the scrollbar is visible on
+   Chrome / Safari / Edge (not just Firefox). */
+.negotiation-history-list::-webkit-scrollbar {
+  width: 8px;
+}
+.negotiation-history-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.negotiation-history-list::-webkit-scrollbar-thumb {
+  background: var(--border, rgba(0,0,0,0.25));
+  border-radius: 4px;
+}
+.negotiation-history-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.4);
 }

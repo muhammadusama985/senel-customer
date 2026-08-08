@@ -471,7 +471,20 @@ export const OrdersPage: React.FC = () => {
                     <span className="badge">{order.status}</span>
                   </div>
                 </div>
-                <p>Total: <strong>{formatMoney(Number(order.grandTotal || 0), order.currency)}</strong></p>
+                <p>
+                  Total:{' '}
+                  <strong>
+                    {formatMoney(
+                      Number(order.grandTotal || 0),
+                      // Prefer the order's stored currency; if missing, fall
+                      // back to USD then EUR so the symbol stays consistent
+                      // with what the product / cart defined (rather than
+                      // silently defaulting to EUR and showing a misleading
+                      // symbol next to the same number).
+                      order.currency || 'USD'
+                    )}
+                  </strong>
+                </p>
                 <p className="muted">{t('orders.payment', 'Payment')}: {order.paymentStatus || '-'}</p>
                 {order.refundRequest?.status && order.refundRequest.status !== 'none' ? (
                   <p className="muted">
@@ -557,6 +570,71 @@ export const OrdersPage: React.FC = () => {
                   <strong>{formatMoney(Number(item.lineTotal || 0), item.currency || selectedOrder.order.currency)}</strong>
                 </li>
               ))}
+            </ul>
+
+            {/* Order totals breakdown -- mirrors the value shown in the
+                orders list (order.grandTotal) so the customer sees the
+                exact same amount they were charged. Uses the order-level
+                currency so the symbol matches the product's currency. */}
+            <h4>{t('orders.totalsLabel', 'Order Totals')}</h4>
+            <ul className="detail-list">
+              <li>
+                <span>{t('orders.subtotalLabel', 'Subtotal')}</span>
+                <strong>
+                  {formatMoney(
+                    Number(
+                      (selectedOrder.order as any).subtotal ??
+                        selectedOrder.items.reduce(
+                          (sum, item) => sum + Number(item.lineTotal || 0),
+                          0
+                        )
+                    ),
+                    selectedOrder.order.currency
+                  )}
+                </strong>
+              </li>
+              {Number((selectedOrder.order as any).shippingTotal || 0) > 0 && (
+                <li>
+                  <span>{t('orders.shippingLabel', 'Shipping')}</span>
+                  <strong>
+                    {formatMoney(
+                      Number((selectedOrder.order as any).shippingTotal),
+                      selectedOrder.order.currency
+                    )}
+                  </strong>
+                </li>
+              )}
+              {Number((selectedOrder.order as any).taxAmount || 0) > 0 && (
+                <li>
+                  <span>{t('orders.taxLabel', 'Tax')}</span>
+                  <strong>
+                    {formatMoney(
+                      Number((selectedOrder.order as any).taxAmount),
+                      selectedOrder.order.currency
+                    )}
+                  </strong>
+                </li>
+              )}
+              {Number((selectedOrder.order as any).discountTotal || 0) > 0 && (
+                <li>
+                  <span>{t('orders.discountLabel', 'Discount')}</span>
+                  <strong>
+                    - {formatMoney(
+                      Number((selectedOrder.order as any).discountTotal),
+                      selectedOrder.order.currency
+                    )}
+                  </strong>
+                </li>
+              )}
+              <li>
+                <span>{t('orders.totalLabel', 'Total')}</span>
+                <strong>
+                  {formatMoney(
+                    Number(selectedOrder.order.grandTotal || 0),
+                    selectedOrder.order.currency
+                  )}
+                </strong>
+              </li>
             </ul>
 
             <h4>{t('orders.vendorSplits', 'Vendor Splits')}</h4>

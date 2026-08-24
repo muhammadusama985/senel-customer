@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import api from '../api/client';
 import { Product } from '../types/product';
 import { useI18n } from '../i18n';
@@ -53,6 +53,14 @@ export const useProducts = (params: ProductsQueryParams = {}) => {
 
   return useQuery({
     queryKey: ['products', params, lang],
+    // Keep the previously fetched products visible while the new
+    // (re-translated) batch arrives after a language change. Without
+    // this, switching language makes `data` become `undefined` for a
+    // moment, which on the home page makes the "All Products" strip
+    // disappear (skeleton only) until the translation round-trip
+    // completes. With `keepPreviousData` the strip stays on screen
+    // and the language swap is seamless.
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const searchParams = new URLSearchParams();
       

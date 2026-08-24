@@ -14,7 +14,7 @@ export const AllProducts: React.FC = () => {
   });
   const products = data?.items || [];
 
-  if (isLoading) {
+  if (isLoading && products.length === 0) {
     return (
       <section className="all-products-section">
         <div className="container">
@@ -31,7 +31,16 @@ export const AllProducts: React.FC = () => {
     );
   }
 
-  if (error) {
+  // Only fall back to the error/empty states when we don't already have
+  // products on screen. With `keepPreviousData` enabled in useProducts, a
+  // language change keeps the previous (already-fetched) products visible
+  // while the new translated batch is being requested. If that request
+  // happens to fail (e.g. the backend Google-Translate round-trip times
+  // out), we don't want to wipe the existing products off the page and
+  // show a "Failed to load products" banner — that would make the home
+  // screen flicker into an error state on every language switch. Instead
+  // we just keep rendering whatever products we still have.
+  if (error && products.length === 0) {
     return (
       <section className="all-products-section">
         <div className="container">

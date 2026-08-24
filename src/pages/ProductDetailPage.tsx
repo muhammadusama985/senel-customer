@@ -698,8 +698,19 @@ export const ProductDetailPage: React.FC = () => {
                   {attributeOptions.map(([key]) => (
                     <span key={key}>{key}</span>
                   ))}
-                  <span>{t('product.skuLabel', 'SKU')}</span>
-                  <span>{t('product.stockLabel', 'Stock')}</span>
+                  {/* Variant table column headers and per-row messages are
+                      intentionally hardcoded English. The "SKU" / "Stock"
+                      headers and "X units available" / "Out of stock" /
+                      "Overall stock" copy describe a vendor's inventory
+                      matrix, not a localised UI surface — translating
+                      them would make it harder for the customer to map
+                      what they're seeing back to the listing they
+                      originally searched. The variant attribute keys and
+                      values (Color, Red, Size, M, …) come from
+                      `product.variants` and are kept in English by the
+                      client-side translation layer (see useTranslatedData). */}
+                  <span>SKU</span>
+                  <span>Stock</span>
                 </div>
                 {/* Only show variants that combine multiple options
                     (e.g. Color + Size). Single-option variants like
@@ -723,17 +734,15 @@ export const ProductDetailPage: React.FC = () => {
                       <span>{variant.sku}</span>
                       <span>
                         {stock > 0
-                          ? t('product.unitsAvailable', '{{qty}} units available', { qty: stock })
-                          : t('product.outOfStock', 'Out of stock')}
+                          ? `${stock} units available`
+                          : 'Out of stock'}
                       </span>
                     </div>
                   );
                 })}
                 <div className="variant-stock-overall">
-                  <strong>
-                    {t('product.overallStock', 'Overall stock')}:
-                  </strong>{' '}
-                  {t('product.unitsAvailable', '{{qty}} units available', { qty: overallStock })}
+                  <strong>Overall stock:</strong>{' '}
+                  {`${overallStock} units available`}
                 </div>
               </div>
             )}
@@ -802,15 +811,20 @@ export const ProductDetailPage: React.FC = () => {
                   );
                 })}
                 {isSelectionComplete && (
+                  // Stock-availability copy under the variant selector is
+                  // intentionally hardcoded English for the same reason as
+                  // the variant stock table: this describes the customer's
+                  // selected inventory option ("Out of stock" / "Only N
+                  // units available…" / "N units available for this
+                  // option"), not a localised UI surface. The numbers come
+                  // from `availableStock`, `product.moq` and the selected
+                  // variant — none of them are translated.
                   <div className={`variant-stock ${isOutOfStock ? 'out' : ''}`}>
                     {availableStock <= 0
-                      ? t('product.outOfStock', 'Out of stock')
+                      ? 'Out of stock'
                       : !canMeetMinimumOrder
-                        ? t('product.onlyUnitsAvailable', 'Only {{qty}} units available. Minimum order is {{moq}}.', {
-                            qty: availableStock,
-                            moq: product.moq,
-                          })
-                        : t('product.unitsAvailableForOption', '{{qty}} units available for this option', { qty: availableStock })}
+                        ? `Only ${availableStock} units available. Minimum order is ${product.moq}.`
+                        : `${availableStock} units available for this option`}
                   </div>
                 )}
               </div>

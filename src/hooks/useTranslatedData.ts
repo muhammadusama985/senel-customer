@@ -67,6 +67,20 @@ async function translateObject(obj: unknown, lang: string): Promise<unknown> {
   const entries = Object.entries(obj as Record<string, unknown>);
   const translated = await Promise.all(
     entries.map(async ([key, value]) => {
+      // The product's variant catalogue — its attribute keys (Color, Size,
+      // …), attribute values (Red, Blue, M, L, …), SKUs and per-variant
+      // stock numbers — must stay in English regardless of the customer's
+      // selected language. These names are vendor-defined inventory
+      // labels: translating them would make "Red" become "Rot" and the
+      // customer could no longer match what they're seeing on the listing
+      // to the stock table or to what they originally searched for. The
+      // same goes for any other vendor-controlled variant metadata.
+      // The pricing tiers for variants are handled separately (see
+      // TieredPricing.tsx) and also stay in English.
+      if (key === 'variants') {
+        return [key, value];
+      }
+
       if (typeof value === 'string') {
         return [key, shouldTranslate(key, value) ? await translateText(value, lang) : value];
       }

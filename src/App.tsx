@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Navigate, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { Layout } from './components/layout/Layout';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
@@ -41,6 +41,22 @@ const queryClient = new QueryClient({
   },
 });
 
+function LanguageRefetchBridge() {
+  const queryClient = useQueryClient();
+  const { lang } = useI18n();
+
+  // Belt-and-suspenders: when the customer switches language, invalidate
+  // every React Query cache so every screen refetches with the new
+  // `x-lang` header in real time. Hooks that already include `lang` in
+  // their queryKey would refetch on their own; this guarantees the same
+  // behaviour for any future hook that forgets to.
+  useEffect(() => {
+    queryClient.invalidateQueries();
+  }, [lang, queryClient]);
+
+  return null;
+}
+
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
   const { fetchWishlist } = useWishlistStore();
@@ -64,6 +80,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <LanguageRefetchBridge />
       <Router>
         <ErrorBoundary>
           <Layout>

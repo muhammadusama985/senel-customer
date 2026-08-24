@@ -214,7 +214,7 @@ export const AccountPage: React.FC = () => {
     void loadNotifications();
     void loadAnnouncements();
     void loadDisputes();
-  }, [user]);
+  }, [lang, user]);
 
   useEffect(() => {
     if (!user) return;

@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
 import api from '../../api/client';
+import { useI18n } from '../../i18n';
 import './VendorInfo.css';
 
 interface VendorInfoProps {
@@ -17,8 +18,11 @@ interface Vendor {
 }
 
 export const VendorInfo: React.FC<VendorInfoProps> = ({ vendorId }) => {
+  const { lang } = useI18n();
   const { data: vendorData, isLoading } = useQuery({
-    queryKey: ['vendor-mini', vendorId],
+    // Include `lang` so the vendor list (and therefore the matched
+    // storeName) is refetched when the customer switches language.
+    queryKey: ['vendor-mini', vendorId, lang],
     queryFn: async () => {
       // Resolve the real vendor name from the product's vendorId by looking
       // it up in the public /shop/vendors listing (the only public vendor

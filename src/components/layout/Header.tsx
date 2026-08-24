@@ -206,7 +206,7 @@ export const Header: React.FC = () => {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [searchQuery]);
+  }, [lang, searchQuery]);
 
   const showSuggestions = isSearchFocused && (searchQuery.trim().length >= 2 || suggestions.length > 0);
 

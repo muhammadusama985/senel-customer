@@ -9,7 +9,13 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('customerToken');
-    const language = localStorage.getItem('appLanguage') || 'en';
+    // Translation is now done entirely on the client (see
+    // `utils/clientTranslate.ts` + `hooks/useTranslatedData.ts`). We
+    // therefore always tell the backend "give me English" so the server
+    // doesn't run its own Google Translate pass on every response — the
+    // browser will translate to the customer's selected language itself,
+    // with the result cached in memory for the rest of the session.
+    const language = 'en';
 
     // Let browser/axios set multipart boundary automatically for FormData uploads
     if (config.data instanceof FormData) {

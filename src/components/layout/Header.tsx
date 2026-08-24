@@ -13,6 +13,7 @@ import {
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { setAppLanguage, useI18n } from '../../i18n';
+import { useTranslatedData } from '../../hooks/useTranslatedData';
 import api from '../../api/client';
 import { hasNotificationAlertBeenSeen, markNotificationAlertSeen } from '../../utils/notificationAlertStore';
 import './Header.css';
@@ -30,6 +31,11 @@ export const Header: React.FC = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
+  // Translate the product titles returned by the search-suggestions
+  // endpoint client-side. Search-as-you-type does NOT change the queryKey,
+  // so React Query would otherwise return stale titles after a language
+  // switch. The hook picks up `lang` changes automatically.
+  const translatedSuggestions = useTranslatedData(suggestions) ?? suggestions;
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isMoreDropdownOpen, setIsMoreDropdownOpen] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(
@@ -206,9 +212,9 @@ export const Header: React.FC = () => {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [lang, searchQuery]);
+  }, [searchQuery]);
 
-  const showSuggestions = isSearchFocused && (searchQuery.trim().length >= 2 || suggestions.length > 0);
+  const showSuggestions = isSearchFocused && (searchQuery.trim().length >= 2 || translatedSuggestions.length > 0);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -365,8 +371,8 @@ export const Header: React.FC = () => {
                   <div className="search-suggestions">
                     {isSuggestionsLoading ? (
                       <div className="search-suggestion-empty">{t('search.loading', 'Searching products...')}</div>
-                    ) : suggestions.length > 0 ? (
-                      suggestions.map((suggestion) => (
+                    ) : translatedSuggestions.length > 0 ? (
+                      translatedSuggestions.map((suggestion) => (
                         <button
                           key={suggestion._id}
                           type="button"

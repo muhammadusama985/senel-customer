@@ -1,7 +1,7 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import api from '../api/client';
 import { Product } from '../types/product';
-import { useI18n } from '../i18n';
+import { useTranslatedData } from './useTranslatedData';
 
 export interface ProductsQueryParams {
   q?: string;
@@ -30,8 +30,14 @@ interface ProductsResponse {
   items: Product[];
 }
 
+// NOTE: `lang` is intentionally NO LONGER part of any queryKey below.
+// Translation now happens entirely in the browser (see `useTranslatedData`),
+// so the data the server returns never depends on the customer's language.
+// That means a language switch is a pure client-side operation — no
+// server roundtrip, no skeleton flash, no failure if the backend translation
+// pass is slow.
+
 export const useProducts = (params: ProductsQueryParams = {}) => {
-  const { lang } = useI18n();
   const {
     q = '',
     categoryId,
@@ -51,15 +57,10 @@ export const useProducts = (params: ProductsQueryParams = {}) => {
     limit = 20,
   } = params;
 
-  return useQuery({
-    queryKey: ['products', params, lang],
-    // Keep the previously fetched products visible while the new
-    // (re-translated) batch arrives after a language change. Without
-    // this, switching language makes `data` become `undefined` for a
-    // moment, which on the home page makes the "All Products" strip
-    // disappear (skeleton only) until the translation round-trip
-    // completes. With `keepPreviousData` the strip stays on screen
-    // and the language swap is seamless.
+  const query = useQuery({
+    queryKey: ['products', params],
+    // Keep the previous products visible while a refetch (caused by filter
+    // / sort changes, not language changes) is in flight.
     placeholderData: keepPreviousData,
     queryFn: async () => {
       const searchParams = new URLSearchParams();
@@ -86,12 +87,18 @@ export const useProducts = (params: ProductsQueryParams = {}) => {
     },
     staleTime: 5 * 60 * 1000,
   });
+
+  // Client-side translation pass. Walks the products tree and replaces
+  // every human-language string with its cached/translated version for
+  // the current language. Components below this hook see the translated
+  // data and never need to know about translation themselves.
+  const translatedData = useTranslatedData(query.data);
+  return { ...query, data: translatedData };
 };
 
 export const useProduct = (slug: string) => {
-  const { lang } = useI18n();
-  return useQuery({
-    queryKey: ['product', slug, lang],
+  const query = useQuery({
+    queryKey: ['product', slug],
     queryFn: async () => {
       const response = await api.get<{ product: Product }>(`/shop/products/${slug}`);
       return response.data.product;
@@ -99,12 +106,13 @@ export const useProduct = (slug: string) => {
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
   });
+  const translatedData = useTranslatedData(query.data);
+  return { ...query, data: translatedData };
 };
 
 export const useRelatedProducts = (productId: string, limit: number = 4) => {
-  const { lang } = useI18n();
-  return useQuery({
-    queryKey: ['related-products', productId, limit, lang],
+  const query = useQuery({
+    queryKey: ['related-products', productId, limit],
     queryFn: async () => {
       const response = await api.get(`/shop/recommendations/${productId}`, {
         params: { limit }
@@ -114,12 +122,13 @@ export const useRelatedProducts = (productId: string, limit: number = 4) => {
     enabled: !!productId,
     staleTime: 10 * 60 * 1000,
   });
+  const translatedData = useTranslatedData(query.data);
+  return { ...query, data: translatedData };
 };
 
 export const useTrendingProducts = (limit: number = 8) => {
-  const { lang } = useI18n();
-  return useQuery({
-    queryKey: ['trending', limit, lang],
+  const query = useQuery({
+    queryKey: ['trending', limit],
     queryFn: async () => {
       const response = await api.get('/shop/trending', {
         params: { limit }
@@ -128,4 +137,6 @@ export const useTrendingProducts = (limit: number = 8) => {
     },
     staleTime: 5 * 60 * 1000,
   });
+  const translatedData = useTranslatedData(query.data);
+  return { ...query, data: translatedData };
 };

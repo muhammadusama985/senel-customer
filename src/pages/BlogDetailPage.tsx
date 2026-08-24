@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import api from '../api/client';
 import { Breadcrumbs } from '../components/common/Breadcrumbs';
 import { useI18n } from '../i18n';
+import { useTranslatedData } from '../hooks/useTranslatedData';
 import { resolveMediaUrl } from '../utils/media';
 import './BlogDetailPage.css';
 
@@ -18,7 +19,7 @@ interface BlogPost {
 
 export const BlogDetailPage: React.FC = () => {
   const { slug = '' } = useParams<{ slug: string }>();
-  const { lang, t } = useI18n();
+  const { t } = useI18n();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -41,7 +42,14 @@ export const BlogDetailPage: React.FC = () => {
     };
 
     void load();
-  }, [lang, slug, t]);
+  }, [slug, t]);
+
+  // Translate the blog content (title, summary, content) client-side. The
+  // dependency on `post` is stable across re-renders thanks to React state
+  // identity, so this only fires when a new post is fetched or the user
+  // switches language.
+  const translatedPost = useTranslatedData(post);
+  const safePost = translatedPost ?? post;
 
   return (
     <div className="blog-detail-page">
@@ -50,7 +58,7 @@ export const BlogDetailPage: React.FC = () => {
           items={[
             { label: t('nav.home', 'Home'), path: '/' },
             { label: t('blog.title', 'Blog'), path: '/blog' },
-            { label: post?.title || slug, path: `/blog/${slug}` },
+            { label: safePost?.title || slug, path: `/blog/${slug}` },
           ]}
         />
 
@@ -61,14 +69,14 @@ export const BlogDetailPage: React.FC = () => {
             <p>{error}</p>
           ) : (
             <>
-              <h1>{post?.title}</h1>
+              <h1>{safePost?.title}</h1>
               <p className="muted">
-                {post?.authorName || 'Senel'} {post?.publishedAt ? `• ${new Date(post.publishedAt).toLocaleDateString()}` : ''}
+                {safePost?.authorName || 'Senel'} {safePost?.publishedAt ? `• ${new Date(safePost.publishedAt).toLocaleDateString()}` : ''}
               </p>
-              {post?.coverImageUrl && <img src={resolveMediaUrl(post.coverImageUrl)} alt={post.title} className="blog-detail-cover" />}
+              {safePost?.coverImageUrl && <img src={resolveMediaUrl(safePost.coverImageUrl)} alt={safePost.title} className="blog-detail-cover" />}
               <div
                 className="blog-html"
-                dangerouslySetInnerHTML={{ __html: post?.content || '' }}
+                dangerouslySetInnerHTML={{ __html: safePost?.content || '' }}
               />
             </>
           )}

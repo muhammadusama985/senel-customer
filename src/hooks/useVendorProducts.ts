@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
 import { Product } from '../types/product';
-import { useI18n } from '../i18n';
+import { useTranslatedData } from './useTranslatedData';
 
 interface VendorProductsResponse {
   vendor: {
@@ -18,12 +18,8 @@ interface VendorProductsResponse {
 }
 
 export const useVendorProducts = (slug: string, page: number = 1, limit: number = 12) => {
-  const { lang } = useI18n();
-  return useQuery({
-    // Include `lang` so vendor product titles/descriptions are refetched
-    // (and re-translated) when the customer switches language. Without
-    // this, the list keeps showing the previously fetched language.
-    queryKey: ['vendor-products', slug, page, limit, lang],
+  const query = useQuery({
+    queryKey: ['vendor-products', slug, page, limit],
     queryFn: async () => {
       const response = await api.get<VendorProductsResponse>(
         `/shop/vendors/${slug}/products`,
@@ -34,4 +30,6 @@ export const useVendorProducts = (slug: string, page: number = 1, limit: number 
     enabled: !!slug,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+  const translatedData = useTranslatedData(query.data);
+  return { ...query, data: translatedData };
 };

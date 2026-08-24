@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
-import { useI18n } from '../i18n';
+import { useTranslatedData } from './useTranslatedData';
 
 export interface Vendor {
   id: string;
@@ -33,9 +33,8 @@ interface VendorsListParams {
 }
 
 export const useVendor = (slug: string) => {
-  const { lang } = useI18n();
-  return useQuery({
-    queryKey: ['vendor', slug, lang],
+  const query = useQuery({
+    queryKey: ['vendor', slug],
     queryFn: async () => {
       const response = await api.get(`/shop/vendors/${slug}`);
       return response.data.vendor;
@@ -43,12 +42,13 @@ export const useVendor = (slug: string) => {
     enabled: !!slug,
     staleTime: 10 * 60 * 1000,
   });
+  const translatedData = useTranslatedData(query.data);
+  return { ...query, data: translatedData };
 };
 
 export const useVendorProducts = (slug: string, page: number = 1, limit: number = 12) => {
-  const { lang } = useI18n();
-  return useQuery({
-    queryKey: ['vendor-products', slug, page, limit, lang],
+  const query = useQuery({
+    queryKey: ['vendor-products', slug, page, limit],
     queryFn: async () => {
       const response = await api.get(
         `/shop/vendors/${slug}/products`,
@@ -59,10 +59,11 @@ export const useVendorProducts = (slug: string, page: number = 1, limit: number 
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
   });
+  const translatedData = useTranslatedData(query.data);
+  return { ...query, data: translatedData };
 };
 
 export const useVendorsList = (params: VendorsListParams = {}) => {
-  const { lang } = useI18n();
   const {
     q = '',
     country = '',
@@ -71,8 +72,8 @@ export const useVendorsList = (params: VendorsListParams = {}) => {
     limit = 20,
   } = params;
 
-  return useQuery({
-    queryKey: ['vendors-list', q, country, verified, page, limit, lang],
+  const query = useQuery({
+    queryKey: ['vendors-list', q, country, verified, page, limit],
     queryFn: async () => {
       const response = await api.get<VendorsListResponse>('/shop/vendors', {
         params: {
@@ -87,4 +88,6 @@ export const useVendorsList = (params: VendorsListParams = {}) => {
     },
     staleTime: 5 * 60 * 1000,
   });
+  const translatedData = useTranslatedData(query.data);
+  return { ...query, data: translatedData };
 };

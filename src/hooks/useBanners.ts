@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
-import { useI18n } from '../i18n';
+import { useTranslatedData } from './useTranslatedData';
 
 export interface Banner {
   id: string;
@@ -18,17 +18,14 @@ interface BannersResponse {
 }
 
 export const useBanners = () => {
-  const { lang } = useI18n();
-  return useQuery({
-    // Include `lang` so React Query refetches banners (with the new
-    // x-lang header) the moment the customer switches language. Without
-    // this, banner titles/subtitles stay in the original language until
-    // the page is reloaded.
-    queryKey: ['banners', lang],
+  const query = useQuery({
+    queryKey: ['banners'],
     queryFn: async () => {
       const response = await api.get<BannersResponse>('/banners');
       return Array.isArray(response.data.items) ? response.data.items : [];
     },
     staleTime: 5 * 60 * 1000,
   });
+  const translatedData = useTranslatedData(query.data);
+  return { ...query, data: translatedData };
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
 import api from '../../api/client';
-import { useI18n } from '../../i18n';
+import { useTranslatedData } from '../../hooks/useTranslatedData';
 import './VendorInfo.css';
 
 interface VendorInfoProps {
@@ -18,11 +18,9 @@ interface Vendor {
 }
 
 export const VendorInfo: React.FC<VendorInfoProps> = ({ vendorId }) => {
-  const { lang } = useI18n();
-  const { data: vendorData, isLoading } = useQuery({
-    // Include `lang` so the vendor list (and therefore the matched
-    // storeName) is refetched when the customer switches language.
-    queryKey: ['vendor-mini', vendorId, lang],
+  const query = useQuery({
+    // `lang` removed from queryKey — see comment in `useTranslatedData`.
+    queryKey: ['vendor-mini', vendorId],
     queryFn: async () => {
       // Resolve the real vendor name from the product's vendorId by looking
       // it up in the public /shop/vendors listing (the only public vendor
@@ -40,10 +38,11 @@ export const VendorInfo: React.FC<VendorInfoProps> = ({ vendorId }) => {
     retry: false,
     staleTime: 10 * 60 * 1000,
   });
+  const vendorData = useTranslatedData(query.data);
 
   if (!vendorId) return null;
 
-  if (isLoading) {
+  if (query.isLoading) {
     return <div className="vendor-info-skeleton">Loading vendor info...</div>;
   }
 

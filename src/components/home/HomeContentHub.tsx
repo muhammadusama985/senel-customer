@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';
 import { useI18n } from '../../i18n';
+import { useTranslatedData } from '../../hooks/useTranslatedData';
 import { resolveMediaUrl } from '../../utils/media';
 import './HomeContentHub.css';
 
@@ -14,7 +15,7 @@ interface BlogPostListItem {
 }
 
 export const HomeContentHub: React.FC = () => {
-  const { lang, t } = useI18n();
+  const { t } = useI18n();
   const [blogs, setBlogs] = useState<BlogPostListItem[]>([]);
 
   useEffect(() => {
@@ -28,9 +29,12 @@ export const HomeContentHub: React.FC = () => {
     };
 
     void load();
-  }, [lang]);
+  }, []);
 
-  const hasBlogs = blogs.length > 0;
+  // Client-side translation pass on the freshly-fetched English blog data.
+  const translatedBlogs = useTranslatedData(blogs) ?? blogs;
+
+  const hasBlogs = translatedBlogs.length > 0;
 
   return (
     <section className="home-content-hub">
@@ -43,7 +47,7 @@ export const HomeContentHub: React.FC = () => {
             </div>
             {hasBlogs ? (
               <div className="hub-blog-list">
-                {blogs.map((post) => (
+                {translatedBlogs.map((post) => (
                   <Link key={post.slug} to={`/blog/${post.slug}`} className="hub-blog-item">
                     {resolveMediaUrl(post.coverImageUrl) ? (
                       <img src={resolveMediaUrl(post.coverImageUrl)} alt={post.title} />

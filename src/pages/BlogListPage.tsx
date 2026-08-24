@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../api/client';
 import { Breadcrumbs } from '../components/common/Breadcrumbs';
 import { useI18n } from '../i18n';
+import { useTranslatedData } from '../hooks/useTranslatedData';
 import { resolveMediaUrl } from '../utils/media';
 import './BlogListPage.css';
 
@@ -16,7 +17,7 @@ interface BlogPostListItem {
 }
 
 export const BlogListPage: React.FC = () => {
-  const { lang, t } = useI18n();
+  const { t } = useI18n();
   const [items, setItems] = useState<BlogPostListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,7 +37,9 @@ export const BlogListPage: React.FC = () => {
     };
 
     void load();
-  }, [lang, t]);
+  }, [t]);
+
+  const translatedItems = useTranslatedData(items) ?? items;
 
   return (
     <div className="blog-list-page">
@@ -51,11 +54,11 @@ export const BlogListPage: React.FC = () => {
           <div className="card">{t('blog.loadingList', 'Loading blog posts...')}</div>
         ) : error ? (
           <div className="card">{error}</div>
-        ) : items.length === 0 ? (
+        ) : translatedItems.length === 0 ? (
           <div className="card">{t('blog.none', 'No blog posts available.')}</div>
         ) : (
           <div className="blog-grid">
-            {items.map((post) => (
+            {translatedItems.map((post) => (
               <article className="card blog-item" key={post.slug}>
                 {post.coverImageUrl && (
                   <img src={resolveMediaUrl(post.coverImageUrl)} alt={post.title} className="blog-cover" />

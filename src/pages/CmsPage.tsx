@@ -3,6 +3,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import api from '../api/client';
 import { Breadcrumbs } from '../components/common/Breadcrumbs';
 import { useI18n } from '../i18n';
+import { useTranslatedData } from '../hooks/useTranslatedData';
 import './CmsPage.css';
 
 interface CmsPageData {
@@ -25,7 +26,7 @@ const aliasToSlug: Record<string, string> = {
 export const CmsPage: React.FC = () => {
   const location = useLocation();
   const { slug = '' } = useParams<{ slug: string }>();
-  const { lang, t } = useI18n();
+  const { t } = useI18n();
   const [page, setPage] = useState<CmsPageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -55,16 +56,23 @@ export const CmsPage: React.FC = () => {
     };
 
     void load();
-  }, [lang, pageSlug, t]);
+  }, [pageSlug, t]);
 
-  const title = page?.title || t(`cms.${pageSlug}`, pageSlug || 'Page');
+  // Translate CMS page title + content in the browser. Translating HTML
+  // content is safe here because the translator preserves text and skips
+  // tags (it only swaps visible strings). Page metadata (slug, route)
+  // stays as-is via the `shouldTranslate` whitelist.
+  const translatedPage = useTranslatedData(page);
+  const safePage = translatedPage ?? page;
+
+  const title = safePage?.title || t(`cms.${pageSlug}`, pageSlug || 'Page');
 
   // Context-aware empty-state copy based on the page slug. The user wants
   // the message to reflect the title of the page they clicked (e.g. "No
   // contact", "No shipping", "No returns") instead of a generic "Page not
   // found" for every CMS page.
   const emptyCopy = (() => {
-    const key = (page?.slug || pageSlug || '').toLowerCase();
+    const key = (safePage?.slug || pageSlug || '').toLowerCase();
     switch (key) {
       case 'contact':
         return t('cms.emptyContact', 'No contact information available yet.');
@@ -100,17 +108,17 @@ export const CmsPage: React.FC = () => {
         <article className="card cms-content">
           {loading ? (
             <p>{t('cms.loading', 'Loading content...')}</p>
-          ) : error || !page || !page.content?.trim() ? (
+          ) : error || !safePage || !safePage.content?.trim() ? (
             <div>
               <h1>{title}</h1>
               <p className="muted">{emptyCopy}</p>
             </div>
           ) : (
             <>
-              <h1>{page?.title}</h1>
+              <h1>{safePage?.title}</h1>
               <div
                 className="cms-html"
-                dangerouslySetInnerHTML={{ __html: page?.content || '' }}
+                dangerouslySetInnerHTML={{ __html: safePage?.content || '' }}
               />
             </>
           )}

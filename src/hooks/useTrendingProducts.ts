@@ -1,16 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
 import { Product } from '../types/product';
-import { useI18n } from '../i18n';
+import { useTranslatedData } from './useTranslatedData';
 
 interface TrendingResponse {
   trending: Product[];
 }
 
 export const useTrendingProducts = (limit: number = 8) => {
-  const { lang } = useI18n();
-  return useQuery({
-    queryKey: ['products', 'trending', limit, lang],
+  const query = useQuery({
+    queryKey: ['products', 'trending', limit],
     queryFn: async () => {
       const response = await api.get<TrendingResponse>('/shop/trending', {
         params: { limit }
@@ -19,4 +18,6 @@ export const useTrendingProducts = (limit: number = 8) => {
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
+  const translatedData = useTranslatedData(query.data);
+  return { ...query, data: translatedData };
 };

@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import api from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { useI18n } from '../i18n';
+import { useTranslatedData } from '../hooks/useTranslatedData';
 import { extractFieldErrors, extractErrorMessage } from '../utils/formErrors';
 import { NegotiationsView } from '../components/negotiation/NegotiationsView';
 import './AccountPage.css';
@@ -162,6 +163,22 @@ export const AccountPage: React.FC = () => {
   const [disputeMessages, setDisputeMessages] = useState<DisputeMessage[]>([]);
   const [disputeReply, setDisputeReply] = useState('');
   const [disputeBusy, setDisputeBusy] = useState(false);
+
+  // Client-side translation pass over every server-fetched list. The lists
+  // are kept in English in state; `useTranslatedData` walks them whenever
+  // the customer changes language and replaces every human-language string
+  // with its cached translation. Each variable falls back to the original
+  // English list (or `null` for the single-object cases) until the
+  // translation pass produces a result, so the JSX never has to special-
+  // case `undefined`.
+  const translatedAddresses = useTranslatedData(addresses) ?? addresses;
+  const translatedPreferred = useTranslatedData(preferred) ?? preferred;
+  const translatedRecentlyViewed = useTranslatedData(recentlyViewed) ?? recentlyViewed;
+  const translatedNotifications = useTranslatedData(notifications) ?? notifications;
+  const translatedAnnouncements = useTranslatedData(announcements) ?? announcements;
+  const translatedDisputes = useTranslatedData(disputes) ?? disputes;
+  const translatedDisputeMessages = useTranslatedData(disputeMessages) ?? disputeMessages;
+  const translatedSelectedDispute = useTranslatedData(selectedDispute) ?? selectedDispute;
 
   // Notification popup is rendered globally by the Header so it appears
   // regardless of which tab the user is on.
@@ -703,11 +720,11 @@ export const AccountPage: React.FC = () => {
                   </form>
                 )}
 
-                {addresses.length === 0 ? (
+                {translatedAddresses.length === 0 ? (
                   <p className="muted">{t('account.noAddresses', 'No addresses found.')}</p>
                 ) : (
                   <div className="address-grid">
-                    {addresses.map((address) => (
+                    {translatedAddresses.map((address) => (
                       <article key={address._id} className="account-panel address-card">
                         <div className="address-card-head">
                           <div>
@@ -740,9 +757,9 @@ export const AccountPage: React.FC = () => {
                     <p className="muted">Keep your favorite suppliers nearby for quick repeat sourcing.</p>
                   </div>
                 </div>
-                {preferred.length === 0 ? <p className="muted">{t('account.noPreferred', 'No preferred suppliers found.')}</p> : (
+                {translatedPreferred.length === 0 ? <p className="muted">{t('account.noPreferred', 'No preferred suppliers found.')}</p> : (
                   <div className="account-list-grid">
-                    {preferred.map((item) => (
+                    {translatedPreferred.map((item) => (
                       <article key={item._id} className="account-panel">
                         <strong>{item.vendor?.storeName || item.vendorId}</strong>
                         <div className="row-actions">
@@ -766,11 +783,11 @@ export const AccountPage: React.FC = () => {
                     <p className="muted">Track product and order disputes you have opened with vendors.</p>
                   </div>
                 </div>
-                {disputes.length === 0 ? (
+                {translatedDisputes.length === 0 ? (
                   <p className="muted">No disputes found.</p>
                 ) : (
                   <div className="account-list-grid">
-                    {disputes.map((dispute) => (
+                    {translatedDisputes.map((dispute) => (
                       <article key={dispute._id} className="account-panel">
                         <div className="dispute-head">
                           <strong>{dispute.disputeNumber}</strong>
@@ -797,9 +814,9 @@ export const AccountPage: React.FC = () => {
                   </div>
                   <button type="button" className="btn btn-outline" onClick={clearRecentlyViewed}>{t('account.clear', 'Clear')}</button>
                 </div>
-                {recentlyViewed.length === 0 ? <p className="muted">{t('account.noRecent', 'No recently viewed items.')}</p> : (
+                {translatedRecentlyViewed.length === 0 ? <p className="muted">{t('account.noRecent', 'No recently viewed items.')}</p> : (
                   <div className="account-list-grid">
-                    {recentlyViewed.map((item) => (
+                    {translatedRecentlyViewed.map((item) => (
                       <article key={`${item.productId}`} className="account-panel">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
                           <strong>{item.product?.title || item.productId}</strong>
@@ -822,9 +839,9 @@ export const AccountPage: React.FC = () => {
                     <p className="muted">Review order, payment, and support updates.</p>
                   </div>
                 </div>
-                {notifications.length === 0 ? <p className="muted">{t('account.noNotifications', 'No notifications.')}</p> : (
+                {translatedNotifications.length === 0 ? <p className="muted">{t('account.noNotifications', 'No notifications.')}</p> : (
                   <div className="account-list-grid">
-                    {notifications.map((notification) => (
+                    {translatedNotifications.map((notification) => (
                       <article
                         key={notification._id}
                         className="account-panel"
@@ -860,9 +877,9 @@ export const AccountPage: React.FC = () => {
                     <p className="muted">Catch platform-wide updates, notices, and announcements.</p>
                   </div>
                 </div>
-                {announcements.length === 0 ? <p className="muted">{t('account.noAnnouncements', 'No announcements.')}</p> : (
+                {translatedAnnouncements.length === 0 ? <p className="muted">{t('account.noAnnouncements', 'No announcements.')}</p> : (
                   <div className="account-list-grid">
-                    {announcements.map((announcement) => (
+                    {translatedAnnouncements.map((announcement) => (
                       <article key={announcement.id} className="account-panel">
                         <strong>{announcement.title}</strong>
                         <p className="muted">{announcement.body || ''}</p>
@@ -893,21 +910,21 @@ export const AccountPage: React.FC = () => {
         </div>
       </div>
 
-      {selectedDispute && (
+      {translatedSelectedDispute && (
         <div className="order-modal-backdrop" onClick={() => setSelectedDispute(null)}>
           <div className="order-modal card refund-modal" onClick={(e) => e.stopPropagation()}>
             <div className="order-modal-head">
-              <h3>{selectedDispute.disputeNumber}</h3>
+              <h3>{translatedSelectedDispute.disputeNumber}</h3>
               <button type="button" className="btn btn-outline" onClick={() => setSelectedDispute(null)}>Close</button>
             </div>
-            <p><strong>Status:</strong> {selectedDispute.status.replace('_', ' ')}</p>
-            <p><strong>Reason:</strong> {(selectedDispute.reason || 'other').replace('_', ' ')}</p>
-            <p>{selectedDispute.description || selectedDispute.subject}</p>
-            {disputeBusy && disputeMessages.length === 0 ? (
+            <p><strong>Status:</strong> {translatedSelectedDispute.status.replace('_', ' ')}</p>
+            <p><strong>Reason:</strong> {(translatedSelectedDispute.reason || 'other').replace('_', ' ')}</p>
+            <p>{translatedSelectedDispute.description || translatedSelectedDispute.subject}</p>
+            {disputeBusy && translatedDisputeMessages.length === 0 ? (
               <div className="account-panel">Loading dispute...</div>
             ) : (
               <div className="account-stack">
-                {disputeMessages.map((message) => (
+                {translatedDisputeMessages.map((message) => (
                   <div key={message._id} className="account-panel">
                     <div className="dispute-head">
                       <strong>{message.senderRole === 'customer' ? 'You' : message.senderRole === 'vendor' ? 'Vendor' : 'Admin'}</strong>
@@ -918,7 +935,7 @@ export const AccountPage: React.FC = () => {
                 ))}
               </div>
             )}
-            {selectedDispute.status !== 'closed' ? (
+            {translatedSelectedDispute.status !== 'closed' ? (
               <div className="account-stack" style={{ marginTop: '1rem' }}>
                 <textarea
                   className="account-field"

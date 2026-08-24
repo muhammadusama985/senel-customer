@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
-import { useI18n } from '../i18n';
+import { useTranslatedData } from './useTranslatedData';
 
 export interface Category {
   _id: string;
@@ -16,10 +16,12 @@ interface CategoriesResponse {
   categories: Category[];
 }
 
+// `lang` removed from queryKey — the server response no longer depends on
+// the customer's language. Translation happens client-side via
+// `useTranslatedData` below.
 export const useCategories = (limit?: number) => {
-  const { lang } = useI18n();
-  return useQuery<Category[]>({
-    queryKey: ['categories', lang],
+  const query = useQuery<Category[]>({
+    queryKey: ['categories'],
     queryFn: async () => {
       const response = await api.get<CategoriesResponse>('/shop/categories');
       const categories = response.data.categories || [];
@@ -31,4 +33,6 @@ export const useCategories = (limit?: number) => {
     },
     staleTime: 10 * 60 * 1000,
   });
+  const translatedData = useTranslatedData(query.data);
+  return { ...query, data: translatedData };
 };

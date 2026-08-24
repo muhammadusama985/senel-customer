@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
-import { useI18n } from '../../i18n';
 import './TieredPricing.css';
 
 interface PriceTier {
@@ -66,6 +65,17 @@ const resolveCombinationOffset = (
   return Number.isFinite(num) ? num : 0;
 };
 
+// NOTE: Pricing UI is intentionally hardcoded in English. The pricing
+// matrix, tier labels, math descriptions, and quantity-selector copy
+// describe a B2B purchasing formula that is canonical across languages
+// (Quantity → Unit Price → Total Price → Savings → Floor). Translating
+// these labels would change the meaning of the formula and break parity
+// with the pricing the vendor set on the admin/vendor side, so we keep
+// them in English regardless of the customer's selected UI language.
+// The numbers, the currency symbol and the math themselves are already
+// preserved by the client-side translation layer (it only translates
+// human-language strings, never numbers or formulas).
+
 export const TieredPricing: React.FC<TieredPricingProps> = ({
   tiers,
   selectedQuantity,
@@ -79,7 +89,6 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   minEffectiveUnitPrice = 0,
   selectedAttributes,
 }) => {
-  const { t } = useI18n();
   const [internalQuantityInput, setInternalQuantityInput] = useState(String(selectedQuantity || moq));
   const quantityInput = inputValue ?? internalQuantityInput;
   const sortedTiers = [...tiers].sort((a, b) => a.minQty - b.minQty);
@@ -161,8 +170,10 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
   return (
     <div className="tiered-pricing">
       <div className="pricing-header">
-        <h3>{t('pricing.title', 'Pricing Tiers')}</h3>
-        <div className="moq-badge">{t('pricing.minimumOrder', 'Minimum Order: {{moq}}+ units', { moq })}</div>
+        <h3>Pricing Tiers</h3>
+        <div className="moq-badge">
+          Minimum Order: {moq}+ units
+        </div>
       </div>
 
       {adjustment !== 0 && (
@@ -170,12 +181,8 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
           <InformationCircleIcon className="icon-small" />
           <span>
             {adjustment > 0
-              ? t('pricing.offsetUp', 'Combination offset: +{{amount}} (applied to all tiers)', {
-                  amount: adjustment.toFixed(2),
-                })
-              : t('pricing.offsetDown', 'Combination offset: {{amount}} (applied to all tiers)', {
-                  amount: adjustment.toFixed(2),
-                })}
+              ? `Combination offset: +${adjustment.toFixed(2)} (applied to all tiers)`
+              : `Combination offset: ${adjustment.toFixed(2)} (applied to all tiers)`}
           </span>
         </div>
       )}
@@ -187,7 +194,7 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
         <div className="adjustment-banner" style={{ borderColor: 'var(--warning)' }}>
           <InformationCircleIcon className="icon-small" />
           <span>
-            {t('pricing.priceFloor', 'Some prices were floored to the minimum effective unit price.')}
+            Some prices were floored to the minimum effective unit price.
           </span>
         </div>
       )}
@@ -196,9 +203,9 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
         <table>
           <thead>
             <tr>
-              <th>{t('pricing.quantity', 'Quantity')}</th>
-              <th>{t('pricing.unitPrice', 'Unit Price')}</th>
-              <th>{t('pricing.totalPrice', 'Total Price')}</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Total Price</th>
             </tr>
           </thead>
           <tbody>
@@ -225,13 +232,13 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
                   <td className="quantity-cell">
                     {tier.minQty}+
                     {isActive && (
-                      <span className="active-badge">{t('pricing.selected', 'Selected')}</span>
+                      <span className="active-badge">Selected</span>
                     )}
                   </td>
                   <td className="price-cell">
                     {currencySymbol}{effectiveUnitPrice.toFixed(2)}
                     {index === 0 && !hasTierAdjustment && (
-                      <span className="base-badge">{t('pricing.base', 'Base')}</span>
+                      <span className="base-badge">Base</span>
                     )}
                     {hasTierAdjustment && (
                       <span className="base-badge adjusted-badge" title={`Base ${currencySymbol}${baseUnitPrice.toFixed(2)}`}>
@@ -253,17 +260,14 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
         <div className="savings-banner">
           <InformationCircleIcon className="icon-small" />
           <span>
-            {t('pricing.savings', 'You save {{amount}} per unit ({{percent}}% off base price)', {
-              amount: `${currencySymbol}${savings.savings.toFixed(2)}`,
-              percent: savings.savingsPercent.toFixed(1),
-            })}
+            You save {currencySymbol}{savings.savings.toFixed(2)} per unit ({savings.savingsPercent.toFixed(1)}% off base price)
           </span>
         </div>
       )}
 
       <div className="quantity-selector-section">
         <label htmlFor="quantity" className="quantity-label">
-          {t('pricing.selectQuantity', 'Select Quantity:')}
+          Select Quantity:
         </label>
         <div className="quantity-controls">
           <button
@@ -313,17 +317,17 @@ export const TieredPricing: React.FC<TieredPricingProps> = ({
 
       {hasStockLimit && (
         <div className="stock-limit-note">
-          {t('pricing.maxAvailable', 'Maximum available quantity: {{maxQty}}', { maxQty: maxQty ?? '' })}
+          Maximum available quantity: {maxQty ?? ''}
         </div>
       )}
 
       <div className="price-summary">
         <div className="summary-row">
-          <span className="summary-label">{t('pricing.unitPriceLabel', 'Unit Price:')}</span>
+          <span className="summary-label">Unit Price:</span>
           <span className="summary-value">{currencySymbol}{currentPrice.toFixed(2)}</span>
         </div>
         <div className="summary-row total">
-          <span className="summary-label">{t('pricing.totalLabel', 'Total:')}</span>
+          <span className="summary-label">Total:</span>
           <span className="summary-value">{currencySymbol}{totalPrice.toFixed(2)}</span>
         </div>
       </div>

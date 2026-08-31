@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/client';
+import { useAuthStore } from '../store/authStore';
 
 export const GoogleCallbackPage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,12 +30,25 @@ export const GoogleCallbackPage: React.FC = () => {
         const response = await api.post('/auth/google/callback', { code });
         const { accessToken, user } = response.data;
 
+        // Customer-only guard (same as authStore.login/edit-password login):
+        // only accept customer accounts so an admin/vendor can't sign in here.
+        if (!user || user.role !== 'customer') {
+          toast.error('This account is not a customer account. Please use the vendor or admin login.');
+          navigate('/login');
+          return;
+        }
+
         // Store token and user
         localStorage.setItem('customerToken', accessToken);
         localStorage.setItem('customerUser', JSON.stringify(user));
         
         // Notify other components
         window.dispatchEvent(new Event('storage'));
+
+        // Sync the zustand auth store so components that read `useAuthStore()`
+        // (e.g. the header login button) update immediately, exactly like the
+        // email/password login path in authStore.login().
+        useAuthStore.setState({ user, token: accessToken, isLoading: false, error: null });
         
         toast.success('Login successful!');
         navigate('/');

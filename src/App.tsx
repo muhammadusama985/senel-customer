@@ -72,8 +72,23 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="loading-screen">
-        <div className="loader">{t('common.loading', 'Loading...')}</div>
+      <div className="splash-screen">
+        <div className="splash-blob splash-blob--one" />
+        <div className="splash-blob splash-blob--two" />
+        <div className="splash-blob splash-blob--three" />
+        <div className="splash-card">
+          <div className="splash-logo-ring">
+            <span className="splash-ring" />
+            <img src="/my-logo.png" alt="Senel Express" className="splash-logo" />
+          </div>
+          <h1 className="splash-title">Senel Express</h1>
+          <p className="splash-tagline">{t('common.loading', 'Loading...')}</p>
+          <div className="splash-dots">
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
       </div>
     );
   }

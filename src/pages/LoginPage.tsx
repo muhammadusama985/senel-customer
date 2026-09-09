@@ -167,17 +167,22 @@ export const LoginPage: React.FC = () => {
       // Default fallback message
       let errorMsg = 'Login failed. Please check your email and password.';
 
-      // Check for message on the error object itself (set by authStore)
-      if (error?.message) {
-        errorMsg = error.message;
-      }
-      // Check for response data message
-      else if (error?.response?.data?.message) {
+      // Check for backend-provided message (most specific, e.g. "Email not
+      // registered" for 404 or "Incorrect password" for 401)
+      if (error?.response?.data?.message) {
         errorMsg = error.response.data.message;
+      }
+      // Check for role guard errors thrown by the auth store
+      else if (error?.message) {
+        errorMsg = error.message;
       }
       // Check for 401 status code
       else if (error?.response?.status === 401) {
-        errorMsg = 'Invalid email or password. Please check your credentials.';
+        errorMsg = 'Incorrect password';
+      }
+      // Check for 404 status code
+      else if (error?.response?.status === 404) {
+        errorMsg = 'Email not registered';
       }
       // Check for Zod validation issues
       else if (Array.isArray(error?.response?.data?.issues) && error.response.data.issues.length > 0) {

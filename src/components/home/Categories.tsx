@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useCategories } from '../../hooks/useCategories';
 import { useI18n } from '../../i18n';
@@ -14,7 +14,12 @@ interface Category {
 
 export const Categories: React.FC = () => {
   const { t } = useI18n();
-  const { data: categories, isLoading } = useCategories(8);
+  const { data: categories, isLoading } = useCategories();
+
+  const trendingCategories = useMemo(
+    () => (categories || []).filter((category) => Boolean(category.parentId)).slice(0, 8),
+    [categories]
+  );
 
   if (isLoading) {
     return (
@@ -41,9 +46,9 @@ export const Categories: React.FC = () => {
           </Link>
         </div>
 
-        {categories?.length ? (
+        {trendingCategories?.length ? (
           <div className="categories-bar" role="list" aria-label={t('home.trendingCategories', 'Trending Categories')}>
-            {categories.map((category: Category) => (
+            {trendingCategories.map((category: Category) => (
               <Link
                 key={category._id}
                 to={`/products?categoryId=${category._id}`}

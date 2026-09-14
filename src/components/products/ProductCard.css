@@ -133,7 +133,7 @@
   background: rgba(8, 3, 33, 0.74);
   border: 1px solid var(--border);
   border-radius: 999px;
-  color: var(--text-primary);
+  color: #ffffff;
   font-size: 0.68rem;
   font-weight: 600;
   z-index: 2;

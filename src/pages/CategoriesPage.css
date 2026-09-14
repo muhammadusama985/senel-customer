@@ -82,6 +82,13 @@
   gap: 1.5rem;
 }
 
+/* While a search term is active, cap the card size so a single (or few)
+   matching category never stretches into a huge full-width card. */
+.categories-grid--compact {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 280px));
+  justify-content: center;
+}
+
 .category-card {
   display: flex;
   flex-direction: column;

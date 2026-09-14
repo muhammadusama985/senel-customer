@@ -54,7 +54,7 @@ export const CategoriesPage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="categories-grid">
+          <div className={`categories-grid${searchTerm ? ' categories-grid--compact' : ''}`}>
             {filteredCategories.map((category: Category) => (
               <Link key={category._id} to={`/products?categoryId=${category._id}`} className="category-card">
                 <div className="category-card-media">

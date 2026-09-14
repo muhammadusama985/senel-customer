@@ -22,24 +22,35 @@ export const Hero: React.FC = () => {
   }, [banners.length]);
 
   const activeBanner = useMemo(() => banners[index], [banners, index]);
-  const heroImageUrl = resolveMediaUrl(activeBanner?.imageUrl);
-  const heroBackground = heroImageUrl
-    ? {
-        backgroundImage: `url(${heroImageUrl})`,
-        backgroundSize: '100% 100%',
-        backgroundRepeat: 'no-repeat',
-      }
-    : undefined;
 
   return (
     <section className="hero">
       <div className="container">
-        <div className="hero-shell" style={heroBackground}>
+        <div className="hero-shell">
+          {banners.length > 0 && (
+            <div
+              className="hero-track"
+              style={{ transform: `translateX(-${index * 100}%)` }}
+            >
+              {banners.map((banner, bannerIndex) => {
+                const slideUrl = resolveMediaUrl(banner.imageUrl);
+                return (
+                  <div
+                    key={banner.id || String(bannerIndex)}
+                    className="hero-slide"
+                    style={slideUrl ? { backgroundImage: `url(${slideUrl})` } : undefined}
+                    aria-hidden={bannerIndex !== index}
+                  />
+                );
+              })}
+            </div>
+          )}
+
           <div className="hero-corner-note">
             <span className="hero-corner-store">Senel Store</span>
           </div>
           <div className="hero-content-card">
-            <div className="hero-content">
+            <div className="hero-content" key={index}>
             <h1 className="hero-title">
               {activeBanner?.title || t('home.buyWholesale', 'Buy Wholesale.')}
               <br />

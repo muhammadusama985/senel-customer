@@ -27,7 +27,7 @@ export const ProductsPage: React.FC = () => {
   const currentMinRating = searchParams.get('minRating') || '';
 
   // Fetch products with filters
-  const { data, isLoading, error } = useProducts({
+  const { data, isLoading, error, isFetching } = useProducts({
   q: currentQ,
   categoryId: currentCategory, // This now passes the ID, not slug
   minPrice: currentMinPrice ? parseFloat(currentMinPrice) : undefined,
@@ -115,6 +115,15 @@ export const ProductsPage: React.FC = () => {
 
           {/* Main Content */}
           <main className="products-main">
+            {isFetching && !isLoading && (
+              <div
+                className="products-refetching"
+                role="status"
+                aria-label={t('products.loading', 'Loading products...')}
+              >
+                <div className="products-refetching-bar" />
+              </div>
+            )}
             <div className="products-toolbar">
               <ProductSort 
                 currentSort={currentSort} 

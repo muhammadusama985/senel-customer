@@ -76,6 +76,37 @@
   gap: 1rem;
 }
 
+/* Indeterminate loading bar shown while products are refetched (e.g. after
+   clicking a category) but previous results are still on screen. */
+.products-refetching {
+  position: relative;
+  height: 3px;
+  margin-bottom: 0.9rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: var(--border);
+}
+
+.products-refetching-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  animation: productsRefetchSlide 1.1s ease-in-out infinite;
+}
+
+@keyframes productsRefetchSlide {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(360%);
+  }
+}
+
 .error-state,
 .empty-state {
   text-align: center;

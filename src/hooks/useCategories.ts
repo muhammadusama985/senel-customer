@@ -21,7 +21,7 @@ interface CategoriesResponse {
 // `useTranslatedData` below.
 export const useCategories = (limit?: number) => {
   const query = useQuery<Category[]>({
-    queryKey: ['categories'],
+    queryKey: ['categories', limit ?? 'all'],
     queryFn: async () => {
       const response = await api.get<CategoriesResponse>('/shop/categories');
       const categories = response.data.categories || [];

@@ -84,7 +84,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
 
       <CategoryFilter
         selectedCategory={filters.categoryId}
-        onCategoryChange={(categoryId) => handleChange('categoryId', categoryId)}
+        onCategoryChange={(categoryId) => onFilterChange({ categoryId })}
       />
 
       <div className="filter-section">

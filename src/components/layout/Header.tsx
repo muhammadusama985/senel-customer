@@ -236,6 +236,7 @@ export const Header: React.FC = () => {
   };
 
   const handleLogout = () => {
+    if (!window.confirm(t('account.logoutConfirm', 'Are you sure you want to logout?'))) return;
     logout();
     setIsAccountMenuOpen(false);
     navigate('/');

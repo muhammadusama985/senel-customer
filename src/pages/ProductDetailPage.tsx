@@ -88,6 +88,19 @@ const getReadableAttributesMap = (attributes: Record<string, unknown> = {}) =>
     Object.entries(attributes).map(([key, value]) => [key, getReadableAttributeValue(value)]),
   );
 
+// Variant attributes a customer can actually choose from: keys whose value
+// was left blank are dropped. A key that only ever holds an empty value must
+// not become a required selector group, otherwise its only option is '' — a
+// falsy value that can never satisfy `isSelectionComplete`, leaving "Add to
+// Cart" permanently disabled. Mirrors the Flutter build
+// (product_detail_page.dart:180-188).
+const getFilledVariantAttributes = (variant: any): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(variant?.attributes || {})
+      .map(([key, value]) => [key, getReadableAttributeValue(value)] as const)
+      .filter(([, value]) => Boolean(value)),
+  );
+
 // --- Color swatch helpers (mirror admin VariantEditor so the customer-side
 // can render the same color name → hex mapping when the attribute title is "Color").
 const COLOR_NAME_BY_HEX: Record<string, string> = {
@@ -245,6 +258,7 @@ export const ProductDetailPage: React.FC = () => {
         (product.variants || []).reduce((acc: Record<string, string[]>, variant: any) => {
           Object.entries(variant.attributes || {}).forEach(([key, value]) => {
             const readableValue = getReadableAttributeValue(value);
+            if (!readableValue) return;
             if (!acc[key]) acc[key] = [];
             if (!acc[key].includes(readableValue)) {
               acc[key].push(readableValue);
@@ -255,12 +269,40 @@ export const ProductDetailPage: React.FC = () => {
       )
     : [];
 
+  // An attribute group that offers exactly one option gives the customer no
+  // real choice to make, so pre-select it. The <select> renders that lone
+  // option as if it were already chosen, but because no value exists in state
+  // `onChange` never fires, `selectedAttributes[key]` stays undefined and
+  // `isSelectionComplete` never becomes true — which leaves "Add to Cart"
+  // permanently disabled. The signature string keeps the dependency stable,
+  // since attributeOptions is rebuilt on every render.
+  const singleOptionSignature = attributeOptions
+    .filter(([, options]) => options.length === 1)
+    .map(([key, options]) => `${key}=${options[0]}`)
+    .join('&');
+
+  useEffect(() => {
+    if (!product?.hasVariants || !singleOptionSignature) return;
+    setSelectedAttributes((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      attributeOptions.forEach(([key, options]) => {
+        if (options.length === 1 && !next[key]) {
+          next[key] = options[0];
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [singleOptionSignature, product?._id, product?.hasVariants]);
+
   const selectedVariant = product?.hasVariants
-    ? product.variants?.filter((variant: any) => Object.keys(variant.attributes || {}).length === Object.keys(selectedAttributes).length).find((variant: any) =>
-        Object.entries(selectedAttributes).every(
-          ([key, value]) => getReadableAttributeValue(variant.attributes?.[key]) === value,
-        ),
-      ) || null
+    ? product.variants
+        ?.filter((variant: any) => Object.keys(getFilledVariantAttributes(variant)).length === Object.keys(selectedAttributes).length)
+        .find((variant: any) => {
+          const filled = getFilledVariantAttributes(variant);
+          return Object.entries(selectedAttributes).every(([key, value]) => filled[key] === value);
+        }) || null
     : null;
   const selectedOptionVariants = product?.hasVariants
     ? (() => {
@@ -288,14 +330,14 @@ export const ProductDetailPage: React.FC = () => {
   // multi-attr ones would be.
   const hasMultiAttrVariants = Array.isArray(product?.variants) &&
     (product!.variants as any[]).some(
-      (v: any) => Object.keys(v?.attributes || {}).length > 1,
+      (v: any) => Object.keys(getFilledVariantAttributes(v)).length > 1,
     );
   // Helper used by the stock table, overallStock, and selectedVariantStock:
   // keep multi-attribute variants when any exist, otherwise keep every
   // variant so single-attribute products still display + function.
   const filterStockVariants = (variants: any[]) =>
     hasMultiAttrVariants
-      ? variants.filter((v) => Object.keys(v?.attributes || {}).length > 1)
+      ? variants.filter((v) => Object.keys(getFilledVariantAttributes(v)).length > 1)
       : variants;
   const isSelectionComplete = attributeOptions.every(([attributeKey]) => Boolean(selectedAttributes[attributeKey]));
   const selectedVariantSku =
@@ -333,7 +375,7 @@ export const ProductDetailPage: React.FC = () => {
       // variant only has one attribute (single-option variant like
       // "Color: Red" alone), fall back to overallStock so the customer
       // isn't told "out of stock" before they've picked every option.
-      if (Object.keys(selectedVariant.attributes || {}).length > 1) {
+      if (Object.keys(getFilledVariantAttributes(selectedVariant)).length > 1) {
         return Number(selectedVariant.stockQty || 0);
       }
       // Single-attribute match. If the product has no multi-attribute
@@ -353,7 +395,7 @@ export const ProductDetailPage: React.FC = () => {
       //   a full combination and the partial sum reflects real stock.
       const relevantVariants = hasMultiAttrVariants
         ? selectedOptionVariants.filter(
-            (v: any) => Object.keys(v.attributes || {}).length > 1,
+            (v: any) => Object.keys(getFilledVariantAttributes(v)).length > 1,
           )
         : selectedOptionVariants;
       if (relevantVariants.length === 0) {
